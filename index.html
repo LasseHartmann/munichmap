@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Munich Zone M Transit GPS Map</title>
+  <meta name="theme-color" content="#0B0E14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: #EAF0F8;
+    }
+
+    :root {
+      /* Luminous Liquid Glass Theme */
+      --aicher-bg: #EAF0F8;
+      --glass-base: rgba(255, 255, 255, 0.65);
+      --glass-base-solid: #FFFFFF;
+      --glass-panel-sub: rgba(244, 248, 255, 0.50);
+      --glass-border: rgba(255, 255, 255, 0.88);
+      --glass-border-focus: rgba(255, 255, 255, 0.95);
+      --glass-specular: rgba(255, 255, 255, 0.98);
+      --glass-specular-soft: rgba(255, 255, 255, 0.55);
+      --glass-blur: blur(28px) saturate(210%);
+      --glass-shadow: 0 20px 48px -10px rgba(0, 85, 185, 0.16), 0 8px 24px -4px rgba(15, 23, 42, 0.06);
+      --glass-btn-hover-shadow: 0 14px 32px -4px rgba(0, 102, 204, 0.28);
+      --aicher-blue: #0066CC;
+      --aicher-yellow: #FFB800;
+      --aicher-green: #00A35C;
+      --aicher-text-title: #0F172A;
+      --aicher-text-main: #1E293B;
+      --aicher-text-muted: #5B6E88;
+      --aicher-radius: 28px;
+      --aicher-radius-pill: 9999px;
+      --spring-bouncy: cubic-bezier(0.34, 1.68, 0.64, 1);
+      --spring-squish: cubic-bezier(0.175, 0.885, 0.32, 1.45);
+      --spring-soft: cubic-bezier(0.25, 1.25, 0.5, 1);
+    }
+
+    body.theme-dark {
+      --aicher-bg: #0B0E14;
+      --glass-base: rgba(18, 24, 36, 0.68);
+      --glass-base-solid: #121824;
+      --glass-panel-sub: rgba(255, 255, 255, 0.07);
+      --glass-border: rgba(255, 255, 255, 0.16);
+      --glass-border-focus: rgba(255, 255, 255, 0.28);
+      --glass-specular: rgba(255, 255, 255, 0.35);
+      --glass-specular-soft: rgba(255, 255, 255, 0.15);
+      --glass-shadow: 0 20px 50px -8px rgba(0, 0, 0, 0.75), 0 6px 18px rgba(0, 0, 0, 0.4);
+      --glass-btn-hover-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5);
+      --aicher-blue: #1A84ED;
+      --aicher-yellow: #FFD200;
+      --aicher-green: #00B368;
+      --aicher-text-title: #FFFFFF;
+      --aicher-text-main: #E5EBF5;
+      --aicher-text-muted: #94A3B8;
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Univers", "SF Pro Display", "Helvetica Neue", "Arial", sans-serif;
+      overscroll-behavior: none;
+      background-color: var(--aicher-bg);
+      color: var(--aicher-text-main);
+      letter-spacing: -0.015em;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--aicher-bg);
+      z-index: 1;
+      touch-action: manipulation;
+    }
+
+    .aicher-panel {
+      position: relative;
+      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(255, 255, 255, 0.54) 100%);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1.5px solid var(--glass-border);
+      border-radius: var(--aicher-radius);
+      box-shadow: inset 0 2px 2px 0 var(--glass-specular),
+                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.03),
+                  var(--glass-shadow);
+      transition: transform 0.42s var(--spring-bouncy),
+                  box-shadow 0.35s ease,
+                  background 0.35s ease,
+                  border-color 0.3s ease;
+    }
+
+    body.theme-dark .aicher-panel {
+      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(25, 33, 49, 0.68) 100%);
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
+                  var(--glass-shadow);
+    }
+
+    .aicher-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 14px;
+      right: 14px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--glass-specular) 45%, var(--glass-specular) 55%, transparent 100%);
+      opacity: 0.85;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .aicher-btn {
+      position: relative;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0;
+      margin: 0;
+      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(255, 255, 255, 0.54) 100%);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1.5px solid var(--glass-border);
+      border-radius: 14px;
+      color: var(--aicher-text-title);
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
+                  var(--glass-shadow);
+      transition: transform 0.28s var(--spring-bouncy),
+                  box-shadow 0.25s ease,
+                  background-color 0.2s ease,
+                  border-color 0.2s ease;
+      touch-action: manipulation;
+      will-change: transform;
+      line-height: 1 !important;
+      text-align: center !important;
+    }
+
+    body.theme-dark .aicher-btn {
+      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(25, 33, 49, 0.68) 100%);
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
+                  var(--glass-shadow);
+    }
+
+    .aicher-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 16%;
+      right: 16%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--glass-specular) 50%, transparent 100%);
+      opacity: 0.9;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    button i, .aicher-btn i,
+    button span, .aicher-btn span,
+    [class*="fa-"] {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: 0 !important;
+      line-height: 1 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      text-align: center !important;
+      transform-origin: center center;
+    }
+
+    .aicher-btn:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  var(--glass-btn-hover-shadow);
+      border-color: var(--glass-border-focus);
+    }
+
+    button:focus, button:focus-visible,
+    .aicher-btn:focus, .aicher-btn:focus-visible,
+    input:focus, input:focus-visible {
+      outline: none !important;
+      border-color: var(--glass-border) !important;
+      box-shadow: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+    }
+
+    body.theme-dark button:focus,
+    body.theme-dark button:focus-visible,
+    body.theme-dark .aicher-btn:focus,
+    body.theme-dark .aicher-btn:focus-visible {
+      outline: none !important;
+      border-color: var(--glass-border) !important;
+    }
+
+    body.theme-dark .aicher-btn:hover {
+      border-color: var(--glass-border) !important;
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  0 8px 20px -2px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .aicher-btn:active {
+      transform: scale(0.88, 0.85) translateY(1px);
+      box-shadow: inset 0 1px 1px 0 var(--glass-specular),
+                  0 2px 8px rgba(0, 70, 160, 0.2);
+      transition: transform 0.12s var(--spring-squish);
+    }
+
+    .aicher-search-bar {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 245, 255, 0.82) 100%);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1.5px solid var(--glass-border);
+      border-radius: 22px;
+      box-shadow: inset 0 2px 2.5px 0 var(--glass-specular),
+                  inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.04),
+                  var(--glass-shadow);
+      transition: transform 0.38s var(--spring-bouncy),
+                  box-shadow 0.35s ease,
+                  border-color 0.3s ease;
+    }
+
+    body.theme-dark .aicher-search-bar {
+      background: linear-gradient(135deg, rgba(20, 27, 40, 0.90) 0%, rgba(14, 19, 29, 0.86) 100%);
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
+                  var(--glass-shadow);
+    }
+
+    .aicher-bottom-shelf {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(242, 247, 255, 0.90) 100%);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1.5px solid var(--glass-border);
+      border-radius: 22px;
+      box-shadow: inset 0 2px 2.5px 0 var(--glass-specular),
+                  inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.04),
+                  var(--glass-shadow);
+    }
+
+    body.theme-dark .aicher-bottom-shelf {
+      background: linear-gradient(135deg, rgba(20, 27, 40, 0.95) 0%, rgba(13, 18, 28, 0.93) 100%);
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.35),
+                  var(--glass-shadow);
+    }
+
+    .aicher-search-bar::before,
+    .aicher-bottom-shelf::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 18px;
+      right: 18px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--glass-specular) 45%, var(--glass-specular) 55%, transparent 100%);
+      opacity: 0.9;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .aicher-filter-tab {
+      position: relative;
+      background: var(--glass-panel-sub);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1.5px solid var(--glass-border);
+      border-radius: var(--aicher-radius-pill);
+      color: var(--aicher-text-main);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      box-shadow: inset 0 1.5px 1.5px var(--glass-specular), 0 3px 10px rgba(0, 50, 120, 0.08);
+      transition: all 0.36s var(--spring-bouncy);
+      will-change: transform;
+    }
+
+    .aicher-filter-tab:hover {
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    .aicher-filter-tab:active {
+      transform: scale(0.88, 0.84);
+      transition: transform 0.1s var(--spring-squish);
+    }
+
+    .aicher-filter-tab.active-tab {
+      background: var(--aicher-blue) !important;
+      border-color: rgba(255, 255, 255, 0.6) !important;
+      color: #FFFFFF !important;
+      box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.6),
+                  0 8px 22px rgba(0, 102, 204, 0.42);
+      transform: scale(1.04);
+    }
+
+    .aicher-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      border-radius: var(--aicher-radius-pill);
+      min-width: 30px;
+      height: 22px;
+      padding: 0 8px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.55),
+                  0 4px 10px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      transition: transform 0.32s var(--spring-bouncy), box-shadow 0.25s ease;
+      will-change: transform;
+    }
+
+    .aicher-badge:hover {
+      transform: scale(1.12, 1.08) translateY(-1.5px);
+    }
+
+    @keyframes liquidGlassPop {
+      0% { opacity: 0; transform: scale(0.78, 0.72) translateY(14px); }
+      55% { opacity: 1; transform: scale(1.07, 1.05) translateY(-3px); }
+      80% { transform: scale(0.97, 0.98) translateY(1px); }
+      100% { opacity: 1; transform: scale(1, 1) translateY(0); }
+    }
+
+    .liquid-pop-in {
+      animation: liquidGlassPop 0.48s var(--spring-bouncy) forwards;
+    }
+
+    .leaflet-popup { margin-bottom: 8px !important; }
+    .leaflet-popup-content-wrapper {
+      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(255, 255, 255, 0.6) 100%) !important;
+      color: var(--aicher-text-main) !important;
+      backdrop-filter: var(--glass-blur) !important;
+      -webkit-backdrop-filter: var(--glass-blur) !important;
+      border: 1.5px solid var(--glass-border) !important;
+      border-radius: 20px !important;
+      box-shadow: inset 0 2px 2px var(--glass-specular),
+                  0 16px 36px -6px rgba(0, 70, 160, 0.25) !important;
+      padding: 0px !important;
+      animation: liquidGlassPop 0.45s var(--spring-bouncy) !important;
+      transform-origin: bottom center !important;
+    }
+
+    body.theme-dark .leaflet-popup-content-wrapper {
+      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(22, 29, 44, 0.75) 100%) !important;
+      box-shadow: inset 0 1.5px 2px var(--glass-specular),
+                  0 16px 36px -6px rgba(0, 0, 0, 0.7) !important;
+    }
+
+    .leaflet-popup-content { margin: 0px !important; line-height: 1 !important; }
+    .leaflet-popup-tip-container {
+      width: 24px !important; height: 9px !important;
+      margin-top: -1px !important; margin-left: -12px !important;
+    }
+
+    .leaflet-popup-tip {
+      width: 10px !important; height: 10px !important;
+      margin: -5px auto 0 !important;
+      background: var(--glass-base) !important;
+      backdrop-filter: var(--glass-blur) !important;
+      -webkit-backdrop-filter: var(--glass-blur) !important;
+      border: 1.5px solid var(--glass-border) !important;
+      border-top: none !important; border-left: none !important;
+      box-shadow: none !important;
+    }
+    .leaflet-container a.leaflet-popup-close-button { display: none !important; }
+
+    .station-node-wrap.leaflet-div-icon, .station-node-wrap {
+      background: transparent !important; border: none !important;
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      transition: transform 0.3s var(--spring-bouncy);
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+    }
+    .station-node-wrap:hover {
+      transform: scale(1.22);
+      filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.6));
+    }
+
+    .station-node-svg circle.node-outer {
+      fill: #FFFFFF; stroke: #0F172A; stroke-width: 2.2px;
+    }
+    .station-hub-svg circle.hub-outer {
+      fill: #FFFFFF; stroke: #0F172A; stroke-width: 2.4px;
+    }
+    .station-hub-svg circle.hub-inner {
+      fill: #0F172A;
+    }
+
+    body.theme-dark .station-node-wrap {
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9));
+    }
+    body.theme-dark .station-node-svg circle.node-outer {
+      fill: #FFFFFF; stroke: #05070B; stroke-width: 2.4px;
+    }
+    body.theme-dark .station-hub-svg circle.hub-outer {
+      fill: #FFFFFF; stroke: #05070B; stroke-width: 2.6px;
+    }
+    body.theme-dark .station-hub-svg circle.hub-inner {
+      fill: #05070B;
+    }
+
+    .aicher-gps-marker-wrap.leaflet-div-icon { background: transparent !important; border: none !important; }
+    .aicher-gps-wrap { position: relative; width: 32px; height: 32px; }
+    .aicher-gps-dot {
+      width: 16px; height: 16px; background: var(--aicher-blue); border: 3px solid #FFFFFF;
+      border-radius: 50%; position: absolute; top: 8px; left: 8px;
+      box-shadow: 0 4px 14px rgba(0, 102, 204, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+      animation: jellyPulse 3s infinite var(--spring-bouncy);
+    }
+    .aicher-gps-ring {
+      position: absolute; inset: 0px; border: 2px solid rgba(255, 255, 255, 0.75); border-radius: 50%;
+      opacity: 0.85; animation: aicherPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes aicherPing { 75%, 100% { transform: scale(2.8); opacity: 0; } }
+    @keyframes jellyPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15, 0.9); }
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .dep-scroll::-webkit-scrollbar { width: 5px; }
+    .dep-scroll::-webkit-scrollbar-track { background: transparent; }
+    .dep-scroll::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 9999px;
+      border: 1px solid var(--glass-specular-soft);
+      transition: background 0.25s ease;
+    }
+    .dep-scroll::-webkit-scrollbar-thumb:hover { background: var(--aicher-blue); }
+
+    .line-scroll::-webkit-scrollbar { height: 4px; }
+    .line-scroll::-webkit-scrollbar-track { background: transparent; }
+    .line-scroll::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 9999px;
+      transition: background 0.25s ease;
+    }
+    .line-scroll::-webkit-scrollbar-thumb:hover { background: var(--aicher-blue); }
+
+    .safe-top { padding-top: max(14px, env(safe-area-inset-top, 14px)); }
+    .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); }
+
+    .departures-drawer {
+      max-height: 520px;
+      opacity: 1;
+      padding-top: 0.5rem;
+      margin-top: 0.2rem;
+      border-top-width: 1px;
+      border-top-color: var(--glass-border);
+      pointer-events: auto;
+      overflow: hidden;
+      transform-origin: bottom center;
+    }
+
+    /* Regulated Departure Table Container with Shared Glass Transparency */
+    .dep-table-container {
+      position: relative;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: inset 0 1px 1.5px 0 var(--glass-specular-soft);
+      overflow: hidden;
+      width: 100%;
+    }
+
+    body.theme-dark .dep-table-container {
+      background: rgba(0, 0, 0, 0.22);
+      box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .dep-table-header {
+      background: rgba(0, 0, 0, 0.035);
+      border-bottom: 1px solid var(--glass-border);
+      user-select: none;
+    }
+
+    body.theme-dark .dep-table-header {
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    #departuresList {
+      transition: max-height 0.38s cubic-bezier(0.25, 1.15, 0.5, 1);
+      will-change: max-height;
+    }
+    #departuresList.is-collapsed {
+      max-height: 84px;
+      overflow-y: hidden;
+    }
+    #departuresList.is-expanded {
+      max-height: 294px;
+      overflow-y: auto;
+    }
+
+    .dep-table-row {
+      height: 42px;
+      min-height: 42px;
+      max-height: 42px;
+      transition: background-color 0.18s ease;
+      will-change: background-color;
+    }
+
+    .dep-table-row:hover {
+      background-color: rgba(0, 102, 204, 0.06);
+    }
+
+    body.theme-dark .dep-table-row:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .dep-table-row:active {
+      background-color: rgba(0, 102, 204, 0.12);
+    }
+
+    body.theme-dark .dep-table-row:active {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Draggable Handle Bar Styles */
+    #stationDragHandle {
+      cursor: grab;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #stationDragHandle:active,
+    #stationDragHandle.is-dragging {
+      cursor: grabbing !important;
+    }
+
+    #dragHandlePill {
+      background-color: rgba(148, 163, 184, 0.45);
+      box-shadow: inset 0 1px 1.5px var(--glass-specular),
+                  0 2px 5px rgba(0, 0, 0, 0.08);
+      transition: width 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
+                  transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
+                  background-color 0.2s ease,
+                  box-shadow 0.2s ease;
+      will-change: width, transform, background-color;
+    }
+
+    body.theme-dark #dragHandlePill {
+      background-color: rgba(255, 255, 255, 0.28);
+    }
+
+    #stationDragHandle:hover #dragHandlePill {
+      background-color: rgba(148, 163, 184, 0.7);
+      width: 3.5rem; /* 56px */
+      transform: scaleY(1.2);
+    }
+
+    body.theme-dark #stationDragHandle:hover #dragHandlePill {
+      background-color: rgba(255, 255, 255, 0.45);
+    }
+
+    #stationDragHandle.is-dragging #dragHandlePill,
+    #dragHandlePill.is-active-drag {
+      background-color: var(--aicher-blue) !important;
+      width: 4.2rem !important; /* 67px */
+      transform: scaleY(1.35) !important;
+      box-shadow: 0 0 14px rgba(0, 102, 204, 0.65), inset 0 1px 1.5px rgba(255, 255, 255, 0.9) !important;
+    }
+
+    /* Smooth Dragging Class without Animation Stutter */
+    .is-sheet-dragging #departuresList {
+      transition: none !important;
+    }
+  </style>
+</head>
+
+<body class="theme-dark h-[100dvh] w-full fixed inset-0 overflow-hidden flex flex-col">
+
+  <!-- Fullscreen Leaflet Container -->
+  <div id="map"></div>
+
+  <!-- Wayfinding Header & Search Bar -->
+  <header class="absolute top-0 left-0 right-0 z-[1000] safe-top px-3 sm:px-4 pointer-events-none flex flex-col gap-2">
+    <div class="pointer-events-auto max-w-xl mx-auto w-full">
+      <div class="relative w-full">
+        <div class="aicher-search-bar relative w-full flex items-center">
+          <div class="pl-3.5 pr-1 flex items-center justify-center pointer-events-none text-[var(--aicher-text-muted)] z-10 leading-none shrink-0">
+            <i class="fa-solid fa-magnifying-glass text-[13px] opacity-80"></i>
+          </div>
+          <input id="stationSearchInput" type="text" placeholder="Station in Zone M suchen..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-transparent border-none outline-none py-2.5 pr-8 leading-tight text-[15px] sm:text-sm text-[var(--aicher-text-title)] font-semibold placeholder:text-[var(--aicher-text-muted)] placeholder:font-normal">
+          <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100 touch-manipulation active:scale-75 transition-all p-0 m-0">
+            <i class="fa-solid fa-xmark text-[10px] text-[var(--aicher-text-title)]"></i>
+          </button>
+        </div>
+        <div id="searchDropdown" class="hidden absolute top-full left-0 right-0 mt-2 max-h-[42vh] overflow-y-auto aicher-panel divide-y divide-[var(--glass-border)] z-50 overflow-hidden liquid-pop-in"></div>
+      </div>
+    </div>
+
+    <div id="filterMenuPanel" class="hidden pointer-events-auto aicher-panel p-4 max-w-xl mx-auto w-full mt-1 z-50 liquid-pop-in">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--glass-border)]">
+        <div class="flex items-center gap-2.5">
+          <div class="w-6 h-6 rounded-full bg-[var(--aicher-blue)] flex items-center justify-center text-white shadow-sm shrink-0 leading-none">
+            <i class="fa-solid fa-sliders text-[10px]"></i>
+          </div>
+          <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
+          <span id="filterActiveCount" class="text-[10px] font-bold text-[var(--aicher-text-muted)] ml-1"></span>
+        </div>
+        <button id="closeFilterMenuBtn" class="w-7 h-7 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100 touch-manipulation active:scale-75 transition-all p-0 m-0">
+          <i class="fa-solid fa-xmark text-xs text-[var(--aicher-text-title)]"></i>
+        </button>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <button data-filter="all" class="filter-opt-btn aicher-filter-tab active-tab px-3 py-2 text-xs flex items-center justify-center text-center leading-none">Alle</button>
+        <button data-filter="U" title="U-Bahn" class="filter-opt-btn aicher-filter-tab px-3 py-2 text-xs flex items-center justify-center p-0">
+          <span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center leading-none shadow-sm">U</span>
+        </button>
+        <button data-filter="S" title="S-Bahn" class="filter-opt-btn aicher-filter-tab px-3 py-2 text-xs flex items-center justify-center p-0">
+          <span class="w-5 h-5 rounded-full bg-[#008B4E] text-white text-xs font-black flex items-center justify-center leading-none shadow-sm">S</span>
+        </button>
+      </div>
+      <div class="mb-3.5">
+        <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] flex items-center gap-1.5 mb-2 pl-1">
+          <span class="w-3.5 h-3.5 rounded-[4px] bg-[#0073B9] text-white text-[9px] font-black inline-flex items-center justify-center leading-none">U</span> U-Bahn Linien
+        </span>
+        <div class="flex flex-wrap gap-2">
+          <button data-line="U1" class="filter-line-btn aicher-badge text-white bg-[#438238]">U1</button>
+          <button data-line="U2" class="filter-line-btn aicher-badge text-white bg-[#C31B2C]">U2</button>
+          <button data-line="U3" class="filter-line-btn aicher-badge text-white bg-[#EB7926]">U3</button>
+          <button data-line="U4" class="filter-line-badge aicher-badge text-white bg-[#00A896]">U4</button>
+          <button data-line="U5" class="filter-line-btn aicher-badge text-white bg-[#BE7E22]">U5</button>
+          <button data-line="U6" class="filter-line-btn aicher-badge text-white bg-[#0073B9]">U6</button>
+          <button data-line="U7" class="filter-line-btn aicher-badge text-white bg-[#A32938]">U7</button>
+          <button data-line="U8" class="filter-line-btn aicher-badge text-white bg-[#B84514]">U8</button>
+        </div>
+      </div>
+      <div>
+        <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] flex items-center gap-1.5 mb-2 pl-1">
+          <span class="w-3.5 h-3.5 rounded-full bg-[#008B4E] text-white text-[9px] font-black inline-flex items-center justify-center leading-none">S</span> S-Bahn Linien
+        </span>
+        <div class="flex flex-wrap gap-2">
+          <button data-line="S1" class="filter-line-btn aicher-badge text-white bg-[#1BB0E8]">S1</button>
+          <button data-line="S2" class="filter-line-btn aicher-badge text-white bg-[#74BF43]">S2</button>
+          <button data-line="S3" class="filter-line-btn aicher-badge text-white bg-[#92278F]">S3</button>
+          <button data-line="S4" class="filter-line-btn aicher-badge text-white bg-[#E2007A]">S4</button>
+          <button data-line="S6" class="filter-line-btn aicher-badge text-white bg-[#008B4E]">S6</button>
+          <button data-line="S7" class="filter-line-btn aicher-badge text-white bg-[#941B33]">S7</button>
+          <button data-line="S8" class="filter-line-btn aicher-badge text-black bg-[#FFCC00]">S8</button>
+          <button data-line="S20" class="filter-line-btn aicher-badge text-white bg-[#EA516D]">S20</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <aside class="absolute right-3 top-[68px] sm:top-20 z-[1000] flex flex-col gap-2 pointer-events-auto">
+    <!-- GPS Ortung (Einmaliges Zentrieren) -->
+    <button id="gpsBtn" title="Standort auf Karte zentrieren" aria-label="Mein Standort" class="w-9 h-9 aicher-btn relative p-0 m-0 shadow-md">
+      <i id="gpsIcon" class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i>
+    </button>
+
+    <!-- Linienfilter Öffner -->
+    <button id="filterMenuBtn" title="Linienfilter anzeigen" aria-label="Linienfilter" class="w-9 h-9 aicher-btn relative p-0 m-0 shadow-md">
+      <i id="filterBtnIcon" class="fa-solid fa-filter text-[12px] text-[var(--aicher-text-title)]"></i>
+      <span id="filterActiveBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--aicher-blue)] border border-white/60 text-[8.5px] font-black text-white flex items-center justify-center leading-none shadow-md">0</span>
+    </button>
+
+    <!-- Gesamtnetz zentrieren (Zone M) -->
+    <button id="centerMapBtn" title="Gesamtes Netz zentrieren" aria-label="Netz zentrieren" class="w-9 h-9 aicher-btn p-0 m-0 shadow-md">
+      <i class="fa-solid fa-expand text-[12px] text-[var(--aicher-text-title)] opacity-90"></i>
+    </button>
+
+    <!-- Theme Toggle -->
+    <button id="layerCycleBtn" title="Kartenstil umschalten" aria-label="Kartenstil wechseln" class="w-9 h-9 aicher-btn p-0 m-0 shadow-md">
+      <i id="layerIcon" class="fa-solid fa-moon text-[12.5px] text-[var(--aicher-yellow)]"></i>
+    </button>
+  </aside>
+
+  <!-- Departures Bottom Widget Shelf -->
+  <div id="currentStationWidget" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-[410px] max-w-md mx-auto z-[1000] safe-bottom pointer-events-auto">
+    <div class="aicher-bottom-shelf p-3 sm:px-3.5 sm:py-3 flex flex-col max-w-full min-w-[285px]">
+      
+      <!-- Interactive Draggable Bar on the Bottom Shelf -->
+      <div id="stationDragHandle" class="w-full flex flex-col items-center justify-center py-2.5 -mt-1 select-none group relative touch-none" title="Ziehen oder tippen für mehr Abfahrten" aria-label="Abfahrtsleiste verschieben">
+        <div class="absolute inset-0 -top-2.5 -bottom-2 w-full pointer-events-auto"></div>
+        <div id="dragHandlePill" class="w-12 h-1.5 rounded-full relative z-10 pointer-events-none"></div>
+      </div>
+
+      <!-- Station Header (also drag-friendly) -->
+      <div id="stationHeaderArea" class="flex items-center justify-between gap-2.5 sm:gap-3 min-w-0 w-full cursor-pointer select-none group" title="Tippen oder ziehen für mehr Abfahrten">
+        <div class="flex flex-col min-w-[105px] max-w-[42%] sm:max-w-[45%] shrink-0 py-0.5 px-1 sm:px-0">
+          <span id="nearestStationName" class="text-[14px] leading-tight font-black truncate text-[var(--aicher-text-title)] tracking-tight">Hauptbahnhof</span>
+          <span id="nearestStationMeta" class="text-[10px] leading-tight text-[var(--aicher-text-muted)] truncate font-semibold">Zone M</span>
+        </div>
+        
+        <div class="flex items-center min-w-0 flex-1 justify-end overflow-hidden gap-1.5">
+          <div id="nearestStationLines" class="flex items-center gap-1.5 overflow-x-auto line-scroll pb-1 pt-0.5 px-0.5 ml-auto max-w-full touch-pan-x select-none"></div>
+          <button id="closeStationShelfBtn" class="w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-75 hover:opacity-100 touch-manipulation active:scale-75 transition-all p-0 m-0 shrink-0 shadow-sm" title="Abfahrten schließen" aria-label="Schließen">
+            <i class="fa-solid fa-xmark text-[10px] text-[var(--aicher-text-title)]"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Departures Drawer Container -->
+      <div id="liveDeparturesContainer" class="departures-drawer flex flex-col gap-2 w-full">
+        <!-- Status dot & filter pills consolidated in single row -->
+        <div class="flex items-center justify-between px-1 min-h-[30px]">
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+            <span id="depDataSourceDot" class="w-2.5 h-2.5 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse shrink-0" title="Echtzeit Live"></span>
+            <!-- Transit Filter Bar (Alle / U / S) placed directly next to status light -->
+            <div id="departureFilterBar" class="flex items-center gap-1.5 shrink-0"></div>
+          </div>
+          <button id="refreshDepBtn" class="w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100 touch-manipulation active:scale-75 hover:rotate-180 transition-all duration-300 shadow-sm p-0 m-0 shrink-0 ml-1.5" title="Abfahrten aktualisieren">
+            <i class="fa-solid fa-arrows-rotate text-[9px] text-[var(--aicher-text-title)]"></i>
+          </button>
+        </div>
+
+        <!-- Regulated Departure Table Frame -->
+        <div class="dep-table-container">
+          <div class="dep-table-header grid grid-cols-[48px_1fr_86px] items-center px-3 py-1.5 text-[9.5px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)]">
+            <span>Linie</span>
+            <span class="pl-1">Richtung</span>
+            <span class="text-right">Abfahrt</span>
+          </div>
+          <!-- Scrollable Departures Table Body -->
+          <div id="departuresList" class="divide-y divide-[var(--glass-border)]/70 is-collapsed dep-scroll"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const LINE_COLORS = {
+      'U1': '#438238', 'U2': '#C31B2C', 'U3': '#EB7926', 'U4': '#00A896',
+      'U5': '#BE7E22', 'U6': '#0073B9', 'U7': '#A32938', 'U8': '#B84514',
+      'S1': '#1BB0E8', 'S2': '#74BF43', 'S3': '#92278F', 'S4': '#E2007A',
+      'S6': '#008B4E', 'S7': '#941B33', 'S8': '#FFCC00', 'S20': '#EA516D'
+    };
+
+    const STATIONS = [
+      { id: 'pasing', name: 'München-Pasing', lat: 48.14986460135086, lng: 11.461837275933958, lines: ['S3', 'S4', 'S6', 'S8', 'S20'], isHub: true, zone: 'Zone M' },
+      { id: 'laim', name: 'München-Laim', lat: 48.144621249017064, lng: 11.502640410997467, lines: ['S1', 'S2', 'S3', 'S4', 'S6', 'S8'], isHub: true, zone: 'Zone M' },
+      { id: 'hirschgarten', name: 'Hirschgarten', lat: 48.1435445141712, lng: 11.519634366146965, lines: ['S1', 'S2', 'S3', 'S4', 'S6', 'S8'], isHub: false, zone: 'Zone M' },
+      { id: 'donnersbergerbruecke', name: 'Donnersbergerbrücke', lat: 48.142658720215316, lng: 11.535625144609407, lines: ['S1', 'S2', 'S3', 'S4', 'S6', 'S7', 'S8'], isHub: true, zone: 'Zone M' },
+      { id: 'hackerbruecke', name: 'Hackerbrücke', lat: 48.14196366484935, lng: 11.548774778687745, lines: ['S1', 'S2', 'S3', 'S4', 'S6', 'S7', 'S8'], isHub: false, zone: 'Zone M' },
+      { id: 'hbf', name: 'Hauptbahnhof', lat: 48.14040060331775, lng: 11.558298574532829, lines: ['U1', 'U2', 'U4', 'U5', 'U7', 'U8', 'S1', 'S2', 'S3', 'S4', 'S6', 'S7', 'S8'], isHub: true, zone: 'Zone M' },
+      { id: 'karlsplatz', name: 'Karlsplatz (Stachus)', lat: 48.13940164415222, lng: 11.565755613275671, lines: ['U4', 'U5', 'S1', 'S2', 'S3', 'S4', 'S6', 'S8'], isHub: true, zone: 'Zone M' },
+      { id: 'marienplatz', name: 'Marienplatz', lat: 48.137234588554406, lng: 11.575509125356847, lines: ['U3', 'U6', 'S1', 'S2', 'S3', 'S4', 'S6', 'S8'], isHub: true, zone: 'Zone M' },
+      { id: 'isartor', name: 'Isartor', lat: 48.13470702207875, lng: 11.582856488812784, lines: ['S1', 'S2', 'S3', 'S4', 'S6', 'S8'], isHub: false, zone: 'Zone M' },
+      { id: 'rosenheimerplatz', name: 'Rosenheimer Platz', lat: 48.12916790547532, lng: 11.593562896055108, lines: ['S1', 'S2', 'S3', 'S4', 'S6', 'S8'], isHub: false, zone: 'Zone M' },
+      { id: 'ostbahnhof', name: 'Ostbahnhof', lat: 48.12752904290839, lng: 11.605190913546224, lines: ['U5', 'S1', 'S2', 'S3', 'S4', 'S6', 'S8'], isHub: true, zone: 'Zone M' },
+      { id: 'leuchtenbergring', name: 'Leuchtenbergring', lat: 48.13420776734592, lng: 11.61591534717394, lines: ['S1', 'S2', 'S4', 'S6', 'S8'], isHub: true, zone: 'Zone M' },
+      { id: 'bergamlaim', name: 'Berg am Laim', lat: 48.13399687266285, lng: 11.633354269482059, lines: ['S2', 'S4', 'S6'], isHub: false, zone: 'Zone M' },
+      { id: 'feldmoching', name: 'Feldmoching', lat: 48.21376376187111, lng: 11.541256178605067, lines: ['U2', 'S1'], isHub: true, zone: 'Zone M' },
+      { id: 'fasanerie', name: 'Fasanerie', lat: 48.19778380821754, lng: 11.52581654680534, lines: ['S1'], isHub: false, zone: 'Zone M' },
+      { id: 'moosach', name: 'Moosach', lat: 48.179602506752246, lng: 11.50560848051881, lines: ['U3', 'S1'], isHub: true, zone: 'Zone M' },
+      { id: 'karlsfeld', name: 'Karlsfeld', lat: 48.21155657311028, lng: 11.459413462177372, lines: ['S2'], isHub: false, zone: 'Zone M/1' },
+      { id: 'allach', name: 'Allach', lat: 48.189745470549035, lng: 11.468116045549545, lines: ['S2'], isHub: false, zone: 'Zone M' },
+      { id: 'untermenzing', name: 'Untermenzing', lat: 48.17768844797123, lng: 11.47277389793968, lines: ['S2'], isHub: false, zone: 'Zone M' },
+      { id: 'obermenzing', name: 'Obermenzing', lat: 48.16424928053405, lng: 11.478036090130603, lines: ['S2'], isHub: false, zone: 'Zone M' },
+      { id: 'riem', name: 'Riem', lat: 48.14418579950948, lng: 11.67875067395956, lines: ['S2'], isHub: false, zone: 'Zone M' },
+      { id: 'feldkirchen', name: 'Feldkirchen', lat: 48.151902920154164, lng: 11.732243177140646, lines: ['S2'], isHub: false, zone: 'Zone M/1' },
+      { id: 'lochhausen', name: 'Lochhausen', lat: 48.17625186623474, lng: 11.408330446596905, lines: ['S3'], isHub: false, zone: 'Zone M/1' },
+      { id: 'langwied', name: 'Langwied', lat: 48.16303329902925, lng: 11.432469959724633, lines: ['S3'], isHub: false, zone: 'Zone M' },
+      { id: 'stmartin', name: 'St.-Martin-Straße', lat: 48.11847352886531, lng: 11.595727816236101, lines: ['S3'], isHub: false, zone: 'Zone M' },
+      { id: 'giesing', name: 'Giesing', lat: 48.11083366867607, lng: 11.595794218044936, lines: ['U2', 'U7', 'U8', 'S3'], isHub: true, zone: 'Zone M' },
+      { id: 'fasangarten', name: 'Fasangarten', lat: 48.09287277329665, lng: 11.60594999445475, lines: ['S3'], isHub: false, zone: 'Zone M' },
+      { id: 'fasanenpark', name: 'Fasanenpark', lat: 48.07966936186046, lng: 11.609449067502167, lines: ['S3'], isHub: false, zone: 'Zone M' },
+      { id: 'unterhaching', name: 'Unterhaching', lat: 48.06486192165787, lng: 11.612372178017965, lines: ['S3'], isHub: false, zone: 'Zone M/1' },
+      { id: 'taufkirchen', name: 'Taufkirchen', lat: 48.05166528688482, lng: 11.60936277719642, lines: ['S3'], isHub: false, zone: 'Zone M/1' },
+      { id: 'furth', name: 'Furth (b Deisenhofen)', lat: 48.035717988529264, lng: 11.593515401050128, lines: ['S3'], isHub: false, zone: 'Zone M/1' },
+      { id: 'deisenhofen', name: 'Deisenhofen', lat: 48.01955897755963, lng: 11.583578021612466, lines: ['S3'], isHub: true, zone: 'Zone M/1' },
+      { id: 'aubing', name: 'Aubing', lat: 48.15600927783784, lng: 11.412926072439845, lines: ['S4'], isHub: false, zone: 'Zone M' },
+      { id: 'leienfelsstrasse', name: 'Leienfelsstraße', lat: 48.15461479797355, lng: 11.428404477897423, lines: ['S4'], isHub: false, zone: 'Zone M' },
+      { id: 'trudering', name: 'Trudering', lat: 48.12607760721019, lng: 11.663212536117875, lines: ['U2', 'S4', 'S6'], isHub: true, zone: 'Zone M' },
+      { id: 'gronsdorf', name: 'Gronsdorf', lat: 48.118349195081656, lng: 11.698968752924157, lines: ['S4', 'S6'], isHub: false, zone: 'Zone M/1' },
+      { id: 'haar', name: 'Haar', lat: 48.11145804879182, lng: 11.731076541329744, lines: ['S4', 'S6'], isHub: false, zone: 'Zone M/1' },
+      { id: 'westkreuz', name: 'Westkreuz', lat: 48.148889527903194, lng: 11.44378001676671, lines: ['S6', 'S8'], isHub: true, zone: 'Zone M' },
+      { id: 'lochham', name: 'Lochham', lat: 48.12855862789783, lng: 11.430963993210431, lines: ['S6'], isHub: false, zone: 'Zone M/1' },
+      { id: 'graefelfing', name: 'Gräfelfing', lat: 48.11982983423741, lng: 11.425640342574178, lines: ['S6'], isHub: false, zone: 'Zone M/1' },
+      { id: 'planegg', name: 'Planegg', lat: 48.105347974841976, lng: 11.413514956832788, lines: ['S6'], isHub: false, zone: 'Zone M/1' },
+      { id: 'stockdorf', name: 'Stockdorf', lat: 48.093264631701835, lng: 11.400764132523198, lines: ['S6'], isHub: false, zone: 'Zone M/1' },
+      { id: 'heimeranplatz', name: 'Heimeranplatz', lat: 48.13349779950862, lng: 11.531022422333033, lines: ['U4', 'U5', 'S7', 'S20'], isHub: true, zone: 'Zone M' },
+      { id: 'harras', name: 'Harras', lat: 48.11814226644557, lng: 11.536468350840956, lines: ['U6', 'S7'], isHub: true, zone: 'Zone M' },
+      { id: 'mittersendling', name: 'Mittersendling', lat: 48.10766175682283, lng: 11.536402506026091, lines: ['S7', 'S20'], isHub: false, zone: 'Zone M' },
+      { id: 'siemenswerke', name: 'Siemenswerke', lat: 48.09462984681085, lng: 11.532863555643129, lines: ['S7', 'S20'], isHub: false, zone: 'Zone M' },
+      { id: 'solln', name: 'Solln', lat: 48.07958435574506, lng: 11.52685540399439, lines: ['S7', 'S20'], isHub: false, zone: 'Zone M' },
+      { id: 'grosshesselohe', name: 'Großhesselohe Isartalbf', lat: 48.07121363365054, lng: 11.530920558780718, lines: ['S7', 'S20'], isHub: false, zone: 'Zone M/1' },
+      { id: 'pullach', name: 'Pullach', lat: 48.058823212655135, lng: 11.521760924854002, lines: ['S7', 'S20'], isHub: false, zone: 'Zone M/1' },
+      { id: 'hoellriegelskreuth', name: 'Höllriegelskreuth', lat: 48.0433050682714, lng: 11.509588931383876, lines: ['S7', 'S20'], isHub: false, zone: 'Zone M/1' },
+      { id: 'neuperlachsued', name: 'Neuperlach Süd', lat: 48.08899303234085, lng: 11.645056235191745, lines: ['U5'], isHub: true, zone: 'Zone M' },
+      { id: 'harthaus', name: 'Harthaus', lat: 48.13353807869934, lng: 11.387884855520463, lines: ['S8'], isHub: false, zone: 'Zone M/1' },
+      { id: 'freiham', name: 'Freiham', lat: 48.140020465654615, lng: 11.410059119897463, lines: ['S8'], isHub: false, zone: 'Zone M/1' },
+      { id: 'neuaubing', name: 'Neuaubing', lat: 48.14170859153592, lng: 11.42211722136715, lines: ['S8'], isHub: false, zone: 'Zone M/1' },
+      { id: 'daglfing', name: 'Daglfing', lat: 48.149722062076265, lng: 11.649296315941106, lines: ['S8'], isHub: false, zone: 'Zone M' },
+      { id: 'englschalking', name: 'Englschalking', lat: 48.157248583590096, lng: 11.64827816825347, lines: ['S8'], isHub: false, zone: 'Zone M' },
+      { id: 'johanniskirchen', name: 'Johanneskirchen', lat: 48.16745912014119, lng: 11.646053763133933, lines: ['S8'], isHub: false, zone: 'Zone M' },
+      { id: 'unterfoehring', name: 'Unterföhring', lat: 48.1902341763849, lng: 11.646858282989122, lines: ['S8'], isHub: false, zone: 'Zone M/1' },
+      { id: 'oez', name: 'Olympia-Einkaufszentrum', lat: 48.18208516068997, lng: 11.52969996246452, lines: ['U1', 'U3', 'U7'], isHub: true, zone: 'Zone M' },
+      { id: 'georgbrauchlering', name: 'Georg-Brauchle-Ring', lat: 48.17640969268435, lng: 11.529128251730398, lines: ['U1', 'U7'], isHub: false, zone: 'Zone M' },
+      { id: 'westfriedhof', name: 'Westfriedhof', lat: 48.16969619549544, lng: 11.528524426194872, lines: ['U1', 'U7'], isHub: false, zone: 'Zone M' },
+      { id: 'gern', name: 'Gern', lat: 48.16212754790183, lng: 11.529231475370803, lines: ['U1', 'U7'], isHub: false, zone: 'Zone M' },
+      { id: 'rotkreuzplatz', name: 'Rotkreuzplatz', lat: 48.15418749530373, lng: 11.532948761257456, lines: ['U1', 'U7'], isHub: false, zone: 'Zone M' },
+      { id: 'maillingerstr', name: 'Maillingerstraße', lat: 48.14979354033304, lng: 11.546871155936797, lines: ['U1', 'U7'], isHub: false, zone: 'Zone M' },
+      { id: 'stiglmaierplatz', name: 'Stiglmaierplatz', lat: 48.14766235872667, lng: 11.55835291775237, lines: ['U1', 'U7'], isHub: false, zone: 'Zone M' },
+      { id: 'sendlingertor', name: 'Sendlinger Tor', lat: 48.13341601324091, lng: 11.566353095108816, lines: ['U1', 'U2', 'U3', 'U6', 'U7', 'U8'], isHub: true, zone: 'Zone M' },
+      { id: 'fraunhoferstr', name: 'Fraunhoferstraße', lat: 48.1300300264144, lng: 11.573303001972887, lines: ['U1', 'U2', 'U7', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'kolumbusplatz', name: 'Kolumbusplatz', lat: 48.120635386848654, lng: 11.57638643985589, lines: ['U1', 'U2', 'U7', 'U8'], isHub: true, zone: 'Zone M' },
+      { id: 'candidplatz', name: 'Candidplatz', lat: 48.112972906221714, lng: 11.571589777106766, lines: ['U1'], isHub: false, zone: 'Zone M' },
+      { id: 'wettersteinplatz', name: 'Wettersteinplatz', lat: 48.108237679839405, lng: 11.575638212143527, lines: ['U1'], isHub: false, zone: 'Zone M' },
+      { id: 'stquirinplatz', name: 'St.-Quirin-Platz', lat: 48.10466434342587, lng: 11.581160692207124, lines: ['U1'], isHub: false, zone: 'Zone M' },
+      { id: 'mangfallplatz', name: 'Mangfallplatz', lat: 48.09719105084012, lng: 11.579313570249562, lines: ['U1'], isHub: false, zone: 'Zone M' },
+      { id: 'hasenbergl', name: 'Hasenbergl', lat: 48.21343647167349, lng: 11.555070287671164, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'duelferstr', name: 'Dülferstraße', lat: 48.2124817096413, lng: 11.563001001013395, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'harthof', name: 'Harthof', lat: 48.20495561287877, lng: 11.569393301868113, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'amhart', name: 'Am Hart', lat: 48.196700798822654, lng: 11.571881440830168, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'frankfurterring', name: 'Frankfurter Ring', lat: 48.187493152248614, lng: 11.572656170858755, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'milbertshofen', name: 'Milbertshofen', lat: 48.18088008255045, lng: 11.573151767362928, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'scheidplatz', name: 'Scheidplatz', lat: 48.17138352150973, lng: 11.572896987493396, lines: ['U2', 'U3', 'U8'], isHub: true, zone: 'Zone M' },
+      { id: 'hohenzollernplatz', name: 'Hohenzollernplatz', lat: 48.161924185596824, lng: 11.568646259342392, lines: ['U2', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'josephsplatz', name: 'Josephsplatz', lat: 48.15570464310929, lng: 11.567119497729186, lines: ['U2', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'theresienstr', name: 'Theresienstraße', lat: 48.151143128666824, lng: 11.564227030161277, lines: ['U2', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'koenigsplatz', name: 'Königsplatz', lat: 48.14507948721673, lng: 11.56333351582576, lines: ['U2', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'silberhornstr', name: 'Silberhornstraße', lat: 48.11517074020501, lng: 11.579544564862694, lines: ['U2', 'U7', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'untersbergstr', name: 'Untersbergstraße', lat: 48.11257280983408, lng: 11.587453912200479, lines: ['U2', 'U7', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'karlpreisplatz', name: 'Karl-Preis-Platz', lat: 48.11845714098578, lng: 11.609640553411607, lines: ['U2', 'U7', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'innsbruckerring', name: 'Innsbrucker Ring', lat: 48.12036873043305, lng: 11.620182256379433, lines: ['U2', 'U5', 'U7', 'U8'], isHub: true, zone: 'Zone M' },
+      { id: 'josephsburg', name: 'Josephsburg', lat: 48.12691026671206, lng: 11.634640420831303, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'kreillerstr', name: 'Kreillerstraße', lat: 48.12581655058221, lng: 11.646755583596747, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'moosfeld', name: 'Moosfeld', lat: 48.13019423471288, lng: 11.670498372606342, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'messestadtwest', name: 'Messestadt West', lat: 48.133484829454315, lng: 11.691420168915347, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'messestadtost', name: 'Messestadt Ost', lat: 48.133366409447596, lng: 11.704098068330982, lines: ['U2'], isHub: false, zone: 'Zone M' },
+      { id: 'moosacherstmartin', name: 'Moosacher St.-Martins-Platz', lat: 48.181857499619134, lng: 11.518219117323095, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'oberwiesenfeld', name: 'Oberwiesenfeld', lat: 48.186118251611795, lng: 11.548282193954902, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'olympiazentrum', name: 'Olympiazentrum', lat: 48.17934624936194, lng: 11.555846632764714, lines: ['U3', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'petuelring', name: 'Petuelring', lat: 48.1756537150586, lng: 11.566658080726306, lines: ['U3', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'bonnerplatz', name: 'Bonner Platz', lat: 48.16669010900473, lng: 11.5786364159724, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'muenchnerfreiheit', name: 'Münchner Freiheit', lat: 48.161967763994525, lng: 11.586259062124807, lines: ['U3', 'U6'], isHub: true, zone: 'Zone M' },
+      { id: 'giselastr', name: 'Giselastraße', lat: 48.15562523884316, lng: 11.583751445876407, lines: ['U3', 'U6'], isHub: false, zone: 'Zone M' },
+      { id: 'universitaet', name: 'Universität', lat: 48.14920337197919, lng: 11.580664511268486, lines: ['U3', 'U6'], isHub: false, zone: 'Zone M' },
+      { id: 'odeonsplatz', name: 'Odeonsplatz', lat: 48.14263773166567, lng: 11.57764041133233, lines: ['U3', 'U4', 'U5', 'U6'], isHub: true, zone: 'Zone M' },
+      { id: 'goetheplatz', name: 'Goetheplatz', lat: 48.129530135958106, lng: 11.558414391119122, lines: ['U3', 'U6'], isHub: false, zone: 'Zone M' },
+      { id: 'poccistr', name: 'Poccistraße', lat: 48.125509766157116, lng: 11.550273365517594, lines: ['U3', 'U6'], isHub: false, zone: 'Zone M' },
+      { id: 'implerstr', name: 'Implerstraße', lat: 48.11940742549507, lng: 11.548305501181416, lines: ['U3', 'U6'], isHub: true, zone: 'Zone M' },
+      { id: 'brudermuehlstr', name: 'Brudermühlstraße', lat: 48.11215574581814, lng: 11.54867216886543, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'thalkirchen', name: 'Thalkirchen (Tierpark)', lat: 48.10144194994567, lng: 11.546575530641313, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'obersendling', name: 'Obersendling', lat: 48.098215925921146, lng: 11.535867446411498, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'aidenbachstr', name: 'Aidenbachstraße', lat: 48.098353234826874, lng: 11.523692802133914, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'machtlfingerstr', name: 'Machtlfinger Straße', lat: 48.097101310053446, lng: 11.513722462307424, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'forstenriederallee', name: 'Forstenrieder Allee', lat: 48.09499282224911, lng: 11.498139515549203, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'baslerstr', name: 'Basler Straße', lat: 48.09119393942137, lng: 11.491086735232694, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'fuerstenriedwest', name: 'Fürstenried West', lat: 48.08853913108454, lng: 11.480425065646891, lines: ['U3'], isHub: false, zone: 'Zone M' },
+      { id: 'laimerplatz', name: 'Laimer Platz', lat: 48.13542691343931, lng: 11.502971829656612, lines: ['U5'], isHub: false, zone: 'Zone M' },
+      { id: 'friedenheimerstr', name: 'Friedenheimer Straße', lat: 48.135137136432604, lng: 11.51095230494426, lines: ['U5'], isHub: false, zone: 'Zone M' },
+      { id: 'westendstr', name: 'Westendstraße', lat: 48.134633033618975, lng: 11.5228608588918, lines: ['U4', 'U5'], isHub: true, zone: 'Zone M' },
+      { id: 'schwanthalerhoehe', name: 'Schwanthalerhöhe', lat: 48.13378603485968, lng: 11.541101222872854, lines: ['U4', 'U5'], isHub: false, zone: 'Zone M' },
+      { id: 'theresienwiese', name: 'Theresienwiese', lat: 48.13641821088448, lng: 11.553227110654653, lines: ['U4', 'U5'], isHub: false, zone: 'Zone M' },
+      { id: 'lehel', name: 'Lehel', lat: 48.13955241430813, lng: 11.588806351851792, lines: ['U4', 'U5'], isHub: false, zone: 'Zone M' },
+      { id: 'maxweberplatz', name: 'Max-Weber-Platz', lat: 48.135668217641644, lng: 11.598461062602583, lines: ['U4', 'U5'], isHub: true, zone: 'Zone M' },
+      { id: 'prinzregentenplatz', name: 'Prinzregentenplatz', lat: 48.139305359883565, lng: 11.607023087206784, lines: ['U4'], isHub: false, zone: 'Zone M' },
+      { id: 'boehmerwaldplatz', name: 'Böhmerwaldplatz', lat: 48.143384786988236, lng: 11.615421850298697, lines: ['U4'], isHub: false, zone: 'Zone M' },
+      { id: 'richardstraussstr', name: 'Richard-Strauss-Straße', lat: 48.148885087527745, lng: 11.6163367994438, lines: ['U4'], isHub: false, zone: 'Zone M' },
+      { id: 'arabellapark', name: 'Arabellapark', lat: 48.1534174891222, lng: 11.620886303417661, lines: ['U4'], isHub: false, zone: 'Zone M' },
+      { id: 'michaelibad', name: 'Michaelibad', lat: 48.118805510643945, lng: 11.63059747559766, lines: ['U5', 'U7', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'quiddestr', name: 'Quiddestraße', lat: 48.10844537462821, lng: 11.646661388945345, lines: ['U5', 'U7', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'neuperlachzentrum', name: 'Neuperlach Zentrum', lat: 48.100957923655834, lng: 11.646059230876032, lines: ['U5', 'U7', 'U8'], isHub: false, zone: 'Zone M' },
+      { id: 'theresegiehseallee', name: 'Therese-Giehse-Allee', lat: 48.095431862305375, lng: 11.643101444738821, lines: ['U5'], isHub: false, zone: 'Zone M' },
+      { id: 'froettmaning', name: 'Fröttmaning', lat: 48.21187777217331, lng: 11.616671734639137, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'kieferngarten', name: 'Kieferngarten', lat: 48.203590617252814, lng: 11.613153983067987, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'freimann', name: 'Freimann', lat: 48.19201562867559, lng: 11.614298040056799, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'studentenstadt', name: 'Studentenstadt', lat: 48.18355552425367, lng: 11.60767167153301, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'alteheide', name: 'Alte Heide', lat: 48.17780248467228, lng: 11.602051612092998, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'nordfriedhof', name: 'Nordfriedhof', lat: 48.17346463418776, lng: 11.597405836241691, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'dietlindenstr', name: 'Dietlindenstraße', lat: 48.16661078594335, lng: 11.59029490666307, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'partnachplatz', name: 'Partnachplatz', lat: 48.11699170827044, lng: 11.52643478503031, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'westpark', name: 'Westpark', lat: 48.1178431940257, lng: 11.51711135519633, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'holzapfelkreuth', name: 'Holzapfelkreuth', lat: 48.11630337653642, lng: 11.50240507231609, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'hadernerstern', name: 'Haderner Stern', lat: 48.11852577730159, lng: 11.488880290500356, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'grosshadern', name: 'Großhadern', lat: 48.115552079466035, lng: 11.477257337597555, lines: ['U6'], isHub: false, zone: 'Zone M' },
+      { id: 'klinikumgrosshadern', name: 'Klinikum Großhadern', lat: 48.10938522042162, lng: 11.474615984561865, lines: ['U6'], isHub: false, zone: 'Zone M' }
+    ];
+
+    const STATION_MAP = {};
+    STATIONS.forEach(s => { STATION_MAP[s.id] = s; });
+
+    const LINE_ROUTES = {
+      'U1': ['oez', 'georgbrauchlering', 'westfriedhof', 'gern', 'rotkreuzplatz', 'maillingerstr', 'stiglmaierplatz', 'hbf', 'sendlingertor', 'fraunhoferstr', 'kolumbusplatz', 'candidplatz', 'wettersteinplatz', 'stquirinplatz', 'mangfallplatz'],
+      'U2': ['feldmoching', 'hasenbergl', 'duelferstr', 'harthof', 'amhart', 'frankfurterring', 'milbertshofen', 'scheidplatz', 'hohenzollernplatz', 'josephsplatz', 'theresienstr', 'koenigsplatz', 'hbf', 'sendlingertor', 'fraunhoferstr', 'kolumbusplatz', 'silberhornstr', 'untersbergstr', 'giesing', 'karlpreisplatz', 'innsbruckerring', 'josephsburg', 'kreillerstr', 'trudering', 'moosfeld', 'messestadtwest', 'messestadtost'],
+      'U3': ['moosach', 'moosacherstmartin', 'oez', 'oberwiesenfeld', 'olympiazentrum', 'petuelring', 'scheidplatz', 'bonnerplatz', 'muenchnerfreiheit', 'giselastr', 'universitaet', 'odeonsplatz', 'marienplatz', 'sendlingertor', 'goetheplatz', 'poccistr', 'implerstr', 'brudermuehlstr', 'thalkirchen', 'obersendling', 'aidenbachstr', 'machtlfingerstr', 'forstenriederallee', 'baslerstr', 'fuerstenriedwest'],
+      'U4': ['westendstr', 'heimeranplatz', 'schwanthalerhoehe', 'theresienwiese', 'hbf', 'karlsplatz', 'odeonsplatz', 'lehel', 'maxweberplatz', 'prinzregentenplatz', 'boehmerwaldplatz', 'richardstraussstr', 'arabellapark'],
+      'U5': ['laimerplatz', 'friedenheimerstr', 'westendstr', 'heimeranplatz', 'schwanthalerhoehe', 'theresienwiese', 'hbf', 'karlsplatz', 'odeonsplatz', 'lehel', 'maxweberplatz', 'ostbahnhof', 'innsbruckerring', 'michaelibad', 'quiddestr', 'neuperlachzentrum', 'theresegiehseallee', 'neuperlachsued'],
+      'U6': ['froettmaning', 'kieferngarten', 'freimann', 'studentenstadt', 'alteheide', 'nordfriedhof', 'dietlindenstr', 'muenchnerfreiheit', 'giselastr', 'universitaet', 'odeonsplatz', 'marienplatz', 'sendlingertor', 'goetheplatz', 'poccistr', 'implerstr', 'harras', 'partnachplatz', 'westpark', 'holzapfelkreuth', 'hadernerstern', 'grosshadern', 'klinikumgrosshadern'],
+      'U7': ['oez', 'georgbrauchlering', 'westfriedhof', 'gern', 'rotkreuzplatz', 'maillingerstr', 'stiglmaierplatz', 'hbf', 'sendlingertor', 'fraunhoferstr', 'kolumbusplatz', 'silberhornstr', 'untersbergstr', 'giesing', 'karlpreisplatz', 'innsbruckerring', 'michaelibad', 'quiddestr', 'neuperlachzentrum'],
+      'U8': ['olympiazentrum', 'petuelring', 'scheidplatz', 'hohenzollernplatz', 'josephsplatz', 'theresienstr', 'koenigsplatz', 'hbf', 'sendlingertor', 'fraunhoferstr', 'kolumbusplatz', 'silberhornstr', 'untersbergstr', 'giesing', 'karlpreisplatz', 'innsbruckerring', 'michaelibad', 'quiddestr', 'neuperlachzentrum'],
+      'S1': ['feldmoching', 'fasanerie', 'moosach', 'laim', 'hirschgarten', 'donnersbergerbruecke', 'hackerbruecke', 'hbf', 'karlsplatz', 'marienplatz', 'isartor', 'rosenheimerplatz', 'ostbahnhof', 'leuchtenbergring'],
+      'S2': ['karlsfeld', 'allach', 'untermenzing', 'obermenzing', 'laim', 'hirschgarten', 'donnersbergerbruecke', 'hackerbruecke', 'hbf', 'karlsplatz', 'marienplatz', 'isartor', 'rosenheimerplatz', 'ostbahnhof', 'leuchtenbergring', 'bergamlaim', 'riem', 'feldkirchen'],
+      'S3': ['lochhausen', 'langwied', 'pasing', 'laim', 'hirschgarten', 'donnersbergerbruecke', 'hackerbruecke', 'hbf', 'karlsplatz', 'marienplatz', 'isartor', 'rosenheimerplatz', 'ostbahnhof', 'stmartin', 'giesing', 'fasangarten', 'fasanenpark', 'unterhaching', 'taufkirchen', 'furth', 'deisenhofen'],
+      'S4': ['aubing', 'leienfelsstrasse', 'pasing', 'laim', 'hirschgarten', 'donnersbergerbruecke', 'hackerbruecke', 'hbf', 'karlsplatz', 'marienplatz', 'isartor', 'rosenheimerplatz', 'ostbahnhof', 'leuchtenbergring', 'bergamlaim', 'trudering', 'gronsdorf', 'haar'],
+      'S6': ['stockdorf', 'planegg', 'graefelfing', 'lochham', 'westkreuz', 'pasing', 'laim', 'hirschgarten', 'donnersbergerbruecke', 'hackerbruecke', 'hbf', 'karlsplatz', 'marienplatz', 'isartor', 'rosenheimerplatz', 'ostbahnhof', 'leuchtenbergring', 'bergamlaim', 'trudering', 'gronsdorf', 'haar'],
+      'S7': ['hoellriegelskreuth', 'pullach', 'grosshesselohe', 'solln', 'siemenswerke', 'mittersendling', 'harras', 'heimeranplatz', 'donnersbergerbruecke', 'hackerbruecke', 'hbf'],
+      'S8': ['harthaus', 'freiham', 'neuaubing', 'westkreuz', 'pasing', 'laim', 'hirschgarten', 'donnersbergerbruecke', 'hackerbruecke', 'hbf', 'karlsplatz', 'marienplatz', 'isartor', 'rosenheimerplatz', 'ostbahnhof', 'leuchtenbergring', 'daglfing', 'englschalking', 'johanniskirchen', 'unterfoehring'],
+      'S20': ['pasing', 'heimeranplatz', 'mittersendling', 'siemenswerke', 'solln', 'grosshesselohe', 'pullach', 'hoellriegelskreuth']
+    };
+
+    const map = L.map('map', {
+      center: [48.140, 11.575],
+      zoom: 13,
+      minZoom: 9,
+      maxZoom: 18,
+      zoomControl: false,
+      tap: false,
+      bounceAtZoomLimits: true
+    });
+
+    const LINE_STACK_ORDER = [
+      'U8', 'U7', 'U6', 'U5', 'U4', 'U3', 'U2', 'U1',
+      'S20', 'S8', 'S7', 'S6', 'S4', 'S3', 'S2', 'S1'
+    ];
+
+    LINE_STACK_ORDER.forEach((lineCode, idx) => {
+      const paneName = `pane_line_${lineCode}`;
+      const pane = map.createPane(paneName);
+      pane.style.zIndex = 410 + idx * 2;
+      pane.style.pointerEvents = 'none';
+    });
+
+    const lineLayerGroup = L.layerGroup().addTo(map);
+    const stationLayerGroup = L.layerGroup().addTo(map);
+    const linePolylineElements = [];
+    const stationMarkers = [];
+
+    const MAPTILER_KEY = 'XD2YymAltj0rMOGfCS9A';
+
+    const TILE_THEMES = [
+      {
+        id: 'dark',
+        name: 'MapTiler Dataviz Dark',
+        iconClass: 'fa-solid fa-moon text-[15px] sm:text-[14px] text-[var(--aicher-yellow)]',
+        url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`,
+        options: { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20, crossOrigin: true, attribution: '&copy; MapTiler &copy; OSM' }
+      },
+      {
+        id: 'light',
+        name: 'MapTiler Streets Light',
+        iconClass: 'fa-solid fa-sun text-[15px] sm:text-[14px] text-amber-500',
+        url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`,
+        options: { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20, crossOrigin: true, attribution: '&copy; MapTiler &copy; OSM' }
+      }
+    ];
+
+    let currentTileIndex = 0;
+    let activeTileLayer = null;
+
+    function updateLineOutlines(isDark) {
+      const casingColor = isDark ? '#0B0E14' : '#FFFFFF';
+      const casingOpacity = isDark ? 1.0 : 0.9;
+      linePolylineElements.forEach(item => {
+        if (item.casing) {
+          item.casing.setStyle({ color: casingColor, opacity: casingOpacity });
+        }
+      });
+    }
+
+    function applyTileLayer(index) {
+      if (activeTileLayer && map.hasLayer(activeTileLayer)) {
+        map.removeLayer(activeTileLayer);
+      }
+      const theme = TILE_THEMES[index];
+      activeTileLayer = L.tileLayer(theme.url, theme.options);
+      activeTileLayer.addTo(map);
+
+      const icon = document.getElementById('layerIcon');
+      if (icon) icon.className = theme.iconClass;
+
+      const isDark = (theme.id === 'dark');
+      if (isDark) {
+        document.body.classList.add('theme-dark');
+      } else {
+        document.body.classList.remove('theme-dark');
+      }
+
+      updateLineOutlines(isDark);
+    }
+
+    function getLineBadgesHTML(lines, compactOverride = null) {
+      if (!lines || lines.length === 0) return '';
+      const count = lines.length;
+      
+      let sizeClass = '';
+      if (compactOverride === 'single' || (compactOverride === null && count === 1)) {
+        sizeClass = 'min-w-[28px] h-[20px] text-[10.5px] px-2.5 rounded-full';
+      } else if (compactOverride === 'compact' || count > 4) {
+        sizeClass = 'min-w-[22px] h-[16px] text-[9px] px-1.5 rounded-full tracking-tight leading-none';
+      } else {
+        sizeClass = 'min-w-[25px] h-[18px] text-[9.5px] px-2 rounded-full leading-none';
+      }
+
+      return lines.map(line => {
+        const bg = LINE_COLORS[line] || '#334155';
+        const textClass = (line === 'S8') ? 'text-black' : 'text-white';
+        return `<span class="inline-flex items-center justify-center font-black ${textClass} ${sizeClass} shadow-xs border border-white/40 shrink-0 transition-transform select-none aicher-badge" style="background-color: ${bg};">${line}</span>`;
+      }).join('');
+    }
+
+    LINE_STACK_ORDER.forEach(lineCode => {
+      if (!LINE_ROUTES[lineCode]) return;
+      const coords = LINE_ROUTES[lineCode].map(id => [STATION_MAP[id].lat, STATION_MAP[id].lng]);
+      if (coords.length > 1) {
+        const isS = lineCode.startsWith('S');
+        const color = LINE_COLORS[lineCode] || '#0066CC';
+        const paneName = `pane_line_${lineCode}`;
+
+        const casingWeight = isS ? 6.5 : 5.5;
+        const coreWeight = isS ? 4.2 : 3.6;
+
+        const isDark = document.body.classList.contains('theme-dark');
+        const casing = L.polyline(coords, {
+          pane: paneName,
+          color: isDark ? '#0B0E14' : '#FFFFFF',
+          weight: casingWeight + 2,
+          opacity: isDark ? 1.0 : 0.9,
+          lineJoin: 'round',
+          lineCap: 'round',
+          interactive: false
+        });
+
+        const core = L.polyline(coords, {
+          pane: paneName,
+          color: color,
+          weight: coreWeight,
+          opacity: 1.0,
+          lineJoin: 'round',
+          lineCap: 'round',
+          interactive: false
+        });
+
+        lineLayerGroup.addLayer(casing);
+        lineLayerGroup.addLayer(core);
+        linePolylineElements.push({ lineCode, type: isS ? 'S' : 'U', casing, core });
+      }
+    });
+
+    let userLocation = null;
+    let userMarker = null;
+    let accuracyCircle = null;
+    let selectedStation = null;
+    let watchId = null;
+    let liveFetchController = null;
+
+    let currentStationDepartures = [];
+    let loadedDeparturesStationId = null;
+    let currentFetchingStationId = null;
+    let currentStationFilter = 'all';
+    let currentSheetState = 1; // 1 = collapsed (peek), 2 = expanded
+
+    // Sheet dimensions calibrated to uniform 42px row heights
+    const COLLAPSED_HEIGHT = 84; // Exactly 2 visible rows
+    function getExpandedHeight() {
+      // Dynamic regulated height showing integer rows (5-7 rows)
+      const count = Math.min(7, Math.max(5, Math.floor((window.innerHeight * 0.4) / 42)));
+      return count * 42;
+    }
+
+    function setSheetState(state, withBounce = true) {
+      currentSheetState = state === 2 ? 2 : 1;
+      const listEl = document.getElementById('departuresList');
+      const widget = document.getElementById('currentStationWidget');
+      const pill = document.getElementById('dragHandlePill');
+
+      if (pill) {
+        pill.classList.remove('is-active-drag');
+      }
+
+      if (listEl) {
+        listEl.style.transition = withBounce ? 'max-height 0.38s cubic-bezier(0.25, 1.15, 0.5, 1)' : 'none';
+        if (currentSheetState === 1) {
+          listEl.classList.remove('is-expanded');
+          listEl.classList.add('is-collapsed');
+          listEl.style.maxHeight = '';
+          listEl.scrollTop = 0;
+        } else {
+          listEl.classList.remove('is-collapsed');
+          listEl.classList.add('is-expanded');
+          listEl.style.maxHeight = `${getExpandedHeight()}px`;
+        }
+      }
+
+      if (widget) {
+        if (withBounce) {
+          widget.style.transition = 'transform 0.35s cubic-bezier(0.25, 1.25, 0.5, 1)';
+        } else {
+          widget.style.transition = 'none';
+        }
+        widget.style.transform = 'translateY(0px)';
+        widget.style.opacity = '1';
+      }
+    }
+
+    function dismissShelf() {
+      const widget = document.getElementById('currentStationWidget');
+      if (!widget) {
+        deselectStation();
+        return;
+      }
+      widget.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
+      widget.style.transform = 'translateY(115%)';
+      widget.style.opacity = '1';
+      if (navigator.vibrate) navigator.vibrate([10, 15]);
+      setTimeout(() => {
+        deselectStation();
+      }, 280);
+    }
+
+    function toggleDeparturesExpanded() {
+      setSheetState(currentSheetState === 1 ? 2 : 1, true);
+      if (navigator.vibrate) navigator.vibrate(10);
+    }
+
+    (function setupDraggableShelfBar() {
+      const dragHandle = document.getElementById('stationDragHandle');
+      const headerArea = document.getElementById('stationHeaderArea');
+      const listEl = document.getElementById('departuresList');
+      const pill = document.getElementById('dragHandlePill');
+      const widget = document.getElementById('currentStationWidget');
+
+      if (!dragHandle || !listEl) return;
+
+      let isDragging = false;
+      let startSheetState = 1;
+      let startY = 0;
+      let startHeight = 0;
+      let startTime = 0;
+      let lastY = 0;
+      let velocityY = 0;
+      let lastMoveTime = 0;
+      let activePointerId = null;
+
+      function onPointerDown(e) {
+        // Only respond to primary mouse click or touch contact
+        if (e.button !== undefined && e.button !== 0) return;
+        // Do not intercept interactive child buttons or badge links in header
+        if (e.target.closest('button, .aicher-badge')) return;
+
+        isDragging = true;
+        startSheetState = currentSheetState;
+        activePointerId = e.pointerId;
+        startY = e.clientY;
+        lastY = e.clientY;
+        startTime = performance.now();
+        lastMoveTime = startTime;
+        velocityY = 0;
+
+        // Capture starting height directly from rendered DOM
+        const currentRectHeight = listEl.getBoundingClientRect().height;
+        startHeight = currentRectHeight > 0 
+          ? currentRectHeight 
+          : (currentSheetState === 2 ? getExpandedHeight() : COLLAPSED_HEIGHT);
+
+        // Immediate responsive visual feedback
+        dragHandle.classList.add('is-dragging');
+        if (pill) pill.classList.add('is-active-drag');
+        document.body.classList.add('is-sheet-dragging');
+
+        // Disable transitions during direct finger tracking for 0-latency tracking
+        listEl.style.transition = 'none';
+        if (widget) {
+          widget.style.transition = 'none';
+          widget.style.opacity = '1';
+        }
+
+        dragHandle.setPointerCapture(e.pointerId);
+
+        window.addEventListener('pointermove', onPointerMove, { passive: false });
+        window.addEventListener('pointerup', onPointerUp, { passive: false });
+        window.addEventListener('pointercancel', onPointerUp, { passive: false });
+      }
+
+      function onPointerMove(e) {
+        if (!isDragging || e.pointerId !== activePointerId) return;
+        e.preventDefault();
+
+        const currentY = e.clientY;
+        const now = performance.now();
+        const dt = Math.max(1, now - lastMoveTime);
+        const dy = currentY - lastY;
+        velocityY = (dy / dt);
+        lastY = currentY;
+        lastMoveTime = now;
+
+        const deltaY = startY - currentY; // positive = dragging UP, negative = dragging DOWN
+        let targetHeight = startHeight + deltaY;
+
+        const maxH = getExpandedHeight();
+        const minH = COLLAPSED_HEIGHT;
+
+        if (targetHeight < minH) {
+          // Pulling down past minimum collapsed height -> translate the whole shelf down solidly
+          const pullDown = minH - targetHeight;
+          listEl.style.maxHeight = `${minH}px`;
+          if (widget) {
+            widget.style.transform = `translateY(${pullDown}px)`;
+            widget.style.opacity = '1';
+          }
+        } else if (targetHeight > maxH) {
+          // Pulling up past maximum height -> rubberband resistance
+          const overflow = targetHeight - maxH;
+          listEl.style.maxHeight = `${maxH + (overflow * 0.28)}px`;
+          if (widget) {
+            widget.style.transform = 'translateY(0px)';
+            widget.style.opacity = '1';
+          }
+        } else {
+          // Sizing smoothly between collapsed and expanded states
+          listEl.style.maxHeight = `${targetHeight}px`;
+          if (widget) {
+            widget.style.transform = 'translateY(0px)';
+            widget.style.opacity = '1';
+          }
+        }
+      }
+
+      function onPointerUp(e) {
+        if (!isDragging || e.pointerId !== activePointerId) return;
+
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+
+        try {
+          if (dragHandle.hasPointerCapture(e.pointerId)) {
+            dragHandle.releasePointerCapture(e.pointerId);
+          }
+        } catch (_) {}
+
+        isDragging = false;
+        activePointerId = null;
+
+        dragHandle.classList.remove('is-dragging');
+        if (pill) pill.classList.remove('is-active-drag');
+        document.body.classList.remove('is-sheet-dragging');
+
+        const totalDeltaY = startY - e.clientY;
+        const totalDuration = performance.now() - startTime;
+        const dragDownDistance = e.clientY - startY;
+        const maxH = getExpandedHeight();
+        const minH = COLLAPSED_HEIGHT;
+        const currentHeight = listEl.getBoundingClientRect().height;
+
+        // Quick tap detection without drag
+        if (Math.abs(totalDeltaY) < 6 && totalDuration < 280) {
+          toggleDeparturesExpanded();
+          return;
+        }
+
+        // Pull-to-dismiss gesture handling
+        if (startSheetState === 1) {
+          // Started from collapsed state: pull down to dismiss threshold
+          if (dragDownDistance > 45 || (dragDownDistance > 14 && velocityY > 0.35)) {
+            dismissShelf();
+            return;
+          }
+          let shouldExpand = (totalDeltaY > 40) || (velocityY < -0.32);
+          setSheetState(shouldExpand ? 2 : 1, true);
+        } else {
+          // Started from expanded state: downward pull to collapsed or dismiss
+          const excessDown = minH - (startHeight + totalDeltaY);
+          if (excessDown > 45 || (excessDown > 12 && velocityY > 0.45) || (dragDownDistance > 160 && velocityY > 0.35)) {
+            dismissShelf();
+            return;
+          }
+          let shouldExpand = false;
+          if (velocityY < -0.32) {
+            shouldExpand = true;
+          } else if (velocityY > 0.32) {
+            shouldExpand = false;
+          } else {
+            const midPoint = (minH + maxH) / 2;
+            shouldExpand = currentHeight >= midPoint;
+          }
+          setSheetState(shouldExpand ? 2 : 1, true);
+        }
+
+        if (navigator.vibrate) navigator.vibrate(10);
+      }
+
+      dragHandle.addEventListener('pointerdown', onPointerDown);
+      headerArea.addEventListener('pointerdown', onPointerDown);
+    })();
+
+    function showDeparturesError(station, customMsg) {
+      currentStationDepartures = [];
+      loadedDeparturesStationId = null;
+      const listEl = document.getElementById('departuresList');
+      const dot = document.getElementById('depDataSourceDot');
+
+      if (dot) {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shrink-0';
+        dot.title = 'Keine Live-Daten';
+      }
+
+      const stName = station ? station.name : 'diese Station';
+      if (listEl) {
+        listEl.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-4 px-3 text-center gap-1.5 liquid-pop-in">
+            <div class="w-7 h-7 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-500 mb-0.5 shadow-sm">
+              <i class="fa-solid fa-satellite-dish text-[11px]"></i>
+            </div>
+            <span class="text-[11.5px] font-black text-[var(--aicher-text-title)] leading-tight">${customMsg || 'Keine Live-Abfahrten verfügbar'}</span>
+            <span class="text-[10px] text-[var(--aicher-text-muted)] leading-snug max-w-[240px]">Echtzeitdaten für <strong class="text-[var(--aicher-text-title)]">${stName}</strong> sind aktuell nicht erreichbar.</span>
+            <button id="retryErrorBtn" class="mt-1 px-3 py-1 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-title)] hover:border-white/50 active:scale-95 transition-all inline-flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-arrows-rotate text-[8px]"></i> Erneut versuchen
+            </button>
+          </div>
+        `;
+
+        const retryBtn = document.getElementById('retryErrorBtn');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (selectedStation) fetchLiveDepartures(selectedStation, true);
+          });
+        }
+      }
+    }
+
+    function renderDepartureFilterBar(station) {
+      const bar = document.getElementById('departureFilterBar');
+      if (!bar || !station) return;
+
+      const lines = station.lines || [];
+      const hasU = lines.some(l => l.startsWith('U'));
+      const hasS = lines.some(l => l.startsWith('S'));
+
+      bar.innerHTML = `
+        <button data-dep-line="all" class="dep-filter-pill px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border transition-all duration-300 ${currentStationFilter === 'all' ? 'bg-[var(--aicher-blue)] text-white border-white/50 shadow-md scale-105' : 'bg-[var(--glass-panel-sub)] text-[var(--aicher-text-muted)] border-[var(--glass-border)] hover:text-[var(--aicher-text-title)] active:scale-90'}">
+          Alle
+        </button>
+        <button data-dep-line="U" title="${hasU ? 'U-Bahn' : 'Keine U-Bahn'}" ${!hasU ? 'disabled' : ''} class="dep-filter-pill px-2.5 py-1 rounded-full text-[10px] font-black border transition-all duration-300 flex items-center justify-center ${!hasU ? 'opacity-30 cursor-not-allowed pointer-events-none border-[var(--glass-border)]' : (currentStationFilter === 'U' ? 'bg-[#0073B9] text-white border-white/50 shadow-md scale-105' : 'bg-[var(--glass-panel-sub)] text-[var(--aicher-text-muted)] border-[var(--glass-border)] hover:text-[var(--aicher-text-title)] active:scale-90')}">
+          <span class="w-3.5 h-3.5 rounded-[4px] ${currentStationFilter === 'U' ? 'bg-white text-[#0073B9]' : 'bg-[#0073B9] text-white'} text-[9px] font-black flex items-center justify-center leading-none shadow-sm">U</span>
+        </button>
+        <button data-dep-line="S" title="${hasS ? 'S-Bahn' : 'Keine S-Bahn'}" ${!hasS ? 'disabled' : ''} class="dep-filter-pill px-2.5 py-1 rounded-full text-[10px] font-black border transition-all duration-300 flex items-center justify-center ${!hasS ? 'opacity-30 cursor-not-allowed pointer-events-none border-[var(--glass-border)]' : (currentStationFilter === 'S' ? 'bg-[#008B4E] text-white border-white/50 shadow-md scale-105' : 'bg-[var(--glass-panel-sub)] text-[var(--aicher-text-muted)] border-[var(--glass-border)] hover:text-[var(--aicher-text-title)] active:scale-90')}">
+          <span class="w-3.5 h-3.5 rounded-full ${currentStationFilter === 'S' ? 'bg-white text-[#008B4E]' : 'bg-[#008B4E] text-white'} text-[9px] font-black flex items-center justify-center leading-none shadow-sm">S</span>
+        </button>
+      `;
+
+      bar.querySelectorAll('.dep-filter-pill:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentStationFilter = btn.dataset.depLine;
+          renderDepartureFilterBar(selectedStation);
+          applyDepartureFilter();
+        });
+      });
+    }
+
+    function applyDepartureFilter() {
+      const listEl = document.getElementById('departuresList');
+      if (!listEl) return;
+
+      let filtered = currentStationDepartures;
+      if (currentStationFilter === 'U') {
+        filtered = currentStationDepartures.filter(d => d.line.startsWith('U'));
+      } else if (currentStationFilter === 'S') {
+        filtered = currentStationDepartures.filter(d => d.line.startsWith('S'));
+      }
+
+      if (!filtered || filtered.length === 0) {
+        const filterName = currentStationFilter === 'U' ? 'U-Bahn' : (currentStationFilter === 'S' ? 'S-Bahn' : 'diese Station');
+        listEl.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-4 px-3 text-center">
+            <span class="text-[11.5px] font-bold text-[var(--aicher-text-muted)] leading-normal">Keine Abfahrten für ${filterName}</span>
+            <button onclick="currentStationFilter='all'; renderDepartureFilterBar(selectedStation); applyDepartureFilter();" class="text-[10px] text-[var(--aicher-blue)] hover:underline mt-1 font-bold">Filter auf „Alle“ zurücksetzen</button>
+          </div>`;
+        return;
+      }
+
+      const displayList = filtered.slice(0, 24);
+
+      listEl.innerHTML = displayList.map(dep => {
+        const lineName = dep.line.replace(/\s+/g, '');
+        const bg = LINE_COLORS[lineName] || '#334155';
+        const textClass = (lineName === 'S8') ? 'text-black' : 'text-white';
+        
+        let timeHTML = '';
+        if (dep.minsUntil === 0) {
+          timeHTML = `
+            <div class="inline-flex items-center gap-1.5 text-[var(--aicher-green)] leading-none">
+              <span class="w-1.5 h-1.5 rounded-full bg-[var(--aicher-green)] animate-ping"></span>
+              <span class="text-[12px] font-extrabold leading-none tracking-tight">Jetzt</span>
+            </div>
+          `;
+        } else if (dep.delay && dep.delay > 0) {
+          timeHTML = `
+            <div class="inline-flex items-center justify-end gap-1.5 leading-none">
+              <span class="text-[12.5px] font-black text-[var(--aicher-text-title)] tabular-nums leading-none">${dep.minsUntil} <span class="text-[9.5px] font-bold text-[var(--aicher-text-muted)]">min</span></span>
+              <span class="text-[9px] font-black text-[#FF3B30] bg-[#FF3B30]/15 border border-[#FF3B30]/30 px-1 py-0.5 rounded leading-none tabular-nums">+${dep.delay}</span>
+            </div>
+          `;
+        } else {
+          timeHTML = `
+            <div class="inline-flex items-center justify-end leading-none">
+              <span class="text-[12.5px] font-black text-[var(--aicher-text-title)] tabular-nums leading-none">${dep.minsUntil} <span class="text-[10px] font-bold text-[var(--aicher-text-muted)]">min</span></span>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="dep-table-row grid grid-cols-[48px_1fr_86px] items-center px-3">
+            <!-- Line Pill -->
+            <div class="flex items-center">
+              <span class="aicher-badge ${textClass} h-[22px] min-w-[34px] px-2 text-[10.5px] font-black tracking-tight leading-none shadow-sm" style="background-color: ${bg};">${lineName}</span>
+            </div>
+            <!-- Regulated Destination Text with Calibrated Height -->
+            <div class="flex items-center min-w-0 pr-2 pl-1 overflow-hidden">
+              <span class="text-[13px] font-bold truncate text-[var(--aicher-text-title)] leading-none tracking-tight select-text">${dep.direction}</span>
+            </div>
+            <!-- Regulated Time Column -->
+            <div class="flex items-center justify-end text-right">
+              ${timeHTML}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateDeparturesBoard(departures) {
+      currentStationDepartures = departures;
+      loadedDeparturesStationId = selectedStation ? selectedStation.id : null;
+      
+      const dot = document.getElementById('depDataSourceDot');
+      if (dot) {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse shrink-0';
+        dot.title = 'Echtzeit Live';
+      }
+
+      renderDepartureFilterBar(selectedStation);
+      applyDepartureFilter();
+    }
+
+    async function fetchLiveDepartures(station, forceRefresh = false) {
+      if (!station) return;
+      const listEl = document.getElementById('departuresList');
+      const dot = document.getElementById('depDataSourceDot');
+      
+      if (!forceRefresh && loadedDeparturesStationId === station.id && currentStationDepartures.length > 0) {
+        applyDepartureFilter();
+        return;
+      }
+
+      currentFetchingStationId = station.id;
+      currentStationDepartures = [];
+      loadedDeparturesStationId = null;
+
+      renderDepartureFilterBar(station);
+
+      if (dot) {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm animate-pulse shrink-0';
+        dot.title = 'Verbinde Live-Daten...';
+      }
+
+      if (listEl) {
+        listEl.innerHTML = `
+          <div class="flex items-center justify-center py-4 gap-2 text-[var(--aicher-text-muted)]">
+            <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+            <span class="text-[11px] font-bold uppercase tracking-wider leading-none">Lade Live-Abfahrten für ${station.name}...</span>
+          </div>`;
+      }
+
+      if (liveFetchController) liveFetchController.abort();
+      liveFetchController = new AbortController();
+      const signal = liveFetchController.signal;
+
+      let fetchedDepartures = [];
+
+      // Tier 1: Local Serverless Proxy (/api/departures) querying MVG
+      try {
+        const cleanName = station.name.replace(/^München-/, '').trim();
+        const apiPromise = fetch(`/api/departures?query=${encodeURIComponent(cleanName)}&lat=${station.lat}&lng=${station.lng}`, { signal });
+        const apiRes = await Promise.race([
+          apiPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4200))
+        ]);
+
+        if (apiRes.ok) {
+          const data = await apiRes.json();
+          if (Array.isArray(data) && data.length > 0 && currentFetchingStationId === station.id) {
+            fetchedDepartures = data;
+          }
+        }
+      } catch (err) {
+        // Fall through to public DB REST API
+      }
+
+      // Tier 2: Public DB HAFAS REST API fallback
+      if (fetchedDepartures.length === 0 && currentFetchingStationId === station.id) {
+        try {
+          const strippedName = station.name.replace(/\s*\(.*?\)/g, '').replace(/^München-/, '').trim();
+          
+          // For Hauptbahnhof, query both the S-Bahn/DB terminal and the municipal U-Bahn station
+          const searchQueries = (station.id === 'hbf')
+            ? ['München Hbf', 'München Hbf (U-Bahn)']
+            : [strippedName.includes('München') ? strippedName : `${strippedName} München`];
+
+          const locPromises = searchQueries.map(q =>
+            fetch(`https://v6.db.transport.rest/locations?query=${encodeURIComponent(q)}&results=5&poi=false&addresses=false`, { signal })
+              .then(r => r.ok ? r.json() : [])
+              .catch(() => [])
+          );
+
+          const locResults = await Promise.race([
+            Promise.all(locPromises),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3800))
+          ]);
+
+          if (currentFetchingStationId === station.id) {
+            const allLocs = locResults.flat();
+            const stopIds = new Set();
+            
+            allLocs.forEach(loc => {
+              if (loc && loc.id) stopIds.add(loc.id);
+            });
+
+            if (stopIds.size > 0) {
+              const depPromises = Array.from(stopIds).slice(0, 4).map(id =>
+                fetch(`https://v6.db.transport.rest/stops/${id}/departures?duration=50&results=30&bus=false&national=false&nationalExpress=false&regional=false`, { signal })
+                  .then(r => r.ok ? r.json() : [])
+                  .then(d => Array.isArray(d) ? d : (d.departures || []))
+                  .catch(() => [])
+              );
+
+              const allResults = await Promise.race([
+                Promise.all(depPromises),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4200))
+              ]);
+
+              if (currentFetchingStationId === station.id) {
+                const rawList = allResults.flat();
+                const now = new Date();
+                const seenKeys = new Set();
+
+                fetchedDepartures = rawList
+                  .filter(d => d.line && (
+                    d.line.product === 'subway' ||
+                    d.line.product === 'suburban' ||
+                    (d.line.name && (d.line.name.startsWith('U') || d.line.name.startsWith('S')))
+                  ))
+                  .filter(d => {
+                    const key = d.tripId || `${d.line.name}-${d.direction}-${d.plannedWhen}`;
+                    if (seenKeys.has(key)) return false;
+                    seenKeys.add(key);
+                    return true;
+                  })
+                  .map(dep => {
+                    const expectedTime = new Date(dep.when || dep.plannedWhen);
+                    const mins = Math.max(0, Math.round((expectedTime - now) / 60000));
+                    let dir = dep.direction || 'Zentrum';
+                    if (dir.startsWith('München ')) dir = dir.substring(8);
+                    return {
+                      line: dep.line.name.replace(/\s+/g, ''),
+                      direction: dir,
+                      minsUntil: mins,
+                      scheduledTime: new Date(dep.plannedWhen),
+                      delay: dep.delay ? Math.round(dep.delay / 60) : 0,
+                      realtime: true
+                    };
+                  });
+              }
+            }
+          }
+        } catch (e) {
+          // Handled below
+        }
+      }
+
+      if (currentFetchingStationId !== station.id) return;
+
+      if (fetchedDepartures.length > 0) {
+        fetchedDepartures.sort((a, b) => a.minsUntil - b.minsUntil);
+        updateDeparturesBoard(fetchedDepartures);
+      } else {
+        showDeparturesError(station, 'Keine Live-Abfahrten gefunden');
+      }
+    }
+
+    const refreshDepBtn = document.getElementById('refreshDepBtn');
+    if (refreshDepBtn) {
+      refreshDepBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (selectedStation) fetchLiveDepartures(selectedStation, true);
+      });
+    }
+
+    STATIONS.forEach(station => {
+      const hubSvg = `<svg class="station-hub-svg" width="22" height="22" viewBox="0 0 22 22">
+        <circle cx="11" cy="11" r="8" class="hub-outer"/>
+        <circle cx="11" cy="11" r="3.2" class="hub-inner"/>
+      </svg>`;
+
+      const nodeSvg = `<svg class="station-node-svg" width="14" height="14" viewBox="0 0 14 14">
+        <circle cx="7" cy="7" r="4.6" class="node-outer"/>
+      </svg>`;
+
+      const customIcon = L.divIcon({
+        className: 'station-node-wrap',
+        html: station.isHub ? hubSvg : nodeSvg,
+        iconSize: station.isHub ? [22, 22] : [14, 14],
+        iconAnchor: station.isHub ? [11, 11] : [7, 7]
+      });
+
+      const marker = L.marker([station.lat, station.lng], { icon: customIcon });
+
+      const popupHtml = `
+        <div class="flex flex-col items-center gap-1.5 px-3 py-2 max-w-[260px] text-center">
+          <span class="text-[13px] font-black text-[var(--aicher-text-title)] tracking-tight leading-tight shrink-0">${station.name}</span>
+          <div class="flex flex-wrap items-center justify-center gap-1.5">${getLineBadgesHTML(station.lines)}</div>
+        </div>
+      `;
+
+      marker.bindPopup(popupHtml, {
+        maxWidth: 280,
+        offset: [0, -6],
+        autoPanPaddingTopLeft: [20, 80],
+        autoPanPaddingBottomRight: [20, 160],
+        closeButton: false
+      });
+
+      marker.on('click', () => {
+        setStationDisplay(station);
+        if (navigator.vibrate) navigator.vibrate([14, 25, 18]);
+      });
+
+      stationLayerGroup.addLayer(marker);
+      stationMarkers.push({ data: station, marker: marker });
+    });
+
+    function deselectStation() {
+      selectedStation = null;
+      loadedDeparturesStationId = null;
+      currentStationDepartures = [];
+      if (liveFetchController) {
+        liveFetchController.abort();
+        liveFetchController = null;
+      }
+      map.closePopup();
+      const widget = document.getElementById('currentStationWidget');
+      if (widget) {
+        widget.classList.add('hidden');
+        widget.style.transform = '';
+        widget.style.opacity = '';
+        widget.style.transition = '';
+      }
+    }
+
+    const closeStationShelfBtn = document.getElementById('closeStationShelfBtn');
+    if (closeStationShelfBtn) {
+      closeStationShelfBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dismissShelf();
+      });
+    }
+
+    const ALL_U_LINES = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6', 'U7', 'U8'];
+    const ALL_S_LINES = ['S1', 'S2', 'S3', 'S4', 'S6', 'S7', 'S8', 'S20'];
+    const ALL_LINES = [...ALL_U_LINES, ...ALL_S_LINES];
+    const selectedLines = new Set();
+
+    function updateActiveIndicators() {
+      const isFiltered = selectedLines.size > 0;
+      const filterBadge = document.getElementById('filterActiveBadge');
+      if (filterBadge) {
+        if (isFiltered) {
+          filterBadge.innerText = selectedLines.size;
+          filterBadge.classList.remove('hidden');
+        } else {
+          filterBadge.classList.add('hidden');
+        }
+      }
+    }
+
+    function updateFilterUI() {
+      const isAll = (selectedLines.size === 0);
+      const allUSelected = !isAll && ALL_U_LINES.every(l => selectedLines.has(l));
+      const allSSelected = !isAll && ALL_S_LINES.every(l => selectedLines.has(l));
+
+      const countEl = document.getElementById('filterActiveCount');
+      if (countEl) {
+        countEl.innerText = isAll ? '(Alle)' : `(${selectedLines.size} aktiv)`;
+      }
+
+      updateActiveIndicators();
+
+      document.querySelectorAll('.filter-opt-btn').forEach(btn => {
+        const f = btn.dataset.filter;
+        if (f === 'all') {
+          btn.classList.toggle('active-tab', isAll);
+        } else if (f === 'U') {
+          btn.classList.toggle('active-tab', allUSelected);
+        } else if (f === 'S') {
+          btn.classList.toggle('active-tab', allSSelected);
+        }
+      });
+
+      document.querySelectorAll('.filter-line-btn').forEach(chip => {
+        const line = chip.dataset.line;
+        if (isAll) {
+          chip.classList.remove('ring-2', 'ring-white', 'scale-105', 'opacity-35');
+          chip.classList.add('opacity-100');
+        } else {
+          const isSelected = selectedLines.has(line);
+          if (isSelected) {
+            chip.classList.add('ring-2', 'ring-white', 'scale-105', 'opacity-100');
+            chip.classList.remove('opacity-35');
+          } else {
+            chip.classList.remove('ring-2', 'ring-white', 'scale-105', 'opacity-100');
+            chip.classList.add('opacity-35');
+          }
+        }
+      });
+    }
+
+    function filterNetwork() {
+      const isAll = (selectedLines.size === 0);
+      linePolylineElements.forEach(item => {
+        let isVisible = isAll || selectedLines.has(item.lineCode);
+        if (isVisible) {
+          if (!lineLayerGroup.hasLayer(item.casing)) lineLayerGroup.addLayer(item.casing);
+          if (!lineLayerGroup.hasLayer(item.core)) lineLayerGroup.addLayer(item.core);
+        } else {
+          if (lineLayerGroup.hasLayer(item.casing)) lineLayerGroup.removeLayer(item.casing);
+          if (lineLayerGroup.hasLayer(item.core)) lineLayerGroup.removeLayer(item.core);
+        }
+      });
+      stationMarkers.forEach(sm => {
+        let isVisible = isAll || sm.data.lines.some(l => selectedLines.has(l));
+        if (isVisible) {
+          if (!stationLayerGroup.hasLayer(sm.marker)) stationLayerGroup.addLayer(sm.marker);
+        } else {
+          if (stationLayerGroup.hasLayer(sm.marker)) stationLayerGroup.removeLayer(sm.marker);
+        }
+      });
+    }
+
+    const filterMenuBtn = document.getElementById('filterMenuBtn');
+    const filterMenuPanel = document.getElementById('filterMenuPanel');
+    const closeFilterMenuBtn = document.getElementById('closeFilterMenuBtn');
+    
+    function toggleFilterMenu(show) {
+      const willShow = (show !== undefined) ? show : filterMenuPanel.classList.contains('hidden');
+      if (willShow) {
+        filterMenuPanel.classList.remove('hidden');
+        filterMenuBtn.classList.add('scale-105');
+      } else {
+        filterMenuPanel.classList.add('hidden');
+        filterMenuBtn.classList.remove('scale-105');
+      }
+    }
+
+    if (filterMenuBtn) {
+      filterMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFilterMenu();
+      });
+    }
+
+    if (closeFilterMenuBtn) {
+      closeFilterMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFilterMenu(false);
+      });
+    }
+
+    const centerMapBtn = document.getElementById('centerMapBtn');
+    if (centerMapBtn) {
+      centerMapBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFilterMenu(false);
+        const lats = STATIONS.map(s => s.lat), lngs = STATIONS.map(s => s.lng);
+        map.fitBounds(L.latLngBounds([Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]), { padding: [50, 25], animate: true });
+        if (navigator.vibrate) navigator.vibrate(10);
+      });
+    }
+
+    const layerCycleBtn = document.getElementById('layerCycleBtn');
+    if (layerCycleBtn) {
+      layerCycleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentTileIndex = (currentTileIndex === 0) ? 1 : 0;
+        applyTileLayer(currentTileIndex);
+        layerCycleBtn.blur();
+        if (navigator.vibrate) navigator.vibrate(10);
+      });
+    }
+
+    document.querySelectorAll('.filter-opt-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const f = this.dataset.filter;
+        if (f === 'all') {
+          selectedLines.clear();
+        } else if (f === 'U') {
+          const allUActive = ALL_U_LINES.every(l => selectedLines.has(l));
+          if (allUActive) {
+            ALL_U_LINES.forEach(l => selectedLines.delete(l));
+          } else {
+            ALL_U_LINES.forEach(l => selectedLines.add(l));
+          }
+          if (selectedLines.size === ALL_LINES.length) selectedLines.clear();
+        } else if (f === 'S') {
+          const allSActive = ALL_S_LINES.every(l => selectedLines.has(l));
+          if (allSActive) {
+            ALL_S_LINES.forEach(l => selectedLines.delete(l));
+          } else {
+            ALL_S_LINES.forEach(l => selectedLines.add(l));
+          }
+          if (selectedLines.size === ALL_LINES.length) selectedLines.clear();
+        }
+        updateFilterUI();
+        filterNetwork();
+      });
+    });
+
+    document.querySelectorAll('.filter-line-btn').forEach(chip => {
+      chip.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const line = this.dataset.line;
+        if (selectedLines.has(line)) {
+          selectedLines.delete(line);
+        } else {
+          selectedLines.add(line);
+        }
+        if (selectedLines.size === ALL_LINES.length) selectedLines.clear();
+        updateFilterUI();
+        filterNetwork();
+      });
+    });
+
+    const searchInput = document.getElementById('stationSearchInput');
+    const searchDropdown = document.getElementById('searchDropdown');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    searchInput.addEventListener('input', function() {
+      const q = this.value.trim().toLowerCase();
+      if (!q) { searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden'); return; }
+      clearSearchBtn.classList.remove('hidden');
+
+      const matches = STATIONS.filter(s => s.name.toLowerCase().includes(q)).slice(0, 6);
+      if (matches.length === 0) {
+        searchDropdown.innerHTML = '<div class="p-4 text-[13px] text-[var(--aicher-text-muted)] font-semibold text-center">Keine Station gefunden</div>';
+        searchDropdown.classList.remove('hidden'); return;
+      }
+
+      searchDropdown.innerHTML = matches.map(s => `
+        <div data-id="${s.id}" class="search-row px-3.5 py-2.5 min-h-[46px] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] cursor-pointer flex items-center justify-between gap-3 transition-colors">
+          <div class="text-[13px] font-black text-[var(--aicher-text-title)] truncate leading-tight">${s.name}</div>
+          <div class="flex items-center gap-1.5 shrink-0">${getLineBadgesHTML(s.lines, 'compact')}</div>
+        </div>
+      `).join('');
+
+      searchDropdown.classList.remove('hidden');
+
+      searchDropdown.querySelectorAll('.search-row').forEach(row => {
+        row.addEventListener('click', function() {
+          const stId = this.dataset.id;
+          const found = stationMarkers.find(sm => sm.data.id === stId);
+          if (found) {
+            map.setView([found.data.lat, found.data.lng], 16, { animate: true });
+            found.marker.openPopup();
+            setStationDisplay(found.data);
+          }
+          searchDropdown.classList.add('hidden');
+          searchInput.value = found.data.name;
+          searchInput.blur();
+        });
+      });
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = ''; searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden'); searchInput.focus();
+    });
+
+    map.on('click', () => {
+      searchDropdown.classList.add('hidden');
+      toggleFilterMenu(false);
+      searchInput.blur();
+      deselectStation();
+    });
+
+    function setStationDisplay(st, forceRefresh = false) {
+      if (!st) return;
+
+      const widget = document.getElementById('currentStationWidget');
+      if (widget) {
+        const wasHidden = widget.classList.contains('hidden');
+        widget.classList.remove('hidden');
+
+        if (wasHidden) {
+          setSheetState(1, false);
+          // Start positioned offscreen at full solid opacity (prevents browser composite alpha dropout)
+          widget.style.transition = 'none';
+          widget.style.transform = 'translateY(100%)';
+          widget.style.opacity = '1';
+          void widget.offsetHeight; // Force synchronous layout reflow
+          // Animate with the identical spring curve used for drag release
+          widget.style.transition = 'transform 0.36s cubic-bezier(0.25, 1.25, 0.5, 1)';
+          widget.style.transform = 'translateY(0px)';
+        } else {
+          widget.style.transition = 'transform 0.24s cubic-bezier(0.25, 1.25, 0.5, 1)';
+          widget.style.transform = 'translateY(0px)';
+          widget.style.opacity = '1';
+        }
+      }
+
+      const stationChanged = !selectedStation || selectedStation.id !== st.id;
+      selectedStation = st;
+
+      const lines = st.lines || [];
+      const hasU = lines.some(l => l.startsWith('U'));
+      const hasS = lines.some(l => l.startsWith('S'));
+      if (currentStationFilter === 'U' && !hasU) currentStationFilter = 'all';
+      if (currentStationFilter === 'S' && !hasS) currentStationFilter = 'all';
+
+      const nameEl = document.getElementById('nearestStationName');
+      if (nameEl) nameEl.innerText = st.name;
+      
+      const linesEl = document.getElementById('nearestStationLines');
+      if (linesEl) {
+        linesEl.innerHTML = getLineBadgesHTML(st.lines);
+        linesEl.scrollLeft = 0;
+      }
+      
+      const metaEl = document.getElementById('nearestStationMeta');
+      if (metaEl) metaEl.innerText = st.zone || 'Zone M';
+
+      if (stationChanged) {
+        currentStationDepartures = [];
+        loadedDeparturesStationId = null;
+      }
+
+      fetchLiveDepartures(st, forceRefresh || stationChanged);
+    }
+
+    function updateUserLocationOnMap(lat, lng, accuracy) {
+      userLocation = { lat, lng };
+      if (!userMarker) {
+        const pulseIcon = L.divIcon({ className: 'aicher-gps-marker-wrap', html: '<div class="aicher-gps-wrap"><div class="aicher-gps-ring"></div><div class="aicher-gps-dot"></div></div>', iconSize: [32, 32], iconAnchor: [16, 16] });
+        userMarker = L.marker([lat, lng], { icon: pulseIcon, zIndexOffset: 1000 }).addTo(map);
+        accuracyCircle = L.circle([lat, lng], { radius: accuracy || 50, stroke: false, fillColor: '#0066CC', fillOpacity: 0.14 }).addTo(map);
+      } else {
+        userMarker.setLatLng([lat, lng]);
+        accuracyCircle.setLatLng([lat, lng]);
+        accuracyCircle.setRadius(accuracy || 50);
+      }
+    }
+
+    function requestDeviceLocation(onSuccess, onError) {
+      if (!('geolocation' in navigator)) return;
+      navigator.geolocation.getCurrentPosition(
+        pos => { updateUserLocationOnMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy); if (onSuccess) onSuccess(pos); },
+        err => { if (onError) onError(err); },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+      );
+    }
+
+    function startWatchingLocation() {
+      if ('geolocation' in navigator && !watchId) {
+        watchId = navigator.geolocation.watchPosition(
+          pos => updateUserLocationOnMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
+          err => console.warn('GPS continuous watch notice:', err.message),
+          { enableHighAccuracy: true, maximumAge: 8000, timeout: 10000 }
+        );
+      }
+    }
+
+    const gpsBtn = document.getElementById('gpsBtn');
+    const gpsIcon = document.getElementById('gpsIcon');
+
+    if (gpsBtn) {
+      gpsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (navigator.vibrate) navigator.vibrate(10);
+
+        // Immediately pan if location is already known
+        if (userLocation) {
+          map.setView([userLocation.lat, userLocation.lng], Math.max(map.getZoom(), 15), { animate: true });
+        }
+
+        // Brief loading indicator while querying fresh GPS coordinates
+        if (gpsIcon) {
+          gpsIcon.className = 'fa-solid fa-circle-notch fa-spin text-[12px] text-[var(--aicher-blue)]';
+        }
+
+        requestDeviceLocation(
+          pos => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            map.setView([lat, lng], Math.max(map.getZoom(), 15), { animate: true });
+            if (gpsIcon) {
+              gpsIcon.className = 'fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]';
+            }
+          },
+          () => {
+            if (gpsIcon) {
+              gpsIcon.className = 'fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]';
+            }
+          }
+        );
+      });
+    }
+
+    // Auto-refresh departures periodically when active
+    let autoRefreshTimer = setInterval(() => {
+      if (!document.hidden && selectedStation) {
+        fetchLiveDepartures(selectedStation, true);
+      }
+    }, 30000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && selectedStation) {
+        fetchLiveDepartures(selectedStation, true);
+      }
+    });
+
+    requestDeviceLocation(() => startWatchingLocation(), () => {});
+
+    setSheetState(1, false);
+    applyTileLayer(0);
+
+    function triggerMapResize() {
+      if (map) {
+        map.invalidateSize(true);
+        if (!map.getCenter() || isNaN(map.getCenter().lat)) map.setView([48.140, 11.575], 13);
+      }
+    }
+    window.addEventListener('resize', triggerMapResize);
+    window.addEventListener('orientationchange', () => setTimeout(triggerMapResize, 200));
+    window.addEventListener('load', triggerMapResize);
+    if (window.ResizeObserver) { new ResizeObserver(() => triggerMapResize()).observe(document.getElementById('map')); }
+  </script>
+</body>
+</html>
