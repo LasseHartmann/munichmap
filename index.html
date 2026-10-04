@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Leaflet CSS & JS -->
+  <!-- Leaflet Map CSS & JS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-  <!-- Font Awesome Icons -->
+  <!-- Font Awesome Pro Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
@@ -30,7 +30,7 @@
     }
 
     :root {
-      /* Luminous Liquid Glass Theme */
+      /* Luminous Liquid Glass Theme - Light */
       --aicher-bg: #EAF0F8;
       --glass-base: rgba(255, 255, 255, 0.65);
       --glass-base-solid: #FFFFFF;
@@ -56,6 +56,7 @@
     }
 
     body.theme-dark {
+      /* Luminous Liquid Glass Theme - Dark */
       --aicher-bg: #0B0E14;
       --glass-base: rgba(18, 24, 36, 0.68);
       --glass-base-solid: #121824;
@@ -163,37 +164,10 @@
     }
 
     body.theme-dark .aicher-btn {
-      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(25, 33, 49, 0.68) 100%);
+      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(255, 255, 255, 0.07) 100%);
       box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
                   inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
                   var(--glass-shadow);
-    }
-
-    .aicher-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 16%;
-      right: 16%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, var(--glass-specular) 50%, transparent 100%);
-      opacity: 0.9;
-      pointer-events: none;
-      border-radius: inherit;
-    }
-
-    button i, .aicher-btn i,
-    button span, .aicher-btn span,
-    [class*="fa-"] {
-      display: inline-flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      vertical-align: 0 !important;
-      line-height: 1 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      text-align: center !important;
-      transform-origin: center center;
     }
 
     .aicher-btn:hover {
@@ -210,20 +184,6 @@
       border-color: var(--glass-border) !important;
       box-shadow: none !important;
       -webkit-tap-highlight-color: transparent !important;
-    }
-
-    body.theme-dark button:focus,
-    body.theme-dark button:focus-visible,
-    body.theme-dark .aicher-btn:focus,
-    body.theme-dark .aicher-btn:focus-visible {
-      outline: none !important;
-      border-color: var(--glass-border) !important;
-    }
-
-    body.theme-dark .aicher-btn:hover {
-      border-color: var(--glass-border) !important;
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  0 8px 20px -2px rgba(0, 0, 0, 0.5) !important;
     }
 
     .aicher-btn:active {
@@ -243,9 +203,6 @@
       box-shadow: inset 0 2px 2.5px 0 var(--glass-specular),
                   inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.04),
                   var(--glass-shadow);
-      transition: transform 0.38s var(--spring-bouncy),
-                  box-shadow 0.35s ease,
-                  border-color 0.3s ease;
     }
 
     body.theme-dark .aicher-search-bar {
@@ -274,51 +231,22 @@
                   var(--glass-shadow);
     }
 
-    .aicher-search-bar::before,
-    .aicher-bottom-shelf::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 18px;
-      right: 18px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, var(--glass-specular) 45%, var(--glass-specular) 55%, transparent 100%);
-      opacity: 0.9;
-      pointer-events: none;
-      border-radius: inherit;
-    }
-
     .aicher-filter-tab {
-      position: relative;
       background: var(--glass-panel-sub);
       backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
       border: 1.5px solid var(--glass-border);
       border-radius: var(--aicher-radius-pill);
       color: var(--aicher-text-main);
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      box-shadow: inset 0 1.5px 1.5px var(--glass-specular), 0 3px 10px rgba(0, 50, 120, 0.08);
       transition: all 0.36s var(--spring-bouncy);
-      will-change: transform;
-    }
-
-    .aicher-filter-tab:hover {
-      transform: translateY(-2px) scale(1.05);
-    }
-
-    .aicher-filter-tab:active {
-      transform: scale(0.88, 0.84);
-      transition: transform 0.1s var(--spring-squish);
     }
 
     .aicher-filter-tab.active-tab {
       background: var(--aicher-blue) !important;
       border-color: rgba(255, 255, 255, 0.6) !important;
       color: #FFFFFF !important;
-      box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.6),
-                  0 8px 22px rgba(0, 102, 204, 0.42);
       transform: scale(1.04);
     }
 
@@ -331,13 +259,8 @@
       min-width: 30px;
       height: 22px;
       padding: 0 8px;
-      letter-spacing: -0.02em;
-      line-height: 1;
-      box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.55),
-                  0 4px 10px rgba(0, 0, 0, 0.15);
       border: 1px solid rgba(255, 255, 255, 0.35);
-      transition: transform 0.32s var(--spring-bouncy), box-shadow 0.25s ease;
-      will-change: transform;
+      transition: transform 0.32s var(--spring-bouncy);
     }
 
     .aicher-badge:hover {
@@ -355,45 +278,6 @@
       animation: liquidGlassPop 0.48s var(--spring-bouncy) forwards;
     }
 
-    .leaflet-popup { margin-bottom: 8px !important; }
-    .leaflet-popup-content-wrapper {
-      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(255, 255, 255, 0.6) 100%) !important;
-      color: var(--aicher-text-main) !important;
-      backdrop-filter: var(--glass-blur) !important;
-      -webkit-backdrop-filter: var(--glass-blur) !important;
-      border: 1.5px solid var(--glass-border) !important;
-      border-radius: 20px !important;
-      box-shadow: inset 0 2px 2px var(--glass-specular),
-                  0 16px 36px -6px rgba(0, 70, 160, 0.25) !important;
-      padding: 0px !important;
-      animation: liquidGlassPop 0.45s var(--spring-bouncy) !important;
-      transform-origin: bottom center !important;
-    }
-
-    body.theme-dark .leaflet-popup-content-wrapper {
-      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(22, 29, 44, 0.75) 100%) !important;
-      box-shadow: inset 0 1.5px 2px var(--glass-specular),
-                  0 16px 36px -6px rgba(0, 0, 0, 0.7) !important;
-    }
-
-    .leaflet-popup-content { margin: 0px !important; line-height: 1 !important; }
-    .leaflet-popup-tip-container {
-      width: 24px !important; height: 9px !important;
-      margin-top: -1px !important; margin-left: -12px !important;
-    }
-
-    .leaflet-popup-tip {
-      width: 10px !important; height: 10px !important;
-      margin: -5px auto 0 !important;
-      background: var(--glass-base) !important;
-      backdrop-filter: var(--glass-blur) !important;
-      -webkit-backdrop-filter: var(--glass-blur) !important;
-      border: 1.5px solid var(--glass-border) !important;
-      border-top: none !important; border-left: none !important;
-      box-shadow: none !important;
-    }
-    .leaflet-container a.leaflet-popup-close-button { display: none !important; }
-
     .station-node-wrap.leaflet-div-icon, .station-node-wrap {
       background: transparent !important; border: none !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
@@ -402,7 +286,6 @@
     }
     .station-node-wrap:hover {
       transform: scale(1.22);
-      filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.6));
     }
 
     .station-node-svg circle.node-outer {
@@ -415,9 +298,6 @@
       fill: #0F172A;
     }
 
-    body.theme-dark .station-node-wrap {
-      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.9));
-    }
     body.theme-dark .station-node-svg circle.node-outer {
       fill: #FFFFFF; stroke: #05070B; stroke-width: 2.4px;
     }
@@ -433,7 +313,7 @@
     .aicher-gps-dot {
       width: 16px; height: 16px; background: var(--aicher-blue); border: 3px solid #FFFFFF;
       border-radius: 50%; position: absolute; top: 8px; left: 8px;
-      box-shadow: 0 4px 14px rgba(0, 102, 204, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+      box-shadow: 0 4px 14px rgba(0, 102, 204, 0.8);
       animation: jellyPulse 3s infinite var(--spring-bouncy);
     }
     .aicher-gps-ring {
@@ -446,62 +326,25 @@
       50% { transform: scale(1.15, 0.9); }
     }
 
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .dep-scroll::-webkit-scrollbar { width: 5px; }
-    .dep-scroll::-webkit-scrollbar-track { background: transparent; }
-    .dep-scroll::-webkit-scrollbar-thumb {
-      background: var(--glass-border);
-      border-radius: 9999px;
-      border: 1px solid var(--glass-specular-soft);
-      transition: background 0.25s ease;
-    }
-    .dep-scroll::-webkit-scrollbar-thumb:hover { background: var(--aicher-blue); }
-
-    .line-scroll::-webkit-scrollbar { height: 4px; }
-    .line-scroll::-webkit-scrollbar-track { background: transparent; }
-    .line-scroll::-webkit-scrollbar-thumb {
-      background: var(--glass-border);
-      border-radius: 9999px;
-      transition: background 0.25s ease;
-    }
-    .line-scroll::-webkit-scrollbar-thumb:hover { background: var(--aicher-blue); }
-
     .safe-top { padding-top: max(14px, env(safe-area-inset-top, 14px)); }
     .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); }
 
-    .departures-drawer {
-      max-height: 520px;
-      opacity: 1;
-      padding-top: 0.5rem;
-      margin-top: 0.2rem;
-      border-top-width: 1px;
-      border-top-color: var(--glass-border);
-      pointer-events: auto;
-      overflow: hidden;
-      transform-origin: bottom center;
-    }
-
-    /* Regulated Departure Table Container with Shared Glass Transparency */
     .dep-table-container {
       position: relative;
       background: rgba(255, 255, 255, 0.18);
       border: 1px solid var(--glass-border);
       border-radius: 16px;
-      box-shadow: inset 0 1px 1.5px 0 var(--glass-specular-soft);
       overflow: hidden;
       width: 100%;
     }
 
     body.theme-dark .dep-table-container {
       background: rgba(0, 0, 0, 0.22);
-      box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.06);
     }
 
     .dep-table-header {
       background: rgba(0, 0, 0, 0.035);
       border-bottom: 1px solid var(--glass-border);
-      user-select: none;
     }
 
     body.theme-dark .dep-table-header {
@@ -525,85 +368,36 @@
       height: 42px;
       min-height: 42px;
       max-height: 42px;
-      transition: background-color 0.18s ease;
-      will-change: background-color;
     }
 
-    .dep-table-row:hover {
-      background-color: rgba(0, 102, 204, 0.06);
-    }
-
-    body.theme-dark .dep-table-row:hover {
-      background-color: rgba(255, 255, 255, 0.05);
-    }
-
-    .dep-table-row:active {
-      background-color: rgba(0, 102, 204, 0.12);
-    }
-
-    body.theme-dark .dep-table-row:active {
-      background-color: rgba(255, 255, 255, 0.08);
-    }
-
-    /* Draggable Handle Bar Styles */
     #stationDragHandle {
       cursor: grab;
       touch-action: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    #stationDragHandle:active,
-    #stationDragHandle.is-dragging {
-      cursor: grabbing !important;
     }
 
     #dragHandlePill {
       background-color: rgba(148, 163, 184, 0.45);
-      box-shadow: inset 0 1px 1.5px var(--glass-specular),
-                  0 2px 5px rgba(0, 0, 0, 0.08);
       transition: width 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
-                  transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
-                  background-color 0.2s ease,
-                  box-shadow 0.2s ease;
-      will-change: width, transform, background-color;
+                  transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
     }
 
     body.theme-dark #dragHandlePill {
       background-color: rgba(255, 255, 255, 0.28);
     }
 
-    #stationDragHandle:hover #dragHandlePill {
-      background-color: rgba(148, 163, 184, 0.7);
-      width: 3.5rem; /* 56px */
-      transform: scaleY(1.2);
-    }
-
-    body.theme-dark #stationDragHandle:hover #dragHandlePill {
-      background-color: rgba(255, 255, 255, 0.45);
-    }
-
-    #stationDragHandle.is-dragging #dragHandlePill,
-    #dragHandlePill.is-active-drag {
+    #stationDragHandle.is-dragging #dragHandlePill {
       background-color: var(--aicher-blue) !important;
-      width: 4.2rem !important; /* 67px */
+      width: 4.2rem !important;
       transform: scaleY(1.35) !important;
-      box-shadow: 0 0 14px rgba(0, 102, 204, 0.65), inset 0 1px 1.5px rgba(255, 255, 255, 0.9) !important;
-    }
-
-    /* Smooth Dragging Class without Animation Stutter */
-    .is-sheet-dragging #departuresList {
-      transition: none !important;
     }
   </style>
 </head>
 
 <body class="theme-dark h-[100dvh] w-full fixed inset-0 overflow-hidden flex flex-col">
 
-  <!-- Fullscreen Leaflet Container -->
   <div id="map"></div>
 
-  <!-- Wayfinding Header & Search Bar -->
+  <!-- Header & Search Bar -->
   <header class="absolute top-0 left-0 right-0 z-[1000] safe-top px-3 sm:px-4 pointer-events-none flex flex-col gap-2">
     <div class="pointer-events-auto max-w-xl mx-auto w-full">
       <div class="relative w-full">
@@ -611,8 +405,8 @@
           <div class="pl-3.5 pr-1 flex items-center justify-center pointer-events-none text-[var(--aicher-text-muted)] z-10 leading-none shrink-0">
             <i class="fa-solid fa-magnifying-glass text-[13px] opacity-80"></i>
           </div>
-          <input id="stationSearchInput" type="text" placeholder="Station in Zone M suchen..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-transparent border-none outline-none py-2.5 pr-8 leading-tight text-[15px] sm:text-sm text-[var(--aicher-text-title)] font-semibold placeholder:text-[var(--aicher-text-muted)] placeholder:font-normal">
-          <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100 touch-manipulation active:scale-75 transition-all p-0 m-0">
+          <input id="stationSearchInput" type="text" placeholder="Station in Zone M suchen..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-transparent border-none outline-none py-2.5 pr-8 leading-tight text-[15px] sm:text-sm text-[var(--aicher-text-title)] font-semibold placeholder:text-[var(--aicher-text-muted)]">
+          <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100">
             <i class="fa-solid fa-xmark text-[10px] text-[var(--aicher-text-title)]"></i>
           </button>
         </div>
@@ -620,6 +414,7 @@
       </div>
     </div>
 
+    <!-- Filter Menu Panel -->
     <div id="filterMenuPanel" class="hidden pointer-events-auto aicher-panel p-4 max-w-xl mx-auto w-full mt-1 z-50 liquid-pop-in">
       <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--glass-border)]">
         <div class="flex items-center gap-2.5">
@@ -629,28 +424,28 @@
           <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
           <span id="filterActiveCount" class="text-[10px] font-bold text-[var(--aicher-text-muted)] ml-1"></span>
         </div>
-        <button id="closeFilterMenuBtn" class="w-7 h-7 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100 touch-manipulation active:scale-75 transition-all p-0 m-0">
+        <button id="closeFilterMenuBtn" class="w-7 h-7 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100">
           <i class="fa-solid fa-xmark text-xs text-[var(--aicher-text-title)]"></i>
         </button>
       </div>
       <div class="grid grid-cols-3 gap-2 mb-4">
-        <button data-filter="all" class="filter-opt-btn aicher-filter-tab active-tab px-3 py-2 text-xs flex items-center justify-center text-center leading-none">Alle</button>
-        <button data-filter="U" title="U-Bahn" class="filter-opt-btn aicher-filter-tab px-3 py-2 text-xs flex items-center justify-center p-0">
-          <span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center leading-none shadow-sm">U</span>
+        <button data-filter="all" class="filter-opt-btn aicher-filter-tab active-tab px-3 py-2 text-xs flex items-center justify-center">Alle</button>
+        <button data-filter="U" class="filter-opt-btn aicher-filter-tab px-3 py-2 text-xs flex items-center justify-center">
+          <span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center">U</span>
         </button>
-        <button data-filter="S" title="S-Bahn" class="filter-opt-btn aicher-filter-tab px-3 py-2 text-xs flex items-center justify-center p-0">
-          <span class="w-5 h-5 rounded-full bg-[#008B4E] text-white text-xs font-black flex items-center justify-center leading-none shadow-sm">S</span>
+        <button data-filter="S" class="filter-opt-btn aicher-filter-tab px-3 py-2 text-xs flex items-center justify-center">
+          <span class="w-5 h-5 rounded-full bg-[#008B4E] text-white text-xs font-black flex items-center justify-center">S</span>
         </button>
       </div>
       <div class="mb-3.5">
         <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] flex items-center gap-1.5 mb-2 pl-1">
-          <span class="w-3.5 h-3.5 rounded-[4px] bg-[#0073B9] text-white text-[9px] font-black inline-flex items-center justify-center leading-none">U</span> U-Bahn Linien
+          <span class="w-3.5 h-3.5 rounded-[4px] bg-[#0073B9] text-white text-[9px] font-black inline-flex items-center justify-center">U</span> U-Bahn Linien
         </span>
         <div class="flex flex-wrap gap-2">
           <button data-line="U1" class="filter-line-btn aicher-badge text-white bg-[#438238]">U1</button>
           <button data-line="U2" class="filter-line-btn aicher-badge text-white bg-[#C31B2C]">U2</button>
           <button data-line="U3" class="filter-line-btn aicher-badge text-white bg-[#EB7926]">U3</button>
-          <button data-line="U4" class="filter-line-badge aicher-badge text-white bg-[#00A896]">U4</button>
+          <button data-line="U4" class="filter-line-btn aicher-badge text-white bg-[#00A896]">U4</button>
           <button data-line="U5" class="filter-line-btn aicher-badge text-white bg-[#BE7E22]">U5</button>
           <button data-line="U6" class="filter-line-btn aicher-badge text-white bg-[#0073B9]">U6</button>
           <button data-line="U7" class="filter-line-btn aicher-badge text-white bg-[#A32938]">U7</button>
@@ -659,7 +454,7 @@
       </div>
       <div>
         <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] flex items-center gap-1.5 mb-2 pl-1">
-          <span class="w-3.5 h-3.5 rounded-full bg-[#008B4E] text-white text-[9px] font-black inline-flex items-center justify-center leading-none">S</span> S-Bahn Linien
+          <span class="w-3.5 h-3.5 rounded-full bg-[#008B4E] text-white text-[9px] font-black inline-flex items-center justify-center">S</span> S-Bahn Linien
         </span>
         <div class="flex flex-wrap gap-2">
           <button data-line="S1" class="filter-line-btn aicher-badge text-white bg-[#1BB0E8]">S1</button>
@@ -675,77 +470,61 @@
     </div>
   </header>
 
+  <!-- Side Floating Controls -->
   <aside class="absolute right-3 top-[68px] sm:top-20 z-[1000] flex flex-col gap-2 pointer-events-auto">
-    <!-- GPS Ortung (Einmaliges Zentrieren) -->
-    <button id="gpsBtn" title="Standort auf Karte zentrieren" aria-label="Mein Standort" class="w-9 h-9 aicher-btn relative p-0 m-0 shadow-md">
+    <button id="gpsBtn" title="Standort auf Karte zentrieren" class="w-9 h-9 aicher-btn shadow-md">
       <i id="gpsIcon" class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i>
     </button>
-
-    <!-- Linienfilter Öffner -->
-    <button id="filterMenuBtn" title="Linienfilter anzeigen" aria-label="Linienfilter" class="w-9 h-9 aicher-btn relative p-0 m-0 shadow-md">
+    <button id="filterMenuBtn" title="Linienfilter anzeigen" class="w-9 h-9 aicher-btn relative shadow-md">
       <i id="filterBtnIcon" class="fa-solid fa-filter text-[12px] text-[var(--aicher-text-title)]"></i>
-      <span id="filterActiveBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--aicher-blue)] border border-white/60 text-[8.5px] font-black text-white flex items-center justify-center leading-none shadow-md">0</span>
+      <span id="filterActiveBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--aicher-blue)] text-[8.5px] font-black text-white flex items-center justify-center">0</span>
     </button>
-
-    <!-- Gesamtnetz zentrieren (Zone M) -->
-    <button id="centerMapBtn" title="Gesamtes Netz zentrieren" aria-label="Netz zentrieren" class="w-9 h-9 aicher-btn p-0 m-0 shadow-md">
+    <button id="centerMapBtn" title="Gesamtes Netz zentrieren" class="w-9 h-9 aicher-btn shadow-md">
       <i class="fa-solid fa-expand text-[12px] text-[var(--aicher-text-title)] opacity-90"></i>
     </button>
-
-    <!-- Theme Toggle -->
-    <button id="layerCycleBtn" title="Kartenstil umschalten" aria-label="Kartenstil wechseln" class="w-9 h-9 aicher-btn p-0 m-0 shadow-md">
+    <button id="layerCycleBtn" title="Kartenstil umschalten" class="w-9 h-9 aicher-btn shadow-md">
       <i id="layerIcon" class="fa-solid fa-moon text-[12.5px] text-[var(--aicher-yellow)]"></i>
     </button>
   </aside>
 
-  <!-- Departures Bottom Widget Shelf -->
   <div id="currentStationWidget" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-[410px] max-w-md mx-auto z-[1000] safe-bottom pointer-events-auto">
     <div class="aicher-bottom-shelf p-3 sm:px-3.5 sm:py-3 flex flex-col max-w-full min-w-[285px]">
       
-      <!-- Interactive Draggable Bar on the Bottom Shelf -->
-      <div id="stationDragHandle" class="w-full flex flex-col items-center justify-center py-2.5 -mt-1 select-none group relative touch-none" title="Ziehen oder tippen für mehr Abfahrten" aria-label="Abfahrtsleiste verschieben">
-        <div class="absolute inset-0 -top-2.5 -bottom-2 w-full pointer-events-auto"></div>
-        <div id="dragHandlePill" class="w-12 h-1.5 rounded-full relative z-10 pointer-events-none"></div>
+      <div id="stationDragHandle" class="w-full flex flex-col items-center justify-center py-2.5 -mt-1 group relative">
+        <div id="dragHandlePill" class="w-12 h-1.5 rounded-full pointer-events-none"></div>
       </div>
 
-      <!-- Station Header (also drag-friendly) -->
-      <div id="stationHeaderArea" class="flex items-center justify-between gap-2.5 sm:gap-3 min-w-0 w-full cursor-pointer select-none group" title="Tippen oder ziehen für mehr Abfahrten">
-        <div class="flex flex-col min-w-[105px] max-w-[42%] sm:max-w-[45%] shrink-0 py-0.5 px-1 sm:px-0">
-          <span id="nearestStationName" class="text-[14px] leading-tight font-black truncate text-[var(--aicher-text-title)] tracking-tight">Hauptbahnhof</span>
-          <span id="nearestStationMeta" class="text-[10px] leading-tight text-[var(--aicher-text-muted)] truncate font-semibold">Zone M</span>
+      <div id="stationHeaderArea" class="flex items-center justify-between gap-2.5 sm:gap-3 min-w-0 w-full cursor-pointer select-none">
+        <div class="flex flex-col min-w-[105px] max-w-[42%] shrink-0">
+          <span id="nearestStationName" class="text-[14px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
+          <span id="nearestStationMeta" class="text-[10px] leading-tight text-[var(--aicher-text-muted)] font-semibold">Zone M</span>
         </div>
-        
-        <div class="flex items-center min-w-0 flex-1 justify-end overflow-hidden gap-1.5">
-          <div id="nearestStationLines" class="flex items-center gap-1.5 overflow-x-auto line-scroll pb-1 pt-0.5 px-0.5 ml-auto max-w-full touch-pan-x select-none"></div>
-          <button id="closeStationShelfBtn" class="w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-75 hover:opacity-100 touch-manipulation active:scale-75 transition-all p-0 m-0 shrink-0 shadow-sm" title="Abfahrten schließen" aria-label="Schließen">
+        <div class="flex items-center min-w-0 flex-1 justify-end gap-1.5">
+          <div id="nearestStationLines" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar"></div>
+          <button id="closeStationShelfBtn" class="w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-75 hover:opacity-100">
             <i class="fa-solid fa-xmark text-[10px] text-[var(--aicher-text-title)]"></i>
           </button>
         </div>
       </div>
 
-      <!-- Live Departures Drawer Container -->
-      <div id="liveDeparturesContainer" class="departures-drawer flex flex-col gap-2 w-full">
-        <!-- Status dot & filter pills consolidated in single row -->
-        <div class="flex items-center justify-between px-1 min-h-[30px]">
-          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-            <span id="depDataSourceDot" class="w-2.5 h-2.5 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse shrink-0" title="Echtzeit Live"></span>
-            <!-- Transit Filter Bar (Alle / U / S) placed directly next to status light -->
-            <div id="departureFilterBar" class="flex items-center gap-1.5 shrink-0"></div>
+      <div id="liveDeparturesContainer" class="flex flex-col gap-2 w-full mt-2 pt-2 border-t border-[var(--glass-border)]">
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2">
+            <span id="depDataSourceDot" class="w-2.5 h-2.5 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse"></span>
+            <div id="departureFilterBar" class="flex items-center gap-1.5"></div>
           </div>
-          <button id="refreshDepBtn" class="w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100 touch-manipulation active:scale-75 hover:rotate-180 transition-all duration-300 shadow-sm p-0 m-0 shrink-0 ml-1.5" title="Abfahrten aktualisieren">
+          <button id="refreshDepBtn" class="w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100">
             <i class="fa-solid fa-arrows-rotate text-[9px] text-[var(--aicher-text-title)]"></i>
           </button>
         </div>
 
-        <!-- Regulated Departure Table Frame -->
         <div class="dep-table-container">
           <div class="dep-table-header grid grid-cols-[48px_1fr_86px] items-center px-3 py-1.5 text-[9.5px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)]">
             <span>Linie</span>
             <span class="pl-1">Richtung</span>
             <span class="text-right">Abfahrt</span>
           </div>
-          <!-- Scrollable Departures Table Body -->
-          <div id="departuresList" class="divide-y divide-[var(--glass-border)]/70 is-collapsed dep-scroll"></div>
+          <div id="departuresList" class="divide-y divide-[var(--glass-border)]/70 is-collapsed"></div>
         </div>
       </div>
 
@@ -759,6 +538,11 @@
       'S1': '#1BB0E8', 'S2': '#74BF43', 'S3': '#92278F', 'S4': '#E2007A',
       'S6': '#008B4E', 'S7': '#941B33', 'S8': '#FFCC00', 'S20': '#EA516D'
     };
+
+    const ALL_U_LINES = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6', 'U7', 'U8'];
+    const ALL_S_LINES = ['S1', 'S2', 'S3', 'S4', 'S6', 'S7', 'S8', 'S20'];
+    const ALL_LINES = [...ALL_U_LINES, ...ALL_S_LINES];
+    const selectedLines = new Set();
 
     const STATIONS = [
       { id: 'pasing', name: 'München-Pasing', lat: 48.14986460135086, lng: 11.461837275933958, lines: ['S3', 'S4', 'S6', 'S8', 'S20'], isHub: true, zone: 'Zone M' },
@@ -949,7 +733,7 @@
 
     const lineLayerGroup = L.layerGroup().addTo(map);
     const stationLayerGroup = L.layerGroup().addTo(map);
-    const linePolylineElements = [];
+    let linePolylineElements = [];
     const stationMarkers = [];
 
     const MAPTILER_KEY = 'XD2YymAltj0rMOGfCS9A';
@@ -1021,101 +805,131 @@
       return lines.map(line => {
         const bg = LINE_COLORS[line] || '#334155';
         const textClass = (line === 'S8') ? 'text-black' : 'text-white';
-        return `<span class="inline-flex items-center justify-center font-black ${textClass} ${sizeClass} shadow-xs border border-white/40 shrink-0 transition-transform select-none aicher-badge" style="background-color: ${bg};">${line}</span>`;
+        return `<span class="inline-flex items-center justify-center font-black ${textClass} ${sizeClass} shadow-xs border border-white/40 shrink-0 select-none aicher-badge" style="background-color: ${bg};">${line}</span>`;
       }).join('');
     }
 
+    function renderTrackSegment(coords, lineCode) {
+      if (!coords || coords.length < 2) return;
+      const isS = lineCode.startsWith('S');
+      const color = LINE_COLORS[lineCode] || '#0066CC';
+      const paneName = `pane_line_${lineCode}`;
 
-// Function to style a track segment for a specific line
-function renderTrackSegment(coordinates, lineCode) {
-  const isS = lineCode.startsWith('S');
-  const color = LINE_COLORS[lineCode] || '#0066CC';
-  const paneName = `pane_line_${lineCode}`;
+      const casingWeight = isS ? 6.5 : 5.5;
+      const coreWeight = isS ? 4.2 : 3.6;
+      const isDark = document.body.classList.contains('theme-dark');
 
-  const casingWeight = isS ? 6.5 : 5.5;
-  const coreWeight = isS ? 4.2 : 3.6;
-  const isDark = document.body.classList.contains('theme-dark');
+      const casing = L.polyline(coords, {
+        pane: paneName,
+        color: isDark ? '#0B0E14' : '#FFFFFF',
+        weight: casingWeight + 2,
+        opacity: isDark ? 1.0 : 0.9,
+        lineJoin: 'round',
+        lineCap: 'round',
+        interactive: false
+      });
 
-  // Outer casing (white or dark background ring)
-  const casing = L.polyline(coordinates, {
-    pane: paneName,
-    color: isDark ? '#0B0E14' : '#FFFFFF',
-    weight: casingWeight + 2,
-    opacity: isDark ? 1.0 : 0.9,
-    lineJoin: 'round',
-    lineCap: 'round',
-    interactive: false
-  });
+      const core = L.polyline(coords, {
+        pane: paneName,
+        color: color,
+        weight: coreWeight,
+        opacity: 1.0,
+        lineJoin: 'round',
+        lineCap: 'round',
+        interactive: false
+      });
 
-  // Inner colored route line
-  const core = L.polyline(coordinates, {
-    pane: paneName,
-    color: color,
-    weight: coreWeight,
-    opacity: 1.0,
-    lineJoin: 'round',
-    lineCap: 'round',
-    interactive: false
-  });
+      lineLayerGroup.addLayer(casing);
+      lineLayerGroup.addLayer(core);
+      linePolylineElements.push({ lineCode, type: isS ? 'S' : 'U', casing, core });
+    }
 
-  lineLayerGroup.addLayer(casing);
-  lineLayerGroup.addLayer(core);
+    function drawBaseNetworkChords() {
+      LINE_STACK_ORDER.forEach(lineCode => {
+        if (!LINE_ROUTES[lineCode]) return;
+        const coords = LINE_ROUTES[lineCode]
+          .map(id => STATION_MAP[id] ? [STATION_MAP[id].lat, STATION_MAP[id].lng] : null)
+          .filter(Boolean);
+        if (coords.length > 1) {
+          renderTrackSegment(coords, lineCode);
+        }
+      });
+    }
 
-  linePolylineElements.push({
-    lineCode: lineCode,
-    type: isS ? 'S' : 'U',
-    casing: casing,
-    core: core
-  });
-}
+    // Draw base chords immediately so map is never empty or broken on startup
+    drawBaseNetworkChords();
 
-// Primary Loader: Fetch the surveyed tracks GeoJSON
-async function loadRealTracks() {
-  try {
-    const response = await fetch('/tracks.geojson');
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const geojsonData = await response.json();
+    // Helper: test if a track feature's ref/name belongs to lineCode (prevents S2 matching S20)
+    function isTrackForLine(feature, lineCode) {
+      const ref = (feature.properties?.ref || '').toUpperCase().trim();
+      const name = (feature.properties?.name || '').toUpperCase().trim();
 
-    // Iterate through tracks and match to line codes
-    L.geoJSON(geojsonData, {
-      onEachFeature: function(feature) {
-        // Overpass relations store line numbers in 'ref' (e.g., 'U3', 'S7')
-        const ref = feature.properties?.ref || feature.properties?.name || '';
-        
-        // Find which lines use this track section
-        ALL_LINES.forEach(lineCode => {
-          if (ref.includes(lineCode)) {
-            // Leaflet GeoJSON uses [lng, lat], polyline expects [lat, lng]
-            if (feature.geometry.type === 'LineString') {
-              const coords = feature.geometry.coordinates.map(pt => [pt[1], pt[0]]);
-              renderTrackSegment(coords, lineCode);
-            } else if (feature.geometry.type === 'MultiLineString') {
-              feature.geometry.coordinates.forEach(segment => {
-                const coords = segment.map(pt => [pt[1], pt[0]]);
-                renderTrackSegment(coords, lineCode);
-              });
-            }
+      const regex = new RegExp(`(^|[^A-Z0-9])${lineCode}([^0-9]|$)`, 'i');
+      if (ref && regex.test(ref)) return true;
+      if (name && regex.test(name)) return true;
+      return false;
+    }
+
+    async function loadNetworkTracks() {
+      try {
+        const res = await fetch('/tracks.geojson');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const geojsonData = await res.json();
+        if (!geojsonData || !Array.isArray(geojsonData.features)) {
+          throw new Error('Ungültiges GeoJSON-Format');
+        }
+
+        // Detect which lines actually have real surveyed geometry in the file
+        const linesFoundInFile = new Set();
+        geojsonData.features.forEach(feat => {
+          ALL_LINES.forEach(lineCode => {
+            if (isTrackForLine(feat, lineCode)) linesFoundInFile.add(lineCode);
+          });
+        });
+
+        if (linesFoundInFile.size === 0) {
+          console.warn('Keine Münchner Linien im GeoJSON gefunden, behalte Basisschienen bei.');
+          return;
+        }
+
+        // Remove only the lines that will be replaced with real surveyed curves
+        const retainedElements = [];
+        linePolylineElements.forEach(item => {
+          if (linesFoundInFile.has(item.lineCode)) {
+            lineLayerGroup.removeLayer(item.casing);
+            lineLayerGroup.removeLayer(item.core);
+          } else {
+            retainedElements.push(item);
           }
         });
-      }
-    });
-  } catch (err) {
-    console.warn('Real track GeoJSON not found, falling back to direct paths:', err.message);
-    // Fallback: Connect station markers directly
-    LINE_STACK_ORDER.forEach(lineCode => {
-      if (!LINE_ROUTES[lineCode]) return;
-      const coords = LINE_ROUTES[lineCode]
-        .map(id => STATION_MAP[id] ? [STATION_MAP[id].lat, STATION_MAP[id].lng] : null)
-        .filter(Boolean);
-      if (coords.length > 1) {
-        renderTrackSegment(coords, lineCode);
-      }
-    });
-  }
-}
+        linePolylineElements = retainedElements;
 
-// Call on startup
-loadRealTracks();
+        // Render real track geometry for matched lines
+        geojsonData.features.forEach(feature => {
+          if (!feature.geometry || !feature.geometry.coordinates) return;
+
+          ALL_LINES.forEach(lineCode => {
+            if (!linesFoundInFile.has(lineCode)) return;
+            if (isTrackForLine(feature, lineCode)) {
+              if (feature.geometry.type === 'LineString') {
+                const coords = feature.geometry.coordinates.map(pt => [pt[1], pt[0]]);
+                renderTrackSegment(coords, lineCode);
+              } else if (feature.geometry.type === 'MultiLineString') {
+                feature.geometry.coordinates.forEach(seg => {
+                  const coords = seg.map(pt => [pt[1], pt[0]]);
+                  renderTrackSegment(coords, lineCode);
+                });
+              }
+            }
+          });
+        });
+
+        filterNetwork();
+        console.log(`Reale Schienen erfolgreich geladen für: ${Array.from(linesFoundInFile).join(', ')}`);
+      } catch (err) {
+        console.warn('Real track GeoJSON nicht aktiv (verwende Basisschienen):', err.message);
+      }
+    }
 
     let userLocation = null;
     let userMarker = null;
@@ -1128,12 +942,10 @@ loadRealTracks();
     let loadedDeparturesStationId = null;
     let currentFetchingStationId = null;
     let currentStationFilter = 'all';
-    let currentSheetState = 1; // 1 = collapsed (peek), 2 = expanded
+    let currentSheetState = 1;
 
-    // Sheet dimensions calibrated to uniform 42px row heights
-    const COLLAPSED_HEIGHT = 84; // Exactly 2 visible rows
+    const COLLAPSED_HEIGHT = 84;
     function getExpandedHeight() {
-      // Dynamic regulated height showing integer rows (5-7 rows)
       const count = Math.min(7, Math.max(5, Math.floor((window.innerHeight * 0.4) / 42)));
       return count * 42;
     }
@@ -1142,11 +954,6 @@ loadRealTracks();
       currentSheetState = state === 2 ? 2 : 1;
       const listEl = document.getElementById('departuresList');
       const widget = document.getElementById('currentStationWidget');
-      const pill = document.getElementById('dragHandlePill');
-
-      if (pill) {
-        pill.classList.remove('is-active-drag');
-      }
 
       if (listEl) {
         listEl.style.transition = withBounce ? 'max-height 0.38s cubic-bezier(0.25, 1.15, 0.5, 1)' : 'none';
@@ -1163,508 +970,21 @@ loadRealTracks();
       }
 
       if (widget) {
-        if (withBounce) {
-          widget.style.transition = 'transform 0.35s cubic-bezier(0.25, 1.25, 0.5, 1)';
-        } else {
-          widget.style.transition = 'none';
-        }
+        widget.style.transition = withBounce ? 'transform 0.35s cubic-bezier(0.25, 1.25, 0.5, 1)' : 'none';
         widget.style.transform = 'translateY(0px)';
-        widget.style.opacity = '1';
       }
     }
 
     function dismissShelf() {
       const widget = document.getElementById('currentStationWidget');
-      if (!widget) {
-        deselectStation();
-        return;
-      }
+      if (!widget) { deselectStation(); return; }
       widget.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
       widget.style.transform = 'translateY(115%)';
-      widget.style.opacity = '1';
-      if (navigator.vibrate) navigator.vibrate([10, 15]);
-      setTimeout(() => {
-        deselectStation();
-      }, 280);
+      setTimeout(() => deselectStation(), 280);
     }
 
     function toggleDeparturesExpanded() {
       setSheetState(currentSheetState === 1 ? 2 : 1, true);
-      if (navigator.vibrate) navigator.vibrate(10);
-    }
-
-    (function setupDraggableShelfBar() {
-      const dragHandle = document.getElementById('stationDragHandle');
-      const headerArea = document.getElementById('stationHeaderArea');
-      const listEl = document.getElementById('departuresList');
-      const pill = document.getElementById('dragHandlePill');
-      const widget = document.getElementById('currentStationWidget');
-
-      if (!dragHandle || !listEl) return;
-
-      let isDragging = false;
-      let startSheetState = 1;
-      let startY = 0;
-      let startHeight = 0;
-      let startTime = 0;
-      let lastY = 0;
-      let velocityY = 0;
-      let lastMoveTime = 0;
-      let activePointerId = null;
-
-      function onPointerDown(e) {
-        // Only respond to primary mouse click or touch contact
-        if (e.button !== undefined && e.button !== 0) return;
-        // Do not intercept interactive child buttons or badge links in header
-        if (e.target.closest('button, .aicher-badge')) return;
-
-        isDragging = true;
-        startSheetState = currentSheetState;
-        activePointerId = e.pointerId;
-        startY = e.clientY;
-        lastY = e.clientY;
-        startTime = performance.now();
-        lastMoveTime = startTime;
-        velocityY = 0;
-
-        // Capture starting height directly from rendered DOM
-        const currentRectHeight = listEl.getBoundingClientRect().height;
-        startHeight = currentRectHeight > 0 
-          ? currentRectHeight 
-          : (currentSheetState === 2 ? getExpandedHeight() : COLLAPSED_HEIGHT);
-
-        // Immediate responsive visual feedback
-        dragHandle.classList.add('is-dragging');
-        if (pill) pill.classList.add('is-active-drag');
-        document.body.classList.add('is-sheet-dragging');
-
-        // Disable transitions during direct finger tracking for 0-latency tracking
-        listEl.style.transition = 'none';
-        if (widget) {
-          widget.style.transition = 'none';
-          widget.style.opacity = '1';
-        }
-
-        dragHandle.setPointerCapture(e.pointerId);
-
-        window.addEventListener('pointermove', onPointerMove, { passive: false });
-        window.addEventListener('pointerup', onPointerUp, { passive: false });
-        window.addEventListener('pointercancel', onPointerUp, { passive: false });
-      }
-
-      function onPointerMove(e) {
-        if (!isDragging || e.pointerId !== activePointerId) return;
-        e.preventDefault();
-
-        const currentY = e.clientY;
-        const now = performance.now();
-        const dt = Math.max(1, now - lastMoveTime);
-        const dy = currentY - lastY;
-        velocityY = (dy / dt);
-        lastY = currentY;
-        lastMoveTime = now;
-
-        const deltaY = startY - currentY; // positive = dragging UP, negative = dragging DOWN
-        let targetHeight = startHeight + deltaY;
-
-        const maxH = getExpandedHeight();
-        const minH = COLLAPSED_HEIGHT;
-
-        if (targetHeight < minH) {
-          // Pulling down past minimum collapsed height -> translate the whole shelf down solidly
-          const pullDown = minH - targetHeight;
-          listEl.style.maxHeight = `${minH}px`;
-          if (widget) {
-            widget.style.transform = `translateY(${pullDown}px)`;
-            widget.style.opacity = '1';
-          }
-        } else if (targetHeight > maxH) {
-          // Pulling up past maximum height -> rubberband resistance
-          const overflow = targetHeight - maxH;
-          listEl.style.maxHeight = `${maxH + (overflow * 0.28)}px`;
-          if (widget) {
-            widget.style.transform = 'translateY(0px)';
-            widget.style.opacity = '1';
-          }
-        } else {
-          // Sizing smoothly between collapsed and expanded states
-          listEl.style.maxHeight = `${targetHeight}px`;
-          if (widget) {
-            widget.style.transform = 'translateY(0px)';
-            widget.style.opacity = '1';
-          }
-        }
-      }
-
-      function onPointerUp(e) {
-        if (!isDragging || e.pointerId !== activePointerId) return;
-
-        window.removeEventListener('pointermove', onPointerMove);
-        window.removeEventListener('pointerup', onPointerUp);
-        window.removeEventListener('pointercancel', onPointerUp);
-
-        try {
-          if (dragHandle.hasPointerCapture(e.pointerId)) {
-            dragHandle.releasePointerCapture(e.pointerId);
-          }
-        } catch (_) {}
-
-        isDragging = false;
-        activePointerId = null;
-
-        dragHandle.classList.remove('is-dragging');
-        if (pill) pill.classList.remove('is-active-drag');
-        document.body.classList.remove('is-sheet-dragging');
-
-        const totalDeltaY = startY - e.clientY;
-        const totalDuration = performance.now() - startTime;
-        const dragDownDistance = e.clientY - startY;
-        const maxH = getExpandedHeight();
-        const minH = COLLAPSED_HEIGHT;
-        const currentHeight = listEl.getBoundingClientRect().height;
-
-        // Quick tap detection without drag
-        if (Math.abs(totalDeltaY) < 6 && totalDuration < 280) {
-          toggleDeparturesExpanded();
-          return;
-        }
-
-        // Pull-to-dismiss gesture handling
-        if (startSheetState === 1) {
-          // Started from collapsed state: pull down to dismiss threshold
-          if (dragDownDistance > 45 || (dragDownDistance > 14 && velocityY > 0.35)) {
-            dismissShelf();
-            return;
-          }
-          let shouldExpand = (totalDeltaY > 40) || (velocityY < -0.32);
-          setSheetState(shouldExpand ? 2 : 1, true);
-        } else {
-          // Started from expanded state: downward pull to collapsed or dismiss
-          const excessDown = minH - (startHeight + totalDeltaY);
-          if (excessDown > 45 || (excessDown > 12 && velocityY > 0.45) || (dragDownDistance > 160 && velocityY > 0.35)) {
-            dismissShelf();
-            return;
-          }
-          let shouldExpand = false;
-          if (velocityY < -0.32) {
-            shouldExpand = true;
-          } else if (velocityY > 0.32) {
-            shouldExpand = false;
-          } else {
-            const midPoint = (minH + maxH) / 2;
-            shouldExpand = currentHeight >= midPoint;
-          }
-          setSheetState(shouldExpand ? 2 : 1, true);
-        }
-
-        if (navigator.vibrate) navigator.vibrate(10);
-      }
-
-      dragHandle.addEventListener('pointerdown', onPointerDown);
-      headerArea.addEventListener('pointerdown', onPointerDown);
-    })();
-
-    function showDeparturesError(station, customMsg) {
-      currentStationDepartures = [];
-      loadedDeparturesStationId = null;
-      const listEl = document.getElementById('departuresList');
-      const dot = document.getElementById('depDataSourceDot');
-
-      if (dot) {
-        dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shrink-0';
-        dot.title = 'Keine Live-Daten';
-      }
-
-      const stName = station ? station.name : 'diese Station';
-      if (listEl) {
-        listEl.innerHTML = `
-          <div class="flex flex-col items-center justify-center py-4 px-3 text-center gap-1.5 liquid-pop-in">
-            <div class="w-7 h-7 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-500 mb-0.5 shadow-sm">
-              <i class="fa-solid fa-satellite-dish text-[11px]"></i>
-            </div>
-            <span class="text-[11.5px] font-black text-[var(--aicher-text-title)] leading-tight">${customMsg || 'Keine Live-Abfahrten verfügbar'}</span>
-            <span class="text-[10px] text-[var(--aicher-text-muted)] leading-snug max-w-[240px]">Echtzeitdaten für <strong class="text-[var(--aicher-text-title)]">${stName}</strong> sind aktuell nicht erreichbar.</span>
-            <button id="retryErrorBtn" class="mt-1 px-3 py-1 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-title)] hover:border-white/50 active:scale-95 transition-all inline-flex items-center gap-1.5 shadow-sm">
-              <i class="fa-solid fa-arrows-rotate text-[8px]"></i> Erneut versuchen
-            </button>
-          </div>
-        `;
-
-        const retryBtn = document.getElementById('retryErrorBtn');
-        if (retryBtn) {
-          retryBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (selectedStation) fetchLiveDepartures(selectedStation, true);
-          });
-        }
-      }
-    }
-
-    function renderDepartureFilterBar(station) {
-      const bar = document.getElementById('departureFilterBar');
-      if (!bar || !station) return;
-
-      const lines = station.lines || [];
-      const hasU = lines.some(l => l.startsWith('U'));
-      const hasS = lines.some(l => l.startsWith('S'));
-
-      bar.innerHTML = `
-        <button data-dep-line="all" class="dep-filter-pill px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border transition-all duration-300 ${currentStationFilter === 'all' ? 'bg-[var(--aicher-blue)] text-white border-white/50 shadow-md scale-105' : 'bg-[var(--glass-panel-sub)] text-[var(--aicher-text-muted)] border-[var(--glass-border)] hover:text-[var(--aicher-text-title)] active:scale-90'}">
-          Alle
-        </button>
-        <button data-dep-line="U" title="${hasU ? 'U-Bahn' : 'Keine U-Bahn'}" ${!hasU ? 'disabled' : ''} class="dep-filter-pill px-2.5 py-1 rounded-full text-[10px] font-black border transition-all duration-300 flex items-center justify-center ${!hasU ? 'opacity-30 cursor-not-allowed pointer-events-none border-[var(--glass-border)]' : (currentStationFilter === 'U' ? 'bg-[#0073B9] text-white border-white/50 shadow-md scale-105' : 'bg-[var(--glass-panel-sub)] text-[var(--aicher-text-muted)] border-[var(--glass-border)] hover:text-[var(--aicher-text-title)] active:scale-90')}">
-          <span class="w-3.5 h-3.5 rounded-[4px] ${currentStationFilter === 'U' ? 'bg-white text-[#0073B9]' : 'bg-[#0073B9] text-white'} text-[9px] font-black flex items-center justify-center leading-none shadow-sm">U</span>
-        </button>
-        <button data-dep-line="S" title="${hasS ? 'S-Bahn' : 'Keine S-Bahn'}" ${!hasS ? 'disabled' : ''} class="dep-filter-pill px-2.5 py-1 rounded-full text-[10px] font-black border transition-all duration-300 flex items-center justify-center ${!hasS ? 'opacity-30 cursor-not-allowed pointer-events-none border-[var(--glass-border)]' : (currentStationFilter === 'S' ? 'bg-[#008B4E] text-white border-white/50 shadow-md scale-105' : 'bg-[var(--glass-panel-sub)] text-[var(--aicher-text-muted)] border-[var(--glass-border)] hover:text-[var(--aicher-text-title)] active:scale-90')}">
-          <span class="w-3.5 h-3.5 rounded-full ${currentStationFilter === 'S' ? 'bg-white text-[#008B4E]' : 'bg-[#008B4E] text-white'} text-[9px] font-black flex items-center justify-center leading-none shadow-sm">S</span>
-        </button>
-      `;
-
-      bar.querySelectorAll('.dep-filter-pill:not([disabled])').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          currentStationFilter = btn.dataset.depLine;
-          renderDepartureFilterBar(selectedStation);
-          applyDepartureFilter();
-        });
-      });
-    }
-
-    function applyDepartureFilter() {
-      const listEl = document.getElementById('departuresList');
-      if (!listEl) return;
-
-      let filtered = currentStationDepartures;
-      if (currentStationFilter === 'U') {
-        filtered = currentStationDepartures.filter(d => d.line.startsWith('U'));
-      } else if (currentStationFilter === 'S') {
-        filtered = currentStationDepartures.filter(d => d.line.startsWith('S'));
-      }
-
-      if (!filtered || filtered.length === 0) {
-        const filterName = currentStationFilter === 'U' ? 'U-Bahn' : (currentStationFilter === 'S' ? 'S-Bahn' : 'diese Station');
-        listEl.innerHTML = `
-          <div class="flex flex-col items-center justify-center py-4 px-3 text-center">
-            <span class="text-[11.5px] font-bold text-[var(--aicher-text-muted)] leading-normal">Keine Abfahrten für ${filterName}</span>
-            <button onclick="currentStationFilter='all'; renderDepartureFilterBar(selectedStation); applyDepartureFilter();" class="text-[10px] text-[var(--aicher-blue)] hover:underline mt-1 font-bold">Filter auf „Alle“ zurücksetzen</button>
-          </div>`;
-        return;
-      }
-
-      const displayList = filtered.slice(0, 24);
-
-      listEl.innerHTML = displayList.map(dep => {
-        const lineName = dep.line.replace(/\s+/g, '');
-        const bg = LINE_COLORS[lineName] || '#334155';
-        const textClass = (lineName === 'S8') ? 'text-black' : 'text-white';
-        
-        let timeHTML = '';
-        if (dep.minsUntil === 0) {
-          timeHTML = `
-            <div class="inline-flex items-center gap-1.5 text-[var(--aicher-green)] leading-none">
-              <span class="w-1.5 h-1.5 rounded-full bg-[var(--aicher-green)] animate-ping"></span>
-              <span class="text-[12px] font-extrabold leading-none tracking-tight">Jetzt</span>
-            </div>
-          `;
-        } else if (dep.delay && dep.delay > 0) {
-          timeHTML = `
-            <div class="inline-flex items-center justify-end gap-1.5 leading-none">
-              <span class="text-[12.5px] font-black text-[var(--aicher-text-title)] tabular-nums leading-none">${dep.minsUntil} <span class="text-[9.5px] font-bold text-[var(--aicher-text-muted)]">min</span></span>
-              <span class="text-[9px] font-black text-[#FF3B30] bg-[#FF3B30]/15 border border-[#FF3B30]/30 px-1 py-0.5 rounded leading-none tabular-nums">+${dep.delay}</span>
-            </div>
-          `;
-        } else {
-          timeHTML = `
-            <div class="inline-flex items-center justify-end leading-none">
-              <span class="text-[12.5px] font-black text-[var(--aicher-text-title)] tabular-nums leading-none">${dep.minsUntil} <span class="text-[10px] font-bold text-[var(--aicher-text-muted)]">min</span></span>
-            </div>
-          `;
-        }
-
-        return `
-          <div class="dep-table-row grid grid-cols-[48px_1fr_86px] items-center px-3">
-            <!-- Line Pill -->
-            <div class="flex items-center">
-              <span class="aicher-badge ${textClass} h-[22px] min-w-[34px] px-2 text-[10.5px] font-black tracking-tight leading-none shadow-sm" style="background-color: ${bg};">${lineName}</span>
-            </div>
-            <!-- Regulated Destination Text with Calibrated Height -->
-            <div class="flex items-center min-w-0 pr-2 pl-1 overflow-hidden">
-              <span class="text-[13px] font-bold truncate text-[var(--aicher-text-title)] leading-none tracking-tight select-text">${dep.direction}</span>
-            </div>
-            <!-- Regulated Time Column -->
-            <div class="flex items-center justify-end text-right">
-              ${timeHTML}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function updateDeparturesBoard(departures) {
-      currentStationDepartures = departures;
-      loadedDeparturesStationId = selectedStation ? selectedStation.id : null;
-      
-      const dot = document.getElementById('depDataSourceDot');
-      if (dot) {
-        dot.className = 'w-2.5 h-2.5 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse shrink-0';
-        dot.title = 'Echtzeit Live';
-      }
-
-      renderDepartureFilterBar(selectedStation);
-      applyDepartureFilter();
-    }
-
-    async function fetchLiveDepartures(station, forceRefresh = false) {
-      if (!station) return;
-      const listEl = document.getElementById('departuresList');
-      const dot = document.getElementById('depDataSourceDot');
-      
-      if (!forceRefresh && loadedDeparturesStationId === station.id && currentStationDepartures.length > 0) {
-        applyDepartureFilter();
-        return;
-      }
-
-      currentFetchingStationId = station.id;
-      currentStationDepartures = [];
-      loadedDeparturesStationId = null;
-
-      renderDepartureFilterBar(station);
-
-      if (dot) {
-        dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm animate-pulse shrink-0';
-        dot.title = 'Verbinde Live-Daten...';
-      }
-
-      if (listEl) {
-        listEl.innerHTML = `
-          <div class="flex items-center justify-center py-4 gap-2 text-[var(--aicher-text-muted)]">
-            <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
-            <span class="text-[11px] font-bold uppercase tracking-wider leading-none">Lade Live-Abfahrten für ${station.name}...</span>
-          </div>`;
-      }
-
-      if (liveFetchController) liveFetchController.abort();
-      liveFetchController = new AbortController();
-      const signal = liveFetchController.signal;
-
-      let fetchedDepartures = [];
-
-      // Tier 1: Local Serverless Proxy (/api/departures) querying MVG
-      try {
-        const cleanName = station.name.replace(/^München-/, '').trim();
-        const apiPromise = fetch(`/api/departures?query=${encodeURIComponent(cleanName)}&lat=${station.lat}&lng=${station.lng}`, { signal });
-        const apiRes = await Promise.race([
-          apiPromise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4200))
-        ]);
-
-        if (apiRes.ok) {
-          const data = await apiRes.json();
-          if (Array.isArray(data) && data.length > 0 && currentFetchingStationId === station.id) {
-            fetchedDepartures = data;
-          }
-        }
-      } catch (err) {
-        // Fall through to public DB REST API
-      }
-
-      // Tier 2: Public DB HAFAS REST API fallback
-      if (fetchedDepartures.length === 0 && currentFetchingStationId === station.id) {
-        try {
-          const strippedName = station.name.replace(/\s*\(.*?\)/g, '').replace(/^München-/, '').trim();
-          
-          // For Hauptbahnhof, query both the S-Bahn/DB terminal and the municipal U-Bahn station
-          const searchQueries = (station.id === 'hbf')
-            ? ['München Hbf', 'München Hbf (U-Bahn)']
-            : [strippedName.includes('München') ? strippedName : `${strippedName} München`];
-
-          const locPromises = searchQueries.map(q =>
-            fetch(`https://v6.db.transport.rest/locations?query=${encodeURIComponent(q)}&results=5&poi=false&addresses=false`, { signal })
-              .then(r => r.ok ? r.json() : [])
-              .catch(() => [])
-          );
-
-          const locResults = await Promise.race([
-            Promise.all(locPromises),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3800))
-          ]);
-
-          if (currentFetchingStationId === station.id) {
-            const allLocs = locResults.flat();
-            const stopIds = new Set();
-            
-            allLocs.forEach(loc => {
-              if (loc && loc.id) stopIds.add(loc.id);
-            });
-
-            if (stopIds.size > 0) {
-              const depPromises = Array.from(stopIds).slice(0, 4).map(id =>
-                fetch(`https://v6.db.transport.rest/stops/${id}/departures?duration=50&results=30&bus=false&national=false&nationalExpress=false&regional=false`, { signal })
-                  .then(r => r.ok ? r.json() : [])
-                  .then(d => Array.isArray(d) ? d : (d.departures || []))
-                  .catch(() => [])
-              );
-
-              const allResults = await Promise.race([
-                Promise.all(depPromises),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4200))
-              ]);
-
-              if (currentFetchingStationId === station.id) {
-                const rawList = allResults.flat();
-                const now = new Date();
-                const seenKeys = new Set();
-
-                fetchedDepartures = rawList
-                  .filter(d => d.line && (
-                    d.line.product === 'subway' ||
-                    d.line.product === 'suburban' ||
-                    (d.line.name && (d.line.name.startsWith('U') || d.line.name.startsWith('S')))
-                  ))
-                  .filter(d => {
-                    const key = d.tripId || `${d.line.name}-${d.direction}-${d.plannedWhen}`;
-                    if (seenKeys.has(key)) return false;
-                    seenKeys.add(key);
-                    return true;
-                  })
-                  .map(dep => {
-                    const expectedTime = new Date(dep.when || dep.plannedWhen);
-                    const mins = Math.max(0, Math.round((expectedTime - now) / 60000));
-                    let dir = dep.direction || 'Zentrum';
-                    if (dir.startsWith('München ')) dir = dir.substring(8);
-                    return {
-                      line: dep.line.name.replace(/\s+/g, ''),
-                      direction: dir,
-                      minsUntil: mins,
-                      scheduledTime: new Date(dep.plannedWhen),
-                      delay: dep.delay ? Math.round(dep.delay / 60) : 0,
-                      realtime: true
-                    };
-                  });
-              }
-            }
-          }
-        } catch (e) {
-          // Handled below
-        }
-      }
-
-      if (currentFetchingStationId !== station.id) return;
-
-      if (fetchedDepartures.length > 0) {
-        fetchedDepartures.sort((a, b) => a.minsUntil - b.minsUntil);
-        updateDeparturesBoard(fetchedDepartures);
-      } else {
-        showDeparturesError(station, 'Keine Live-Abfahrten gefunden');
-      }
-    }
-
-    const refreshDepBtn = document.getElementById('refreshDepBtn');
-    if (refreshDepBtn) {
-      refreshDepBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (selectedStation) fetchLiveDepartures(selectedStation, true);
-      });
     }
 
     STATIONS.forEach(station => {
@@ -1696,14 +1016,11 @@ loadRealTracks();
       marker.bindPopup(popupHtml, {
         maxWidth: 280,
         offset: [0, -6],
-        autoPanPaddingTopLeft: [20, 80],
-        autoPanPaddingBottomRight: [20, 160],
         closeButton: false
       });
 
       marker.on('click', () => {
         setStationDisplay(station);
-        if (navigator.vibrate) navigator.vibrate([14, 25, 18]);
       });
 
       stationLayerGroup.addLayer(marker);
@@ -1723,23 +1040,11 @@ loadRealTracks();
       if (widget) {
         widget.classList.add('hidden');
         widget.style.transform = '';
-        widget.style.opacity = '';
-        widget.style.transition = '';
       }
     }
 
     const closeStationShelfBtn = document.getElementById('closeStationShelfBtn');
-    if (closeStationShelfBtn) {
-      closeStationShelfBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dismissShelf();
-      });
-    }
-
-    const ALL_U_LINES = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6', 'U7', 'U8'];
-    const ALL_S_LINES = ['S1', 'S2', 'S3', 'S4', 'S6', 'S7', 'S8', 'S20'];
-    const ALL_LINES = [...ALL_U_LINES, ...ALL_S_LINES];
-    const selectedLines = new Set();
+    if (closeStationShelfBtn) closeStationShelfBtn.addEventListener('click', dismissShelf);
 
     function updateActiveIndicators() {
       const isFiltered = selectedLines.size > 0;
@@ -1760,21 +1065,15 @@ loadRealTracks();
       const allSSelected = !isAll && ALL_S_LINES.every(l => selectedLines.has(l));
 
       const countEl = document.getElementById('filterActiveCount');
-      if (countEl) {
-        countEl.innerText = isAll ? '(Alle)' : `(${selectedLines.size} aktiv)`;
-      }
+      if (countEl) countEl.innerText = isAll ? '(Alle)' : `(${selectedLines.size} aktiv)`;
 
       updateActiveIndicators();
 
       document.querySelectorAll('.filter-opt-btn').forEach(btn => {
         const f = btn.dataset.filter;
-        if (f === 'all') {
-          btn.classList.toggle('active-tab', isAll);
-        } else if (f === 'U') {
-          btn.classList.toggle('active-tab', allUSelected);
-        } else if (f === 'S') {
-          btn.classList.toggle('active-tab', allSSelected);
-        }
+        if (f === 'all') btn.classList.toggle('active-tab', isAll);
+        else if (f === 'U') btn.classList.toggle('active-tab', allUSelected);
+        else if (f === 'S') btn.classList.toggle('active-tab', allSSelected);
       });
 
       document.querySelectorAll('.filter-line-btn').forEach(chip => {
@@ -1784,13 +1083,11 @@ loadRealTracks();
           chip.classList.add('opacity-100');
         } else {
           const isSelected = selectedLines.has(line);
-          if (isSelected) {
-            chip.classList.add('ring-2', 'ring-white', 'scale-105', 'opacity-100');
-            chip.classList.remove('opacity-35');
-          } else {
-            chip.classList.remove('ring-2', 'ring-white', 'scale-105', 'opacity-100');
-            chip.classList.add('opacity-35');
-          }
+          chip.classList.toggle('ring-2', isSelected);
+          chip.classList.toggle('ring-white', isSelected);
+          chip.classList.toggle('scale-105', isSelected);
+          chip.classList.toggle('opacity-35', !isSelected);
+          chip.classList.toggle('opacity-100', isSelected);
         }
       });
     }
@@ -1823,73 +1120,38 @@ loadRealTracks();
     
     function toggleFilterMenu(show) {
       const willShow = (show !== undefined) ? show : filterMenuPanel.classList.contains('hidden');
-      if (willShow) {
-        filterMenuPanel.classList.remove('hidden');
-        filterMenuBtn.classList.add('scale-105');
-      } else {
-        filterMenuPanel.classList.add('hidden');
-        filterMenuBtn.classList.remove('scale-105');
-      }
+      filterMenuPanel.classList.toggle('hidden', !willShow);
     }
 
-    if (filterMenuBtn) {
-      filterMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleFilterMenu();
-      });
-    }
-
-    if (closeFilterMenuBtn) {
-      closeFilterMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleFilterMenu(false);
-      });
-    }
+    if (filterMenuBtn) filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFilterMenu(); });
+    if (closeFilterMenuBtn) closeFilterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFilterMenu(false); });
 
     const centerMapBtn = document.getElementById('centerMapBtn');
     if (centerMapBtn) {
-      centerMapBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleFilterMenu(false);
+      centerMapBtn.addEventListener('click', () => {
         const lats = STATIONS.map(s => s.lat), lngs = STATIONS.map(s => s.lng);
         map.fitBounds(L.latLngBounds([Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]), { padding: [50, 25], animate: true });
-        if (navigator.vibrate) navigator.vibrate(10);
       });
     }
 
     const layerCycleBtn = document.getElementById('layerCycleBtn');
     if (layerCycleBtn) {
-      layerCycleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
+      layerCycleBtn.addEventListener('click', () => {
         currentTileIndex = (currentTileIndex === 0) ? 1 : 0;
         applyTileLayer(currentTileIndex);
-        layerCycleBtn.blur();
-        if (navigator.vibrate) navigator.vibrate(10);
       });
     }
 
     document.querySelectorAll('.filter-opt-btn').forEach(btn => {
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
+      btn.addEventListener('click', function() {
         const f = this.dataset.filter;
-        if (f === 'all') {
-          selectedLines.clear();
-        } else if (f === 'U') {
+        if (f === 'all') selectedLines.clear();
+        else if (f === 'U') {
           const allUActive = ALL_U_LINES.every(l => selectedLines.has(l));
-          if (allUActive) {
-            ALL_U_LINES.forEach(l => selectedLines.delete(l));
-          } else {
-            ALL_U_LINES.forEach(l => selectedLines.add(l));
-          }
-          if (selectedLines.size === ALL_LINES.length) selectedLines.clear();
+          allUActive ? ALL_U_LINES.forEach(l => selectedLines.delete(l)) : ALL_U_LINES.forEach(l => selectedLines.add(l));
         } else if (f === 'S') {
           const allSActive = ALL_S_LINES.every(l => selectedLines.has(l));
-          if (allSActive) {
-            ALL_S_LINES.forEach(l => selectedLines.delete(l));
-          } else {
-            ALL_S_LINES.forEach(l => selectedLines.add(l));
-          }
-          if (selectedLines.size === ALL_LINES.length) selectedLines.clear();
+          allSActive ? ALL_S_LINES.forEach(l => selectedLines.delete(l)) : ALL_S_LINES.forEach(l => selectedLines.add(l));
         }
         updateFilterUI();
         filterNetwork();
@@ -1897,15 +1159,9 @@ loadRealTracks();
     });
 
     document.querySelectorAll('.filter-line-btn').forEach(chip => {
-      chip.addEventListener('click', function(e) {
-        e.stopPropagation();
+      chip.addEventListener('click', function() {
         const line = this.dataset.line;
-        if (selectedLines.has(line)) {
-          selectedLines.delete(line);
-        } else {
-          selectedLines.add(line);
-        }
-        if (selectedLines.size === ALL_LINES.length) selectedLines.clear();
+        selectedLines.has(line) ? selectedLines.delete(line) : selectedLines.add(line);
         updateFilterUI();
         filterNetwork();
       });
@@ -1927,8 +1183,8 @@ loadRealTracks();
       }
 
       searchDropdown.innerHTML = matches.map(s => `
-        <div data-id="${s.id}" class="search-row px-3.5 py-2.5 min-h-[46px] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] cursor-pointer flex items-center justify-between gap-3 transition-colors">
-          <div class="text-[13px] font-black text-[var(--aicher-text-title)] truncate leading-tight">${s.name}</div>
+        <div data-id="${s.id}" class="search-row px-3.5 py-2.5 min-h-[46px] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] cursor-pointer flex items-center justify-between gap-3">
+          <div class="text-[13px] font-black text-[var(--aicher-text-title)] truncate">${s.name}</div>
           <div class="flex items-center gap-1.5 shrink-0">${getLineBadgesHTML(s.lines, 'compact')}</div>
         </div>
       `).join('');
@@ -1946,172 +1202,74 @@ loadRealTracks();
           }
           searchDropdown.classList.add('hidden');
           searchInput.value = found.data.name;
-          searchInput.blur();
         });
       });
     });
 
     clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = ''; searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden'); searchInput.focus();
+      searchInput.value = ''; searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden');
     });
 
     map.on('click', () => {
       searchDropdown.classList.add('hidden');
       toggleFilterMenu(false);
-      searchInput.blur();
       deselectStation();
     });
 
-    function setStationDisplay(st, forceRefresh = false) {
+    function setStationDisplay(st) {
       if (!st) return;
-
       const widget = document.getElementById('currentStationWidget');
       if (widget) {
-        const wasHidden = widget.classList.contains('hidden');
         widget.classList.remove('hidden');
-
-        if (wasHidden) {
-          setSheetState(1, false);
-          // Start positioned offscreen at full solid opacity (prevents browser composite alpha dropout)
-          widget.style.transition = 'none';
-          widget.style.transform = 'translateY(100%)';
-          widget.style.opacity = '1';
-          void widget.offsetHeight; // Force synchronous layout reflow
-          // Animate with the identical spring curve used for drag release
-          widget.style.transition = 'transform 0.36s cubic-bezier(0.25, 1.25, 0.5, 1)';
-          widget.style.transform = 'translateY(0px)';
-        } else {
-          widget.style.transition = 'transform 0.24s cubic-bezier(0.25, 1.25, 0.5, 1)';
-          widget.style.transform = 'translateY(0px)';
-          widget.style.opacity = '1';
-        }
+        setSheetState(1, false);
       }
-
-      const stationChanged = !selectedStation || selectedStation.id !== st.id;
       selectedStation = st;
-
-      const lines = st.lines || [];
-      const hasU = lines.some(l => l.startsWith('U'));
-      const hasS = lines.some(l => l.startsWith('S'));
-      if (currentStationFilter === 'U' && !hasU) currentStationFilter = 'all';
-      if (currentStationFilter === 'S' && !hasS) currentStationFilter = 'all';
 
       const nameEl = document.getElementById('nearestStationName');
       if (nameEl) nameEl.innerText = st.name;
-      
       const linesEl = document.getElementById('nearestStationLines');
-      if (linesEl) {
-        linesEl.innerHTML = getLineBadgesHTML(st.lines);
-        linesEl.scrollLeft = 0;
-      }
-      
+      if (linesEl) linesEl.innerHTML = getLineBadgesHTML(st.lines);
       const metaEl = document.getElementById('nearestStationMeta');
       if (metaEl) metaEl.innerText = st.zone || 'Zone M';
 
-      if (stationChanged) {
-        currentStationDepartures = [];
-        loadedDeparturesStationId = null;
+      fetchLiveDepartures(st);
+    }
+
+    async function fetchLiveDepartures(station) {
+      const listEl = document.getElementById('departuresList');
+      if (listEl) {
+        listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Abfahrten...</div>`;
       }
-
-      fetchLiveDepartures(st, forceRefresh || stationChanged);
-    }
-
-    function updateUserLocationOnMap(lat, lng, accuracy) {
-      userLocation = { lat, lng };
-      if (!userMarker) {
-        const pulseIcon = L.divIcon({ className: 'aicher-gps-marker-wrap', html: '<div class="aicher-gps-wrap"><div class="aicher-gps-ring"></div><div class="aicher-gps-dot"></div></div>', iconSize: [32, 32], iconAnchor: [16, 16] });
-        userMarker = L.marker([lat, lng], { icon: pulseIcon, zIndexOffset: 1000 }).addTo(map);
-        accuracyCircle = L.circle([lat, lng], { radius: accuracy || 50, stroke: false, fillColor: '#0066CC', fillOpacity: 0.14 }).addTo(map);
-      } else {
-        userMarker.setLatLng([lat, lng]);
-        accuracyCircle.setLatLng([lat, lng]);
-        accuracyCircle.setRadius(accuracy || 50);
-      }
-    }
-
-    function requestDeviceLocation(onSuccess, onError) {
-      if (!('geolocation' in navigator)) return;
-      navigator.geolocation.getCurrentPosition(
-        pos => { updateUserLocationOnMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy); if (onSuccess) onSuccess(pos); },
-        err => { if (onError) onError(err); },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
-      );
-    }
-
-    function startWatchingLocation() {
-      if ('geolocation' in navigator && !watchId) {
-        watchId = navigator.geolocation.watchPosition(
-          pos => updateUserLocationOnMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
-          err => console.warn('GPS continuous watch notice:', err.message),
-          { enableHighAccuracy: true, maximumAge: 8000, timeout: 10000 }
-        );
-      }
-    }
-
-    const gpsBtn = document.getElementById('gpsBtn');
-    const gpsIcon = document.getElementById('gpsIcon');
-
-    if (gpsBtn) {
-      gpsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (navigator.vibrate) navigator.vibrate(10);
-
-        // Immediately pan if location is already known
-        if (userLocation) {
-          map.setView([userLocation.lat, userLocation.lng], Math.max(map.getZoom(), 15), { animate: true });
+      try {
+        const cleanName = station.name.replace(/^München-/, '').trim();
+        const res = await fetch(`/api/departures?query=${encodeURIComponent(cleanName)}&lat=${station.lat}&lng=${station.lng}`);
+        if (!res.ok) throw new Error('API failure');
+        const deps = await res.json();
+        
+        if (!deps || deps.length === 0) {
+          listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)]">Keine Abfahrten in den nächsten Minuten.</div>`;
+          return;
         }
 
-        // Brief loading indicator while querying fresh GPS coordinates
-        if (gpsIcon) {
-          gpsIcon.className = 'fa-solid fa-circle-notch fa-spin text-[12px] text-[var(--aicher-blue)]';
+        listEl.innerHTML = deps.slice(0, 16).map(d => `
+          <div class="dep-table-row grid grid-cols-[48px_1fr_86px] items-center px-3">
+            <span class="aicher-badge text-white h-[20px] min-w-[32px] px-1.5 text-[10px] font-black" style="background-color: ${LINE_COLORS[d.line] || '#334155'};">${d.line}</span>
+            <span class="text-[13px] font-bold truncate text-[var(--aicher-text-title)] pl-1">${d.direction}</span>
+            <span class="text-right text-[12.5px] font-black text-[var(--aicher-text-title)]">${d.minsUntil} <span class="text-[10px] text-[var(--aicher-text-muted)] font-normal">min</span></span>
+          </div>
+        `).join('');
+      } catch (e) {
+        if (listEl) {
+          listEl.innerHTML = `<div class="py-4 text-center text-xs text-rose-500 font-bold">Live-Abfahrten nicht erreichbar</div>`;
         }
-
-        requestDeviceLocation(
-          pos => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            map.setView([lat, lng], Math.max(map.getZoom(), 15), { animate: true });
-            if (gpsIcon) {
-              gpsIcon.className = 'fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]';
-            }
-          },
-          () => {
-            if (gpsIcon) {
-              gpsIcon.className = 'fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]';
-            }
-          }
-        );
-      });
+      }
     }
 
-    // Auto-refresh departures periodically when active
-    let autoRefreshTimer = setInterval(() => {
-      if (!document.hidden && selectedStation) {
-        fetchLiveDepartures(selectedStation, true);
-      }
-    }, 30000);
+    document.getElementById('stationDragHandle').addEventListener('click', toggleDeparturesExpanded);
+    document.getElementById('stationHeaderArea').addEventListener('click', toggleDeparturesExpanded);
 
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && selectedStation) {
-        fetchLiveDepartures(selectedStation, true);
-      }
-    });
-
-    requestDeviceLocation(() => startWatchingLocation(), () => {});
-
-    setSheetState(1, false);
     applyTileLayer(0);
-
-    function triggerMapResize() {
-      if (map) {
-        map.invalidateSize(true);
-        if (!map.getCenter() || isNaN(map.getCenter().lat)) map.setView([48.140, 11.575], 13);
-      }
-    }
-    window.addEventListener('resize', triggerMapResize);
-    window.addEventListener('orientationchange', () => setTimeout(triggerMapResize, 200));
-    window.addEventListener('load', triggerMapResize);
-    if (window.ResizeObserver) { new ResizeObserver(() => triggerMapResize()).observe(document.getElementById('map')); }
+    loadNetworkTracks();
   </script>
 </body>
 </html>
