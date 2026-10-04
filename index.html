@@ -1025,43 +1025,100 @@
       }).join('');
     }
 
-    LINE_STACK_ORDER.forEach(lineCode => {
-      if (!LINE_ROUTES[lineCode]) return;
-      const coords = LINE_ROUTES[lineCode].map(id => [STATION_MAP[id].lat, STATION_MAP[id].lng]);
-      if (coords.length > 1) {
-        const isS = lineCode.startsWith('S');
-        const color = LINE_COLORS[lineCode] || '#0066CC';
-        const paneName = `pane_line_${lineCode}`;
+// Container mapping line names to their rendered Leaflet layers
+const linePolylineElements = [];
+const lineLayerGroup = L.layerGroup().addTo(map);
 
-        const casingWeight = isS ? 6.5 : 5.5;
-        const coreWeight = isS ? 4.2 : 3.6;
+// Function to style a track segment for a specific line
+function renderTrackSegment(coordinates, lineCode) {
+  const isS = lineCode.startsWith('S');
+  const color = LINE_COLORS[lineCode] || '#0066CC';
+  const paneName = `pane_line_${lineCode}`;
 
-        const isDark = document.body.classList.contains('theme-dark');
-        const casing = L.polyline(coords, {
-          pane: paneName,
-          color: isDark ? '#0B0E14' : '#FFFFFF',
-          weight: casingWeight + 2,
-          opacity: isDark ? 1.0 : 0.9,
-          lineJoin: 'round',
-          lineCap: 'round',
-          interactive: false
+  const casingWeight = isS ? 6.5 : 5.5;
+  const coreWeight = isS ? 4.2 : 3.6;
+  const isDark = document.body.classList.contains('theme-dark');
+
+  // Outer casing (white or dark background ring)
+  const casing = L.polyline(coordinates, {
+    pane: paneName,
+    color: isDark ? '#0B0E14' : '#FFFFFF',
+    weight: casingWeight + 2,
+    opacity: isDark ? 1.0 : 0.9,
+    lineJoin: 'round',
+    lineCap: 'round',
+    interactive: false
+  });
+
+  // Inner colored route line
+  const core = L.polyline(coordinates, {
+    pane: paneName,
+    color: color,
+    weight: coreWeight,
+    opacity: 1.0,
+    lineJoin: 'round',
+    lineCap: 'round',
+    interactive: false
+  });
+
+  lineLayerGroup.addLayer(casing);
+  lineLayerGroup.addLayer(core);
+
+  linePolylineElements.push({
+    lineCode: lineCode,
+    type: isS ? 'S' : 'U',
+    casing: casing,
+    core: core
+  });
+}
+
+// Primary Loader: Fetch the surveyed tracks GeoJSON
+async function loadRealTracks() {
+  try {
+    const response = await fetch('/tracks.geojson');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const geojsonData = await response.json();
+
+    // Iterate through tracks and match to line codes
+    L.geoJSON(geojsonData, {
+      onEachFeature: function(feature) {
+        // Overpass relations store line numbers in 'ref' (e.g., 'U3', 'S7')
+        const ref = feature.properties?.ref || feature.properties?.name || '';
+        
+        // Find which lines use this track section
+        ALL_LINES.forEach(lineCode => {
+          if (ref.includes(lineCode)) {
+            // Leaflet GeoJSON uses [lng, lat], polyline expects [lat, lng]
+            if (feature.geometry.type === 'LineString') {
+              const coords = feature.geometry.coordinates.map(pt => [pt[1], pt[0]]);
+              renderTrackSegment(coords, lineCode);
+            } else if (feature.geometry.type === 'MultiLineString') {
+              feature.geometry.coordinates.forEach(segment => {
+                const coords = segment.map(pt => [pt[1], pt[0]]);
+                renderTrackSegment(coords, lineCode);
+              });
+            }
+          }
         });
-
-        const core = L.polyline(coords, {
-          pane: paneName,
-          color: color,
-          weight: coreWeight,
-          opacity: 1.0,
-          lineJoin: 'round',
-          lineCap: 'round',
-          interactive: false
-        });
-
-        lineLayerGroup.addLayer(casing);
-        lineLayerGroup.addLayer(core);
-        linePolylineElements.push({ lineCode, type: isS ? 'S' : 'U', casing, core });
       }
     });
+  } catch (err) {
+    console.warn('Real track GeoJSON not found, falling back to direct paths:', err.message);
+    // Fallback: Connect station markers directly
+    LINE_STACK_ORDER.forEach(lineCode => {
+      if (!LINE_ROUTES[lineCode]) return;
+      const coords = LINE_ROUTES[lineCode]
+        .map(id => STATION_MAP[id] ? [STATION_MAP[id].lat, STATION_MAP[id].lng] : null)
+        .filter(Boolean);
+      if (coords.length > 1) {
+        renderTrackSegment(coords, lineCode);
+      }
+    });
+  }
+}
+
+// Call on startup
+loadRealTracks();
 
     let userLocation = null;
     let userMarker = null;
