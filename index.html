@@ -32,16 +32,16 @@
     :root {
       /* Luminous Liquid Glass Theme - Light */
       --aicher-bg: #EAF0F8;
-      --glass-base: rgba(255, 255, 255, 0.65);
+      --glass-base: rgba(255, 255, 255, 0.62);
       --glass-base-solid: #FFFFFF;
       --glass-panel-sub: rgba(244, 248, 255, 0.50);
-      --glass-border: rgba(255, 255, 255, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.78);
       --glass-border-focus: rgba(255, 255, 255, 0.95);
-      --glass-specular: rgba(255, 255, 255, 0.98);
+      --glass-specular: rgba(255, 255, 255, 0.95);
       --glass-specular-soft: rgba(255, 255, 255, 0.55);
-      --glass-blur: blur(28px) saturate(210%);
-      --glass-shadow: 0 20px 48px -10px rgba(0, 85, 185, 0.16), 0 8px 24px -4px rgba(15, 23, 42, 0.06);
-      --glass-btn-hover-shadow: 0 14px 32px -4px rgba(0, 102, 204, 0.28);
+      --glass-blur: blur(26px) saturate(190%);
+      --glass-shadow: 0 16px 44px -8px rgba(0, 85, 185, 0.16), 0 6px 18px -4px rgba(15, 23, 42, 0.06);
+      --glass-btn-hover-shadow: 0 12px 28px -4px rgba(0, 102, 204, 0.26);
       --aicher-blue: #0066CC;
       --aicher-yellow: #FFB800;
       --aicher-green: #00A35C;
@@ -58,15 +58,15 @@
     body.theme-dark {
       /* Luminous Liquid Glass Theme - Dark */
       --aicher-bg: #0B0E14;
-      --glass-base: rgba(18, 24, 36, 0.68);
+      --glass-base: rgba(15, 22, 35, 0.65);
       --glass-base-solid: #121824;
-      --glass-panel-sub: rgba(255, 255, 255, 0.07);
-      --glass-border: rgba(255, 255, 255, 0.16);
-      --glass-border-focus: rgba(255, 255, 255, 0.28);
-      --glass-specular: rgba(255, 255, 255, 0.35);
-      --glass-specular-soft: rgba(255, 255, 255, 0.15);
-      --glass-shadow: 0 20px 50px -8px rgba(0, 0, 0, 0.75), 0 6px 18px rgba(0, 0, 0, 0.4);
-      --glass-btn-hover-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5);
+      --glass-panel-sub: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --glass-border-focus: rgba(255, 255, 255, 0.35);
+      --glass-specular: rgba(255, 255, 255, 0.28);
+      --glass-specular-soft: rgba(255, 255, 255, 0.14);
+      --glass-shadow: 0 20px 48px -8px rgba(0, 0, 0, 0.78), 0 6px 18px rgba(0, 0, 0, 0.45);
+      --glass-btn-hover-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.6);
       --aicher-blue: #1A84ED;
       --aicher-yellow: #FFD200;
       --aicher-green: #00B368;
@@ -103,13 +103,13 @@
 
     .aicher-panel {
       position: relative;
-      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(255, 255, 255, 0.54) 100%);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 246, 255, 0.55) 100%);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
       border: 1.5px solid var(--glass-border);
       border-radius: var(--aicher-radius);
-      box-shadow: inset 0 2px 2px 0 var(--glass-specular),
-                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.03),
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.03),
                   var(--glass-shadow);
       transition: transform 0.42s var(--spring-bouncy),
                   box-shadow 0.35s ease,
@@ -118,9 +118,9 @@
     }
 
     body.theme-dark .aicher-panel {
-      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(25, 33, 49, 0.68) 100%);
+      background: linear-gradient(135deg, rgba(16, 23, 38, 0.72) 0%, rgba(10, 15, 26, 0.62) 100%);
       box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
+                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.35),
                   var(--glass-shadow);
     }
 
@@ -144,7 +144,7 @@
       justify-content: center !important;
       padding: 0;
       margin: 0;
-      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(255, 255, 255, 0.54) 100%);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 246, 255, 0.52) 100%);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
       border: 1.5px solid var(--glass-border);
@@ -164,7 +164,7 @@
     }
 
     body.theme-dark .aicher-btn {
-      background: linear-gradient(135deg, var(--glass-base) 0%, rgba(255, 255, 255, 0.07) 100%);
+      background: linear-gradient(135deg, rgba(22, 30, 48, 0.70) 0%, rgba(12, 18, 30, 0.58) 100%);
       box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
                   inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
                   var(--glass-shadow);
@@ -195,18 +195,18 @@
 
     .aicher-search-bar {
       position: relative;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 245, 255, 0.82) 100%);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.70) 0%, rgba(240, 246, 255, 0.56) 100%);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
       border: 1.5px solid var(--glass-border);
       border-radius: 22px;
-      box-shadow: inset 0 2px 2.5px 0 var(--glass-specular),
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
                   inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.04),
                   var(--glass-shadow);
     }
 
     body.theme-dark .aicher-search-bar {
-      background: linear-gradient(135deg, rgba(20, 27, 40, 0.90) 0%, rgba(14, 19, 29, 0.86) 100%);
+      background: linear-gradient(135deg, rgba(18, 25, 42, 0.70) 0%, rgba(11, 16, 28, 0.60) 100%);
       box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
                   inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
                   var(--glass-shadow);
@@ -214,7 +214,7 @@
 
     .aicher-bottom-shelf {
       position: relative;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.93) 0%, rgba(242, 247, 255, 0.90) 100%);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 246, 255, 0.58) 100%);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
       border: 1.5px solid var(--glass-border);
@@ -225,7 +225,7 @@
     }
 
     body.theme-dark .aicher-bottom-shelf {
-      background: linear-gradient(135deg, rgba(20, 27, 40, 0.95) 0%, rgba(13, 18, 28, 0.93) 100%);
+      background: linear-gradient(135deg, rgba(16, 23, 38, 0.72) 0%, rgba(10, 15, 26, 0.62) 100%);
       box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
                   inset 0 -2px 3px 0 rgba(0, 0, 0, 0.35),
                   var(--glass-shadow);
@@ -260,6 +260,7 @@
       height: 22px;
       padding: 0 8px;
       border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 2px 5px rgba(0, 0, 0, 0.15);
       transition: transform 0.32s var(--spring-bouncy);
     }
 
@@ -282,10 +283,10 @@
       background: transparent !important; border: none !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
       transition: transform 0.3s var(--spring-bouncy);
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
     }
     .station-node-wrap:hover {
-      transform: scale(1.22);
+      transform: scale(1.25);
     }
 
     .station-node-svg circle.node-outer {
@@ -298,14 +299,54 @@
       fill: #0F172A;
     }
 
+    /* In dark mode, station tags have a dark core with crisp high-contrast white stroke */
     body.theme-dark .station-node-svg circle.node-outer {
-      fill: #FFFFFF; stroke: #05070B; stroke-width: 2.4px;
+      fill: #101726; stroke: #FFFFFF; stroke-width: 2.2px;
     }
     body.theme-dark .station-hub-svg circle.hub-outer {
-      fill: #FFFFFF; stroke: #05070B; stroke-width: 2.6px;
+      fill: #101726; stroke: #FFFFFF; stroke-width: 2.4px;
     }
     body.theme-dark .station-hub-svg circle.hub-inner {
-      fill: #05070B;
+      fill: #FFFFFF;
+    }
+
+    /* Leaflet Popup Liquid Glass Theme */
+    .leaflet-popup {
+      margin-bottom: 8px;
+    }
+    .leaflet-popup-content-wrapper {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.74) 0%, rgba(240, 246, 255, 0.58) 100%) !important;
+      backdrop-filter: var(--glass-blur) !important;
+      -webkit-backdrop-filter: var(--glass-blur) !important;
+      border: 1.5px solid var(--glass-border) !important;
+      border-radius: 20px !important;
+      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
+                  0 16px 36px -6px rgba(0, 60, 140, 0.18) !important;
+      color: var(--aicher-text-title) !important;
+      padding: 4px 6px !important;
+    }
+    .leaflet-popup-content {
+      margin: 0 !important;
+      line-height: 1.35 !important;
+    }
+    .leaflet-popup-tip {
+      background: rgba(255, 255, 255, 0.75) !important;
+      backdrop-filter: var(--glass-blur) !important;
+      -webkit-backdrop-filter: var(--glass-blur) !important;
+      border: 1px solid var(--glass-border) !important;
+      box-shadow: none !important;
+    }
+
+    body.theme-dark .leaflet-popup-content-wrapper {
+      background: linear-gradient(135deg, rgba(16, 23, 38, 0.78) 0%, rgba(10, 15, 26, 0.68) 100%) !important;
+      border-color: rgba(255, 255, 255, 0.22) !important;
+      box-shadow: inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.32),
+                  0 20px 48px -6px rgba(0, 0, 0, 0.75) !important;
+      color: #FFFFFF !important;
+    }
+    body.theme-dark .leaflet-popup-tip {
+      background: rgba(14, 20, 34, 0.78) !important;
+      border-color: rgba(255, 255, 255, 0.22) !important;
     }
 
     .aicher-gps-marker-wrap.leaflet-div-icon { background: transparent !important; border: none !important; }
@@ -331,7 +372,7 @@
 
     .dep-table-container {
       position: relative;
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.25);
       border: 1px solid var(--glass-border);
       border-radius: 16px;
       overflow: hidden;
@@ -339,16 +380,16 @@
     }
 
     body.theme-dark .dep-table-container {
-      background: rgba(0, 0, 0, 0.22);
+      background: rgba(0, 0, 0, 0.28);
     }
 
     .dep-table-header {
-      background: rgba(0, 0, 0, 0.035);
+      background: rgba(0, 0, 0, 0.04);
       border-bottom: 1px solid var(--glass-border);
     }
 
     body.theme-dark .dep-table-header {
-      background: rgba(255, 255, 255, 0.035);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     #departuresList {
@@ -871,14 +912,38 @@
     }
 
     async function loadNetworkTracks() {
-      try {
-        const res = await fetch('/tracks.geojson');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const geojsonData = await res.json();
-        if (!geojsonData || !Array.isArray(geojsonData.features)) {
-          throw new Error('Ungültiges GeoJSON-Format');
-        }
+      // Check all common deployment paths to prevent 404s
+      const candidatePaths = [
+        '/tracks.geojson',
+        'tracks.geojson',
+        './tracks.geojson',
+        '/public/tracks.geojson',
+        'public/tracks.geojson'
+      ];
 
+      let geojsonData = null;
+      let loadedPath = '';
+
+      for (const path of candidatePaths) {
+        try {
+          const res = await fetch(path);
+          if (res.ok) {
+            geojsonData = await res.json();
+            loadedPath = path;
+            console.log(`Tracks GeoJSON erfolgreich geladen von: ${path}`);
+            break;
+          }
+        } catch (_) {
+          // Continue trying next candidate path
+        }
+      }
+
+      if (!geojsonData || !Array.isArray(geojsonData.features)) {
+        console.warn('Keine tracks.geojson gefunden (Standard-Basisschienen aktiv).');
+        return;
+      }
+
+      try {
         // Detect which lines actually have real surveyed geometry in the file
         const linesFoundInFile = new Set();
         geojsonData.features.forEach(feat => {
@@ -925,9 +990,9 @@
         });
 
         filterNetwork();
-        console.log(`Reale Schienen erfolgreich geladen für: ${Array.from(linesFoundInFile).join(', ')}`);
+        console.log(`Reale Schienen geladen (${loadedPath}) für: ${Array.from(linesFoundInFile).join(', ')}`);
       } catch (err) {
-        console.warn('Real track GeoJSON nicht aktiv (verwende Basisschienen):', err.message);
+        console.warn('Fehler beim Parsen der Schienen:', err.message);
       }
     }
 
