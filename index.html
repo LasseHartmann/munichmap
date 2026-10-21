@@ -744,6 +744,23 @@
       return chained;
     }
 
+    // Helper to safely pull lines out of GeometryCollections (fixes missing S-Bahn tracks)
+    function extractLineStrings(geom) {
+      if (!geom) return [];
+      let lines = [];
+      if (geom.type === 'LineString') {
+        lines.push(geom.coordinates);
+      } else if (geom.type === 'MultiLineString') {
+        lines.push(...geom.coordinates);
+      } else if (geom.type === 'GeometryCollection' && geom.geometries) {
+        geom.geometries.forEach(g => {
+          if (g.type === 'LineString') lines.push(g.coordinates);
+          else if (g.type === 'MultiLineString') lines.push(...g.coordinates);
+        });
+      }
+      return lines;
+    }
+
     // High performance asynchronous track processor (non-blocking)
     async function processAndApplyTracks(geojsonData) {
       if (!geojsonData || !Array.isArray(geojsonData.features)) return;
@@ -761,13 +778,16 @@
           const lineCode = matchMunichLine(feat);
           if (!lineCode) continue;
 
-          const geom = feat.geometry;
-          if (!geom || !geom.coordinates) continue;
-
-          const rawList = geom.type === 'LineString' ? [geom.coordinates] : 
-                          (geom.type === 'MultiLineString' ? geom.coordinates : []);
+          const rawList = extractLineStrings(feat.geometry);
 
           rawList.forEach(rawPts => {
+            if (!rawPts || rawPts.length < 2) return;
+            
+            // Check for closed loop (platforms usually have identical start/end coords)
+            const p1 = rawPts[0];
+            const p2 = rawPts[rawPts.length - 1];
+            if (p1[0] === p2[0] && p1[1] === p2[1]) return; // Skip closed loops platforms
+
             let chunk = [];
             for (let p = 0; p < rawPts.length; p++) {
               const lng = rawPts[p][0];
