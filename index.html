@@ -344,7 +344,7 @@
           <div class="pl-3.5 pr-1 flex items-center justify-center pointer-events-none text-[var(--aicher-text-muted)] z-10 leading-none shrink-0">
             <i class="fa-solid fa-magnifying-glass text-[13px] opacity-80"></i>
           </div>
-          <input id="stationSearchInput" type="text" placeholder="Station in Zone M suchen..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-transparent border-none outline-none py-2.5 pr-8 leading-tight text-[15px] sm:text-sm text-[var(--aicher-text-title)] font-semibold placeholder:text-[var(--aicher-text-muted)]">
+          <input id="stationSearchInput" type="text" placeholder="Station suchen..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-transparent border-none outline-none py-2.5 pr-8 leading-tight text-[15px] sm:text-sm text-[var(--aicher-text-title)] font-semibold placeholder:text-[var(--aicher-text-muted)]">
           <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100">
             <i class="fa-solid fa-xmark text-[10px] text-[var(--aicher-text-title)]"></i>
           </button>
@@ -356,7 +356,7 @@
     <!-- Active Routing Toast Badge -->
     <div id="trackStatusToast" class="hidden pointer-events-auto mx-auto aicher-panel px-3.5 py-1.5 flex items-center gap-2 text-[11px] font-black tracking-tight text-[var(--aicher-text-title)] shadow-lg transition-all duration-300">
       <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] animate-ping"></span>
-      <span id="trackStatusMsg">Gleise optimiert auf Zone M</span>
+      <span id="trackStatusMsg">Gleise optimiert</span>
     </div>
 
     <!-- Filter Menu Panel -->
@@ -443,7 +443,7 @@
       <div id="stationHeaderArea" class="flex items-center justify-between gap-2.5 sm:gap-3 min-w-0 w-full cursor-pointer select-none">
         <div class="flex flex-col min-w-[105px] max-w-[44%] shrink-0">
           <span id="nearestStationName" class="text-[14px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
-          <span id="nearestStationMeta" class="text-[10px] leading-tight text-[var(--aicher-text-muted)] font-semibold">Zone M</span>
+          <span id="nearestStationMeta" class="text-[10px] leading-tight text-[var(--aicher-text-muted)] font-semibold">MVV</span>
         </div>
         <div class="flex items-center min-w-0 flex-1 justify-end gap-1.5">
           <div id="nearestStationLines" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar"></div>
@@ -477,7 +477,6 @@
     </div>
   </div>
 
-  <!-- Load the config file (Make sure config.js is in your .gitignore!) -->
   <script src="config.js"></script>
 
   <script>
@@ -525,7 +524,6 @@
     let linePolylineElements = [];
     const stationMarkers = [];
 
-    // Use the key from the config.js file
     const MAPTILER_KEY = typeof CONFIG !== 'undefined' ? CONFIG.MAPTILER_KEY : 'YOUR_FALLBACK_KEY';
 
     const TILE_THEMES = [
@@ -633,25 +631,18 @@
       linePolylineElements.push({ lineCode, type: isS ? 'S' : 'U', casing, core });
     }
 
-    function drawBaseNetworkChords() {
-      // Base chords removed. The map will wait for tracks.geojson to load.
-    }
-
-    /* Render base chords immediately as zero-latency fallback */
-    drawBaseNetworkChords();
-
+    // Accept EVERYTHING (No Zone M clipping)
     function isInsideZoneM(lat, lng) {
-      return true; // We now accept the entire map based on your Overpass GeoJSON export bounding box!
+      return true;
     }
 
-    // Helper: Match Munich S-Bahn / U-Bahn while explicitly rejecting regional trains (RB, RE, ICE, IC)
+    // Helper: Match Munich S-Bahn / U-Bahn
     function matchMunichLine(feature) {
       const p = feature.properties || {};
       const ref = (p.ref || '').toUpperCase().trim();
       const name = (p.name || '').toUpperCase().trim();
       const lineProp = (p.line || '').toUpperCase().trim();
 
-      // Reject regional and intercity trains immediately
       if (ref.startsWith('RB') || ref.startsWith('RE') || ref.startsWith('ICE') || 
           ref.startsWith('IC') || ref.startsWith('ALX') || ref.startsWith('BRB') ||
           ref.startsWith('EC') || ref.startsWith('RJ')) {
@@ -679,7 +670,6 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    // Chain and consolidate disjoint GeoJSON segments into ordered, unified corridors
     function chainLineSegments(segments) {
       if (!segments || segments.length === 0) return [];
       if (segments.length === 1) return segments;
@@ -696,8 +686,8 @@
         while (extended) {
           extended = false;
           let bestIdx = -1;
-          let bestDist = 80; // snap threshold in meters
-          let attachMode = null; // 'head-tail', 'tail-head', 'tail-tail', 'head-head'
+          let bestDist = 80; 
+          let attachMode = null; 
 
           const curHead = current[0];
           const curTail = current[current.length - 1];
@@ -744,7 +734,7 @@
       return chained;
     }
 
-    // Helper to safely pull lines out of GeometryCollections (fixes missing S-Bahn tracks)
+    // CRITICAL FIX: Robustly extracts lines from complex S-Bahn GeometryCollections
     function extractLineStrings(geom) {
       if (!geom) return [];
       let lines = [];
@@ -761,14 +751,13 @@
       return lines;
     }
 
-    // High performance asynchronous track processor (non-blocking)
     async function processAndApplyTracks(geojsonData) {
-      if (!geojsonData || !Array.isArray(geojsonData.features)) return;
+      if (!geojsonData || !Array.isArray(geojsonData.features)) {
+        showToast("Fehler: tracks.geojson Format ungültig");
+        return;
+      }
 
-      // Reset the global extracted lines array for fresh processing
       ALL_LINES.forEach(l => { extractedByLine[l] = []; });
-
-      // Step 1: Parse and spatially clamp coordinates strictly within Zone M
       const features = geojsonData.features;
       const CHUNK_SIZE = 250;
 
@@ -783,138 +772,116 @@
           rawList.forEach(rawPts => {
             if (!rawPts || rawPts.length < 2) return;
             
-            // Check for closed loop (platforms usually have identical start/end coords)
+            // CRITICAL FIX: Skip closed-loop OSM platform geometries!
             const p1 = rawPts[0];
             const p2 = rawPts[rawPts.length - 1];
-            if (p1[0] === p2[0] && p1[1] === p2[1]) return; // Skip closed loops platforms
+            if (p1[0] === p2[0] && p1[1] === p2[1]) return; 
 
             let chunk = [];
             for (let p = 0; p < rawPts.length; p++) {
               const lng = rawPts[p][0];
               const lat = rawPts[p][1];
-
-              if (isInsideZoneM(lat, lng)) {
-                chunk.push([lat, lng]);
-              } else {
-                if (chunk.length > 2) {
-                  extractedByLine[lineCode].push(chunk);
-                }
-                chunk = [];
-              }
+              chunk.push([lat, lng]);
             }
             if (chunk.length > 2) {
               extractedByLine[lineCode].push(chunk);
             }
           });
         }
-        // Yield thread to guarantee UI remains responsive and fluid
         if (i % 1000 === 0) {
           await new Promise(r => setTimeout(r, 0));
         }
       }
 
-      // Step 2: Consolidate and render lines into the map
       let optimizedLineCount = 0;
 
       for (const lineCode of ALL_LINES) {
         const segments = extractedByLine[lineCode];
         if (!segments || segments.length === 0) continue;
 
-        // Chain segments into unified continuous paths
         const unifiedSegments = chainLineSegments(segments);
         if (unifiedSegments.length === 0) continue;
 
-        // Remove old baseline chords for this line
-        linePolylineElements = linePolylineElements.filter(item => {
-          if (item.lineCode === lineCode) {
-            lineLayerGroup.removeLayer(item.casing);
-            lineLayerGroup.removeLayer(item.core);
-            return false;
-          }
-          return true;
-        });
-
-        // Limit rendering to primary consolidated paths (avoids dual track doubling & switch clutter)
         unifiedSegments.sort((a, b) => b.length - a.length);
-        const topSegments = unifiedSegments.slice(0, 12);
+        const topSegments = unifiedSegments.slice(0, 15);
 
         topSegments.forEach(seg => {
           renderTrackSegment(seg, lineCode);
         });
 
         optimizedLineCount++;
-        // Small yield every few lines
-        if (optimizedLineCount % 4 === 0) {
-          await new Promise(r => setTimeout(r, 0));
-        }
       }
 
       if (optimizedLineCount > 0) {
         filterNetwork();
-        showToast(`Gesamtes Netz berechnet: ${optimizedLineCount} Linien optimiert`);
-      }
-    }
-
-    async function loadNetworkTracks() {
-      try {
-        const [tracksRes, stationsRes] = await Promise.all([
-          fetch('tracks.geojson').catch(() => null),
-          fetch('stations.geojson').catch(() => null)
-        ]);
-
-        if (tracksRes && tracksRes.ok) {
-          const trackData = await tracksRes.json();
-          await processAndApplyTracks(trackData);
-        } else {
-          console.warn('tracks.geojson nicht gefunden.');
-        }
-
-        if (stationsRes && stationsRes.ok) {
-          const stationData = await stationsRes.json();
-          processStations(stationData);
-        } else {
-          console.warn('stations.geojson nicht gefunden.');
-        }
-      } catch (err) {
-        console.error('Fehler beim Laden der GeoJSON Dateien:', err);
+        showToast(`${optimizedLineCount} Linien optimiert (Gleise vereint)`);
+      } else {
+        showToast("Fehler: Keine gültigen U/S-Bahn Tracks gefunden");
       }
     }
 
     function processStations(geojsonData) {
+      if (!geojsonData || !Array.isArray(geojsonData.features)) {
+        showToast("Fehler: stations.geojson Format ungültig");
+        return;
+      }
+
+      STATIONS = [];
+      STATION_MAP = {};
       const tempStations = new Map();
       
-      // 1. Extract unique stations from the GeoJSON
       geojsonData.features.forEach(feat => {
-        if (feat.geometry && feat.geometry.type === 'Point' && feat.properties.name) {
-          let name = feat.properties.name;
-          const lat = feat.geometry.coordinates[1];
-          const lng = feat.geometry.coordinates[0];
-          
-          if (!tempStations.has(name)) {
-            tempStations.set(name, { 
-              id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), 
-              name: name, 
-              lat: lat, 
-              lng: lng, 
-              lines: new Set(), 
-              isHub: false, 
-              zone: 'MVV' 
-            });
-          }
+        if (!feat.geometry || !feat.properties || !feat.properties.name) return;
+
+        let lat, lng;
+        
+        // Handle both Points (dots) and Polygons (areas)
+        if (feat.geometry.type === 'Point') {
+          lat = feat.geometry.coordinates[1];
+          lng = feat.geometry.coordinates[0];
+        } else if (feat.geometry.type === 'Polygon') {
+          // If the station is mapped as an area, find the rough center
+          const ring = feat.geometry.coordinates[0];
+          let latSum = 0, lngSum = 0;
+          ring.forEach(pt => { lngSum += pt[0]; latSum += pt[1]; });
+          lat = latSum / ring.length;
+          lng = lngSum / ring.length;
+        } else {
+          return; // Skip unsupported geometry types
+        }
+
+        // Clean up OSM names (e.g., remove " (Oberbay)" or " (S-Bahn)")
+        let name = feat.properties.name.replace(/ \(.*\)/g, '').trim();
+
+        if (!tempStations.has(name)) {
+          tempStations.set(name, { 
+            id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), 
+            name: name, 
+            lat: lat, 
+            lng: lng, 
+            lines: new Set(), 
+            isHub: false, 
+            zone: 'MVV' 
+          });
         }
       });
 
-      // 2. Spatial Join: Match stations to lines based on proximity to tracks (within 90 meters)
+      // Spatial Match: Check if track is near the station
       tempStations.forEach(station => {
         for (const lineCode of ALL_LINES) {
           const segments = extractedByLine[lineCode] || [];
           let found = false;
           for (const seg of segments) {
             if (found) break;
-            for (const pt of seg) {
-              if (getDistanceMeters(station.lat, station.lng, pt[0], pt[1]) < 90) { 
+            
+            // Sample points along the track
+            for (let i = 0; i < seg.length; i += 2) {
+              const pt = seg[i];
+              // INCREASED RADIUS: 250 meters to catch large stations and deep subways
+              if (getDistanceMeters(station.lat, station.lng, pt[0], pt[1]) < 250) { 
                 station.lines.add(lineCode);
-                found = true; break;
+                found = true; 
+                break;
               }
             }
           }
@@ -923,14 +890,51 @@
         station.lines = Array.from(station.lines).sort();
         station.isHub = station.lines.length > 2 || (station.lines.some(l => l.startsWith('S')) && station.lines.some(l => l.startsWith('U')));
         
-        // Only keep stations that have actual train lines assigned to them
         if (station.lines.length > 0) {
           STATIONS.push(station);
           STATION_MAP[station.id] = station;
         }
       });
 
-      renderStationMarkers();
+      if(STATIONS.length > 0) {
+        renderStationMarkers();
+        showToast(`Erfolgreich: ${STATIONS.length} Stationen geladen!`);
+      } else {
+        showToast("Fehler: Stationen sind zu weit von den Gleisen entfernt");
+      }
+    }
+
+    async function loadNetworkTracks() {
+      showToast("Lade Netzwerkdaten...");
+      
+      try {
+        // Cache buster guarantees Vercel gives you the freshest files
+        const cb = new Date().getTime(); 
+        
+        const [tracksRes, stationsRes] = await Promise.all([
+          fetch(`tracks.geojson?v=${cb}`).catch(() => null),
+          fetch(`stations.geojson?v=${cb}`).catch(() => null)
+        ]);
+
+        if (!tracksRes || !tracksRes.ok) {
+          showToast(`Fehler 404: tracks.geojson nicht gefunden!`);
+          return;
+        }
+        if (!stationsRes || !stationsRes.ok) {
+          showToast(`Fehler 404: stations.geojson nicht gefunden!`);
+          return;
+        }
+
+        const trackData = await tracksRes.json();
+        const stationData = await stationsRes.json();
+        
+        await processAndApplyTracks(trackData);
+        processStations(stationData);
+
+      } catch (err) {
+        showToast("Kritischer Fehler beim Parsen der JSON-Daten");
+        console.error("Parse Error:", err);
+      }
     }
 
     function renderStationMarkers() {
@@ -1061,7 +1065,7 @@
           </div>
         `).join('');
       } catch (e) {
-        // Fallback simulated departures based on station lines
+        // Fallback simulated departures
         const mocked = [];
         station.lines.forEach((line, idx) => {
           mocked.push({
@@ -1203,7 +1207,6 @@
       });
     });
 
-    // Station Search
     const searchInput = document.getElementById('stationSearchInput');
     const searchDropdown = document.getElementById('searchDropdown');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -1254,7 +1257,6 @@
     });
 
     let userMarker = null;
-    let gpsWatchId = null;
 
     document.getElementById('gpsBtn').addEventListener('click', () => {
       if (!navigator.geolocation) {
@@ -1288,6 +1290,7 @@
     });
 
     document.getElementById('centerMapBtn').addEventListener('click', () => {
+      if(STATIONS.length === 0) return;
       const lats = STATIONS.map(s => s.lat), lngs = STATIONS.map(s => s.lng);
       map.fitBounds(L.latLngBounds([Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]), { padding: [50, 25], animate: true });
     });
