@@ -866,6 +866,11 @@
         }
       });
 
+      if (tempStations.size === 0) {
+        showToast("Fehler: Keine gültigen Stationen (Punkte) in stations.geojson gefunden. Falsche Datei?");
+        return;
+      }
+
       // Spatial Match: Check if track is near the station
       tempStations.forEach(station => {
         for (const lineCode of ALL_LINES) {
