@@ -276,8 +276,6 @@
     <span id="trackStatusMsg">Gleise optimiert</span>
   </div>
 
-  <script src="config.js"></script>
-
   <script>
     const LINE_COLORS = {
       'U1': '#438238', 'U2': '#C31B2C', 'U3': '#EB7926', 'U4': '#00A896',
@@ -299,7 +297,7 @@
     const stationLayerGroup = L.layerGroup().addTo(map);
     let linePolylineElements = []; const stationMarkers = [];
 
-    const MAPTILER_KEY = typeof CONFIG !== 'undefined' ? CONFIG.MAPTILER_KEY : 'YOUR_FALLBACK_KEY';
+    const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
     const TILE_THEMES = [
       { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}` },
       { id: 'light', url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}` }
@@ -308,6 +306,7 @@
     let currentTileIndex = 0; let activeTileLayer = null;
 
     function applyTileLayer(index) {
+      if (!TILE_THEMES.length) return;
       if (activeTileLayer) map.removeLayer(activeTileLayer);
       const theme = TILE_THEMES[index];
       activeTileLayer = L.tileLayer(theme.url, { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20 }).addTo(map);
@@ -640,6 +639,7 @@
       t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000);
     }
 
+    // Initialize the App directly with the key
     applyTileLayer(0);
     loadNetworkTracks();
   </script>
