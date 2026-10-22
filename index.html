@@ -583,51 +583,63 @@
 
     document.getElementById('closeStationDrawerBtn').addEventListener('click', closeDrawer);
 
+    // Refresh button logic
+    document.getElementById('refreshDepBtn').addEventListener('click', () => {
+      if (selectedStation) {
+        fetchLiveDepartures(selectedStation);
+      }
+    });
+
     async function fetchLiveDepartures(station) {
       const listEl = document.getElementById('departuresList');
-      listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Abfahrten...</div>`;
+      listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Live-Abfahrten...</div>`;
       
-      const endpoints = {
-        'U1': ['Olympia-Einkaufszentrum', 'Mangfallplatz'],
-        'U2': ['Feldmoching', 'Messestadt Ost'],
-        'U3': ['Moosach', 'Fürstenried West'],
-        'U4': ['Westendstraße', 'Arabellapark'],
-        'U5': ['Laimer Platz', 'Neuperlach Süd'],
-        'U6': ['Garching-Forschungsz.', 'Klinikum Großhadern'],
-        'U7': ['Olympia-Einkaufszentrum', 'Neuperlach Zentrum'],
-        'U8': ['Olympiazentrum', 'Sendlinger Tor'],
-        'S1': ['Freising / Flughafen', 'Leuchtenbergring'],
-        'S2': ['Petershausen', 'Erding'],
-        'S3': ['Mammendorf', 'Holzkirchen'],
-        'S4': ['Geltendorf', 'Ebersberg'],
-        'S6': ['Tutzing', 'Ebersberg'],
-        'S7': ['Wolfratshausen', 'Kreuzstraße'],
-        'S8': ['Herrsching', 'Flughafen München'],
-        'S20': ['München-Pasing', 'Höllriegelskreuth']
-      };
+      try {
+        // Call your actual Vercel serverless function
+        const apiUrl = `/api/departures?query=${encodeURIComponent(station.name)}&lat=${station.lat}&lng=${station.lng}`;
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('API-Fehler');
+        
+        const data = await response.json();
 
-      setTimeout(() => {
-        const mocked = [];
-        station.lines.forEach((line, idx) => {
-          const dests = endpoints[line] || ['Richtung A', 'Richtung B'];
-          for (let i = 0; i < 4; i++) {
-            mocked.push({ line, dir: dests[0], min: (idx * 2 + 1) + (i * 10) + Math.floor(Math.random() * 3) });
-            mocked.push({ line, dir: dests[1], min: (idx * 3 + 6) + (i * 10) + Math.floor(Math.random() * 3) });
-          }
-        });
-        mocked.sort((a,b) => a.min - b.min);
-        listEl.innerHTML = mocked.map(d => `
-          <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-               <span class="aicher-badge text-white h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${LINE_COLORS[d.line]||'#333'};">${d.line}</span>
-               <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.dir}</span>
+        if (!data || data.length === 0) {
+          listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten gefunden.</div>`;
+          return;
+        }
+
+        // Render the REAL live departures coming from MVG!
+        listEl.innerHTML = data.map(d => {
+          const lineStr = String(d.line);
+          const textColor = lineStr === 'S8' ? 'text-black' : 'text-white';
+          const bgColor = LINE_COLORS[lineStr] || '#333333';
+          
+          // Show delay in red if the train is running late
+          const delayIndicator = d.delay > 0 
+            ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
+            : '';
+
+          return `
+            <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                 <span class="aicher-badge ${textColor} h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
+                 <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
+              </div>
+              <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center">
+                ${d.minsUntil} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal ml-0.5">min</span>
+                ${delayIndicator}
+              </span>
             </div>
-            <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0">${d.min} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal">min</span></span>
-          </div>
-        `).join('');
-      }, 600);
+          `;
+        }).join('');
+
+      } catch (err) {
+        console.error("Failed to load departures:", err);
+        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[#C31B2C] font-bold">Fehler beim Verbinden mit MVG</div>`;
+      }
     }
 
+    // Filter Logic
     const filterMenuBtn = document.getElementById('filterMenuBtn');
     const filterMenuPanel = document.getElementById('filterMenuPanel');
     filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); filterMenuPanel.classList.toggle('hidden'); filterMenuBtn.classList.toggle('neo-inset-sm'); });
