@@ -299,8 +299,9 @@
 
     const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
     const TILE_THEMES = [
-      { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}` },
-      { id: 'light', url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}` }
+      { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-moon', color: 'text-[var(--aicher-yellow)]' },
+      { id: 'light', url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-600' },
+      { id: 'satellite', url: `https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, icon: 'fa-satellite', color: 'text-blue-400' }
     ];
 
     let currentTileIndex = 0; let activeTileLayer = null;
@@ -311,10 +312,10 @@
       const theme = TILE_THEMES[index];
       activeTileLayer = L.tileLayer(theme.url, { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20 }).addTo(map);
       
-      const isDark = (theme.id === 'dark');
+      const isDark = (theme.id === 'dark' || theme.id === 'satellite');
       document.body.classList.toggle('theme-dark', isDark);
       document.getElementById('themeColorMeta').setAttribute('content', isDark ? '#2C2F36' : '#E0E5EC');
-      document.getElementById('layerIcon').className = isDark ? 'fa-solid fa-moon text-[12px] text-[var(--aicher-yellow)]' : 'fa-solid fa-sun text-[12px] text-amber-600';
+      document.getElementById('layerIcon').className = `fa-solid ${theme.icon} text-[12px] ${theme.color}`;
       
       linePolylineElements.forEach(item => {
         if (item.casing) item.casing.setStyle({ color: isDark ? '#2C2F36' : '#E0E5EC', opacity: 1.0 });
@@ -629,9 +630,84 @@
     document.getElementById('closeFilterMenuBtn').addEventListener('click', () => { filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); });
     map.on('click', () => { filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); if(isSearchExpanded) toggleSearch(); closeDrawer(); });
 
-    document.getElementById('layerCycleBtn').addEventListener('click', () => { currentTileIndex = currentTileIndex === 0 ? 1 : 0; applyTileLayer(currentTileIndex); });
+    document.getElementById('layerCycleBtn').addEventListener('click', () => { currentTileIndex = (currentTileIndex + 1) % TILE_THEMES.length; applyTileLayer(currentTileIndex); });
     document.getElementById('centerMapBtn').addEventListener('click', () => { map.setView([48.140, 11.575], 11, {animate:true}); });
-    document.getElementById('gpsBtn').addEventListener('click', () => { showToast('GPS Zentrierung...'); });
+    
+    // ==========================================
+    // GPS / Geolocation Logic
+    // ==========================================
+    // GPS / Geolocation Logic
+    // ==========================================
+    let isTrackingGps = false;
+    let gpsWatchId = null;
+    let userLocationMarker = null;
+    let currentUserLocation = null;
+
+    function startGpsTracking(auto = false) {
+      if (!navigator.geolocation) {
+        if (!auto) showToast('GPS wird nicht unterstützt');
+        return;
+      }
+
+      const btn = document.getElementById('gpsBtn');
+
+      // If already active and we have a location, just center the map to it
+      if (isTrackingGps && currentUserLocation) {
+        map.setView(currentUserLocation, 16, { animate: true });
+        if (!auto) showToast('Karte zentriert');
+        return;
+      }
+
+      if (!auto) showToast('Suche Standort...');
+      btn.classList.add('is-active');
+      isTrackingGps = true;
+
+      // Start watching user position
+      gpsWatchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          currentUserLocation = [lat, lng];
+
+          if (!userLocationMarker) {
+            // First time finding location: create marker and center map
+            const customGpsIcon = L.divIcon({
+              className: 'aicher-gps-marker-wrap',
+              html: `<div class="aicher-gps-wrap"><div class="aicher-gps-ring"></div><div class="aicher-gps-dot"></div></div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
+            });
+            userLocationMarker = L.marker(currentUserLocation, { 
+              icon: customGpsIcon, 
+              zIndexOffset: 1000 
+            }).addTo(map);
+            
+            map.setView(currentUserLocation, 16, { animate: true });
+            if (!auto) showToast('Standort gefunden');
+          } else {
+            // Just update marker position
+            userLocationMarker.setLatLng(currentUserLocation);
+          }
+        },
+        (error) => {
+          console.warn('GPS Fehler:', error);
+          if (error.code === error.PERMISSION_DENIED) {
+             if (!auto) showToast('GPS Berechtigung verweigert');
+          } else {
+             if (!auto) showToast('GPS Signal schwach/deaktiviert');
+          }
+          btn.classList.remove('is-active');
+          isTrackingGps = false;
+          if (gpsWatchId) {
+            navigator.geolocation.clearWatch(gpsWatchId);
+            gpsWatchId = null;
+          }
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+      );
+    }
+
+    document.getElementById('gpsBtn').addEventListener('click', () => startGpsTracking(false));
 
     function showToast(msg) {
       const t = document.getElementById('trackStatusToast');
@@ -642,6 +718,9 @@
     // Initialize the App directly with the key
     applyTileLayer(0);
     loadNetworkTracks();
+    
+    // Ask for GPS automatically on load
+    startGpsTracking(true);
   </script>
 </body>
 </html>
