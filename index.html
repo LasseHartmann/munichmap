@@ -292,7 +292,19 @@
     let STATIONS = []; let STATION_MAP = {};
     const extractedByLine = {}; ALL_LINES.forEach(l => { extractedByLine[l] = []; });
 
-    const map = L.map('map', { center: [48.140, 11.575], zoom: 13, minZoom: 9, maxZoom: 18, zoomControl: false, tap: false });
+    // ==========================================
+    // IMPROVEMENT 1: preferCanvas: true
+    // ==========================================
+    const map = L.map('map', { 
+      center: [48.140, 11.575], 
+      zoom: 13, 
+      minZoom: 9, 
+      maxZoom: 18, 
+      zoomControl: false, 
+      tap: false,
+      preferCanvas: true // Draws thousands of line paths onto one hardware-accelerated canvas
+    });
+    
     const lineLayerGroup = L.layerGroup().addTo(map);
     const stationLayerGroup = L.layerGroup().addTo(map);
     let linePolylineElements = []; const stationMarkers = [];
@@ -331,7 +343,6 @@
       }).join('');
     }
 
-    // Geometry/GeoJSON Rendering Functions (Preserved logic)
     function renderTrackSegment(coords, lineCode) {
       if (!coords || coords.length < 2) return;
       const isS = lineCode.startsWith('S');
@@ -342,7 +353,6 @@
       linePolylineElements.push({ lineCode, casing, core });
     }
 
-    // Helper: Match Munich S-Bahn / U-Bahn
     function matchMunichLine(feature) {
       const p = feature.properties || {};
       const ref = (p.ref || '').toUpperCase().trim();
@@ -402,14 +412,13 @@
         const rawList = extractLineStrings(feat.geometry);
         rawList.forEach(rawPts => {
           if (!rawPts || rawPts.length < 2) return;
-          // Skip closed-loop OSM platform geometries
           const p1 = rawPts[0];
           const p2 = rawPts[rawPts.length - 1];
           if (p1[0] === p2[0] && p1[1] === p2[1]) return; 
 
           let chunk = [];
           for (let p = 0; p < rawPts.length; p++) {
-            chunk.push([rawPts[p][1], rawPts[p][0]]); // lat, lng
+            chunk.push([rawPts[p][1], rawPts[p][0]]);
           }
           if (chunk.length > 1) {
             extractedByLine[lineCode].push(chunk);
@@ -447,7 +456,6 @@
         }
       });
 
-      // Spatial Match to find which lines pass through this station
       tempStations.forEach(station => {
         for (const lineCode of ALL_LINES) {
           const segments = extractedByLine[lineCode] || [];
@@ -557,7 +565,6 @@
       toggleSearch();
     }
 
-    // Left Drawer Logic
     let selectedStation = null;
     const stationDrawer = document.getElementById('stationDrawer');
 
@@ -603,8 +610,6 @@
         const mocked = [];
         station.lines.forEach((line, idx) => {
           const dests = endpoints[line] || ['Richtung A', 'Richtung B'];
-          
-          // Generate 4 future departures per direction in realistic ~10-minute intervals
           for (let i = 0; i < 4; i++) {
             mocked.push({ line, dir: dests[0], min: (idx * 2 + 1) + (i * 10) + Math.floor(Math.random() * 3) });
             mocked.push({ line, dir: dests[1], min: (idx * 3 + 6) + (i * 10) + Math.floor(Math.random() * 3) });
@@ -623,7 +628,6 @@
       }, 600);
     }
 
-    // Filter Logic
     const filterMenuBtn = document.getElementById('filterMenuBtn');
     const filterMenuPanel = document.getElementById('filterMenuPanel');
     filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); filterMenuPanel.classList.toggle('hidden'); filterMenuBtn.classList.toggle('neo-inset-sm'); });
@@ -633,11 +637,6 @@
     document.getElementById('layerCycleBtn').addEventListener('click', () => { currentTileIndex = (currentTileIndex + 1) % TILE_THEMES.length; applyTileLayer(currentTileIndex); });
     document.getElementById('centerMapBtn').addEventListener('click', () => { map.setView([48.140, 11.575], 11, {animate:true}); });
     
-    // ==========================================
-    // GPS / Geolocation Logic
-    // ==========================================
-    // GPS / Geolocation Logic
-    // ==========================================
     let isTrackingGps = false;
     let gpsWatchId = null;
     let userLocationMarker = null;
@@ -651,7 +650,6 @@
 
       const btn = document.getElementById('gpsBtn');
 
-      // If already active and we have a location, just center the map to it
       if (isTrackingGps && currentUserLocation) {
         map.setView(currentUserLocation, 16, { animate: true });
         if (!auto) showToast('Karte zentriert');
@@ -662,7 +660,6 @@
       btn.classList.add('is-active');
       isTrackingGps = true;
 
-      // Start watching user position
       gpsWatchId = navigator.geolocation.watchPosition(
         (position) => {
           const lat = position.coords.latitude;
@@ -670,7 +667,6 @@
           currentUserLocation = [lat, lng];
 
           if (!userLocationMarker) {
-            // First time finding location: create marker and center map
             const customGpsIcon = L.divIcon({
               className: 'aicher-gps-marker-wrap',
               html: `<div class="aicher-gps-wrap"><div class="aicher-gps-ring"></div><div class="aicher-gps-dot"></div></div>`,
@@ -685,7 +681,6 @@
             map.setView(currentUserLocation, 16, { animate: true });
             if (!auto) showToast('Standort gefunden');
           } else {
-            // Just update marker position
             userLocationMarker.setLatLng(currentUserLocation);
           }
         },
@@ -715,11 +710,38 @@
       t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000);
     }
 
-    // Initialize the App directly with the key
+    // ==========================================
+    // IMPROVEMENT 2: Zoom-Based Rendering
+    // Hides the hundreds of HTML elements when zoomed out
+    // ==========================================
+    map.on('zoomend', function() {
+      const currentZoom = map.getZoom();
+      
+      // Hide stations if zoomed out further than level 12
+      if (currentZoom < 12) {
+        if (map.hasLayer(stationLayerGroup)) {
+          map.removeLayer(stationLayerGroup);
+        }
+      } else {
+        if (!map.hasLayer(stationLayerGroup)) {
+          map.addLayer(stationLayerGroup);
+        }
+      }
+
+      // Hide lines entirely if zoomed out extremely far (e.g. level 9)
+      if (currentZoom < 10) {
+        if (map.hasLayer(lineLayerGroup)) {
+          map.removeLayer(lineLayerGroup);
+        }
+      } else {
+        if (!map.hasLayer(lineLayerGroup)) {
+          map.addLayer(lineLayerGroup);
+        }
+      }
+    });
+
     applyTileLayer(0);
     loadNetworkTracks();
-    
-    // Ask for GPS automatically on load
     startGpsTracking(true);
   </script>
 </body>
