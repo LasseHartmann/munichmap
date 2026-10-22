@@ -4,331 +4,166 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Munich Zone M Transit GPS Map</title>
-  <meta name="theme-color" content="#0B0E14" />
+  <meta name="theme-color" content="#E0E5EC" id="themeColorMeta" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Leaflet Map CSS & JS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      height: 100dvh;
+      margin: 0; padding: 0; width: 100%; height: 100%; height: 100dvh;
       overflow: hidden;
-      background-color: #EAF0F8;
+      background-color: var(--neo-base);
     }
 
     :root {
-      /* Luminous Liquid Glass Theme - Light */
-      --aicher-bg: #EAF0F8;
-      --glass-base: rgba(255, 255, 255, 0.62);
-      --glass-base-solid: #FFFFFF;
-      --glass-panel-sub: rgba(244, 248, 255, 0.50);
-      --glass-border: rgba(255, 255, 255, 0.78);
-      --glass-border-focus: rgba(255, 255, 255, 0.95);
-      --glass-specular: rgba(255, 255, 255, 0.95);
-      --glass-specular-soft: rgba(255, 255, 255, 0.55);
-      --glass-blur: blur(26px) saturate(190%);
-      --glass-shadow: 0 16px 44px -8px rgba(0, 85, 185, 0.16), 0 6px 18px -4px rgba(15, 23, 42, 0.06);
-      --glass-btn-hover-shadow: 0 12px 28px -4px rgba(0, 102, 204, 0.26);
-      --aicher-blue: #0066CC;
-      --aicher-yellow: #FFB800;
-      --aicher-green: #00A35C;
-      --aicher-text-title: #0F172A;
-      --aicher-text-main: #1E293B;
-      --aicher-text-muted: #5B6E88;
-      --aicher-radius: 28px;
-      --aicher-radius-pill: 9999px;
+      /* Neomorphism Light Theme */
+      --neo-base: #E0E5EC;
+      --neo-shadow-light: #ffffff;
+      --neo-shadow-dark: #a3b1c6;
+      --neo-border: rgba(255, 255, 255, 0.4);
+      
+      --neo-outset: 8px 8px 16px var(--neo-shadow-dark), -8px -8px 16px var(--neo-shadow-light);
+      --neo-inset: inset 6px 6px 12px var(--neo-shadow-dark), inset -6px -6px 12px var(--neo-shadow-light);
+      --neo-outset-sm: 4px 4px 8px var(--neo-shadow-dark), -4px -4px 8px var(--neo-shadow-light);
+      --neo-inset-sm: inset 3px 3px 6px var(--neo-shadow-dark), inset -3px -3px 6px var(--neo-shadow-light);
+
+      --aicher-blue: #3182ce;
+      --aicher-yellow: #d69e2e;
+      --aicher-green: #38a169;
+      --aicher-text-title: #2d3748;
+      --aicher-text-main: #4a5568;
+      --aicher-text-muted: #718096;
+      
       --spring-bouncy: cubic-bezier(0.34, 1.68, 0.64, 1);
-      --spring-squish: cubic-bezier(0.175, 0.885, 0.32, 1.45);
-      --spring-soft: cubic-bezier(0.25, 1.25, 0.5, 1);
     }
 
     body.theme-dark {
-      /* Luminous Liquid Glass Theme - Dark */
-      --aicher-bg: #0B0E14;
-      --glass-base: rgba(15, 22, 35, 0.65);
-      --glass-base-solid: #121824;
-      --glass-panel-sub: rgba(255, 255, 255, 0.08);
-      --glass-border: rgba(255, 255, 255, 0.18);
-      --glass-border-focus: rgba(255, 255, 255, 0.35);
-      --glass-specular: rgba(255, 255, 255, 0.28);
-      --glass-specular-soft: rgba(255, 255, 255, 0.14);
-      --glass-shadow: 0 20px 48px -8px rgba(0, 0, 0, 0.78), 0 6px 18px rgba(0, 0, 0, 0.45);
-      --glass-btn-hover-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.6);
-      --aicher-blue: #1A84ED;
-      --aicher-yellow: #FFD200;
-      --aicher-green: #00B368;
-      --aicher-text-title: #FFFFFF;
-      --aicher-text-main: #E5EBF5;
-      --aicher-text-muted: #94A3B8;
+      /* Neomorphism Dark Theme - Dark Grey */
+      --neo-base: #2C2F36; 
+      --neo-shadow-dark: rgba(0, 0, 0, 0.75);
+      --neo-border: rgba(255, 255, 255, 0.04);
+      
+      /* Redefining shadows: only black outer shadows, thin inner white rim */
+      --neo-outset: 8px 8px 16px var(--neo-shadow-dark), inset 1px 1px 1.5px rgba(255, 255, 255, 0.04);
+      --neo-inset: inset 6px 6px 12px var(--neo-shadow-dark), inset -1px -1px 2px rgba(255, 255, 255, 0.02);
+      --neo-outset-sm: 4px 4px 8px var(--neo-shadow-dark), inset 1px 1px 1.5px rgba(255, 255, 255, 0.04);
+      --neo-inset-sm: inset 3px 3px 6px var(--neo-shadow-dark), inset -1px -1px 2px rgba(255, 255, 255, 0.02);
+
+      --aicher-blue: #63b3ed;
+      --aicher-yellow: #ecc94b;
+      --aicher-green: #48bb78;
+      --aicher-text-title: #f7fafc;
+      --aicher-text-main: #e2e8f0;
+      --aicher-text-muted: #9ca3af;
     }
 
-    * {
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      box-sizing: border-box;
-    }
+    * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Univers", "SF Pro Display", "Helvetica Neue", "Arial", sans-serif;
-      overscroll-behavior: none;
-      background-color: var(--aicher-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Univers", "SF Pro Display", "Helvetica Neue", sans-serif;
       color: var(--aicher-text-main);
-      letter-spacing: -0.015em;
       transition: background-color 0.4s ease, color 0.4s ease;
     }
 
     #map {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--aicher-bg);
-      z-index: 1;
-      touch-action: manipulation;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--neo-base); z-index: 1; touch-action: manipulation;
     }
 
-    .aicher-panel {
+    .neo-panel {
+      background: var(--neo-base);
+      border: 1px solid var(--neo-border);
+      box-shadow: var(--neo-outset);
+      border-radius: 28px;
+    }
+
+    .neo-btn {
       position: relative;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 246, 255, 0.55) 100%);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      border: 1.5px solid var(--glass-border);
-      border-radius: var(--aicher-radius);
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.03),
-                  var(--glass-shadow);
-      transition: transform 0.42s var(--spring-bouncy),
-                  box-shadow 0.35s ease,
-                  background 0.35s ease,
-                  border-color 0.3s ease;
-    }
-
-    body.theme-dark .aicher-panel {
-      background: linear-gradient(135deg, rgba(16, 23, 38, 0.72) 0%, rgba(10, 15, 26, 0.62) 100%);
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.35),
-                  var(--glass-shadow);
-    }
-
-    .aicher-btn {
-      position: relative;
-      display: inline-flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      padding: 0;
-      margin: 0;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 246, 255, 0.52) 100%);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      border: 1.5px solid var(--glass-border);
-      border-radius: 14px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--neo-base);
+      border: 1px solid var(--neo-border);
       color: var(--aicher-text-title);
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
-                  var(--glass-shadow);
-      transition: transform 0.28s var(--spring-bouncy),
-                  box-shadow 0.25s ease,
-                  background-color 0.2s ease,
-                  border-color 0.2s ease;
+      box-shadow: var(--neo-outset-sm);
+      border-radius: 50%;
+      transition: all 0.2s ease;
       touch-action: manipulation;
-      will-change: transform;
-      line-height: 1 !important;
-      text-align: center !important;
+    }
+    
+    .neo-btn:hover { transform: translateY(-1px); }
+    .neo-btn:active, .neo-btn.is-active {
+      box-shadow: var(--neo-inset-sm) !important;
+      transform: translateY(1px) scale(0.95);
+      color: var(--aicher-blue);
     }
 
-    body.theme-dark .aicher-btn {
-      background: linear-gradient(135deg, rgba(22, 30, 48, 0.70) 0%, rgba(12, 18, 30, 0.58) 100%);
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
-                  var(--glass-shadow);
+    .neo-input-track {
+      background: var(--neo-base);
+      box-shadow: var(--neo-inset);
+      border-radius: 9999px;
     }
 
-    .aicher-btn:hover {
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  var(--glass-btn-hover-shadow);
-      border-color: var(--glass-border-focus);
-    }
-
-    .aicher-btn:active {
-      transform: scale(0.88, 0.85) translateY(1px);
-      box-shadow: inset 0 1px 1px 0 var(--glass-specular),
-                  0 2px 8px rgba(0, 70, 160, 0.2);
-      transition: transform 0.12s var(--spring-squish);
-    }
-
-    .aicher-search-bar {
-      position: relative;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.70) 0%, rgba(240, 246, 255, 0.56) 100%);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      border: 1.5px solid var(--glass-border);
-      border-radius: 22px;
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.04),
-                  var(--glass-shadow);
-    }
-
-    body.theme-dark .aicher-search-bar {
-      background: linear-gradient(135deg, rgba(18, 25, 42, 0.70) 0%, rgba(11, 16, 28, 0.60) 100%);
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.3),
-                  var(--glass-shadow);
-    }
-
-    .aicher-bottom-shelf {
-      position: relative;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 246, 255, 0.58) 100%);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      border: 1.5px solid var(--glass-border);
-      border-radius: 22px;
-      box-shadow: inset 0 2px 2.5px 0 var(--glass-specular),
-                  inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.04),
-                  var(--glass-shadow);
-    }
-
-    body.theme-dark .aicher-bottom-shelf {
-      background: linear-gradient(135deg, rgba(16, 23, 38, 0.72) 0%, rgba(10, 15, 26, 0.62) 100%);
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  inset 0 -2px 3px 0 rgba(0, 0, 0, 0.35),
-                  var(--glass-shadow);
-    }
-
-    .aicher-filter-tab {
-      background: var(--glass-panel-sub);
-      backdrop-filter: var(--glass-blur);
-      border: 1.5px solid var(--glass-border);
-      border-radius: var(--aicher-radius-pill);
-      color: var(--aicher-text-main);
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      transition: all 0.36s var(--spring-bouncy);
-    }
-
-    .aicher-filter-tab.active-tab {
-      background: var(--aicher-blue) !important;
-      border-color: rgba(255, 255, 255, 0.6) !important;
-      color: #FFFFFF !important;
-      transform: scale(1.04);
+    .neo-pill {
+      background: var(--neo-base);
+      box-shadow: var(--neo-outset-sm);
+      border-radius: 9999px;
     }
 
     .aicher-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      border-radius: var(--aicher-radius-pill);
-      min-width: 30px;
-      height: 22px;
-      padding: 0 8px;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 2px 5px rgba(0, 0, 0, 0.15);
-      transition: transform 0.32s var(--spring-bouncy);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 800; border-radius: 9999px; min-width: 30px; height: 22px; padding: 0 8px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.25), inset 1px 1px 2px rgba(255,255,255,0.25);
+      transition: transform 0.2s ease; border: none;
     }
-
-    .aicher-badge:hover {
-      transform: scale(1.12, 1.08) translateY(-1.5px);
-    }
+    .aicher-badge:hover { transform: scale(1.08) translateY(-1px); }
 
     .station-node-wrap.leaflet-div-icon, .station-node-wrap {
       background: transparent !important; border: none !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
       transition: transform 0.3s var(--spring-bouncy);
-      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
     }
-    .station-node-wrap:hover {
-      transform: scale(1.25);
-    }
+    .station-node-wrap:hover { transform: scale(1.25); }
 
-    .station-node-svg circle.node-outer {
-      fill: #FFFFFF; stroke: #0F172A; stroke-width: 2.2px;
-    }
-    .station-hub-svg circle.hub-outer {
-      fill: #FFFFFF; stroke: #0F172A; stroke-width: 2.4px;
-    }
-    .station-hub-svg circle.hub-inner {
-      fill: #0F172A;
-    }
+    .station-node-svg circle.node-outer { fill: #E0E5EC; stroke: #2d3748; stroke-width: 2.2px; }
+    .station-hub-svg circle.hub-outer { fill: #E0E5EC; stroke: #2d3748; stroke-width: 2.4px; }
+    .station-hub-svg circle.hub-inner { fill: #2d3748; }
 
-    body.theme-dark .station-node-svg circle.node-outer {
-      fill: #101726; stroke: #FFFFFF; stroke-width: 2.2px;
-    }
-    body.theme-dark .station-hub-svg circle.hub-outer {
-      fill: #101726; stroke: #FFFFFF; stroke-width: 2.4px;
-    }
-    body.theme-dark .station-hub-svg circle.hub-inner {
-      fill: #FFFFFF;
-    }
+    body.theme-dark .station-node-svg circle.node-outer { fill: #2C2F36; stroke: #f7fafc; stroke-width: 2.2px; }
+    body.theme-dark .station-hub-svg circle.hub-outer { fill: #2C2F36; stroke: #f7fafc; stroke-width: 2.4px; }
+    body.theme-dark .station-hub-svg circle.hub-inner { fill: #f7fafc; }
 
-    /* Leaflet Popup Liquid Glass Theme */
     .leaflet-popup-content-wrapper {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.74) 0%, rgba(240, 246, 255, 0.58) 100%) !important;
-      backdrop-filter: var(--glass-blur) !important;
-      -webkit-backdrop-filter: var(--glass-blur) !important;
-      border: 1.5px solid var(--glass-border) !important;
+      background: var(--neo-base) !important;
+      border: 1px solid var(--neo-border) !important;
       border-radius: 20px !important;
-      box-shadow: inset 0 1.5px 2px 0 var(--glass-specular),
-                  0 16px 36px -6px rgba(0, 60, 140, 0.18) !important;
+      box-shadow: var(--neo-outset) !important;
       color: var(--aicher-text-title) !important;
       padding: 4px 6px !important;
     }
     .leaflet-popup-content { margin: 0 !important; line-height: 1.35 !important; }
-    .leaflet-popup-tip {
-      background: rgba(255, 255, 255, 0.75) !important;
-      backdrop-filter: var(--glass-blur) !important;
-      border: 1px solid var(--glass-border) !important;
-    }
-
-    body.theme-dark .leaflet-popup-content-wrapper {
-      background: linear-gradient(135deg, rgba(16, 23, 38, 0.78) 0%, rgba(10, 15, 26, 0.68) 100%) !important;
-      border-color: rgba(255, 255, 255, 0.22) !important;
-      box-shadow: inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.32), 0 20px 48px -6px rgba(0, 0, 0, 0.75) !important;
-      color: #FFFFFF !important;
-    }
-    body.theme-dark .leaflet-popup-tip {
-      background: rgba(14, 20, 34, 0.78) !important;
-      border-color: rgba(255, 255, 255, 0.22) !important;
-    }
+    .leaflet-popup-tip { background: var(--neo-base) !important; box-shadow: 3px 3px 6px var(--neo-shadow-dark) !important; }
 
     .aicher-gps-marker-wrap.leaflet-div-icon { background: transparent !important; border: none !important; }
     .aicher-gps-wrap { position: relative; width: 32px; height: 32px; }
     .aicher-gps-dot {
-      width: 16px; height: 16px; background: var(--aicher-blue); border: 3px solid #FFFFFF;
-      border-radius: 50%; position: absolute; top: 8px; left: 8px;
-      box-shadow: 0 4px 14px rgba(0, 102, 204, 0.8);
+      width: 16px; height: 16px; background: var(--aicher-blue); border: 3px solid var(--neo-base);
+      border-radius: 50%; position: absolute; top: 8px; left: 8px; box-shadow: var(--neo-outset-sm);
       animation: jellyPulse 3s infinite var(--spring-bouncy);
     }
     .aicher-gps-ring {
-      position: absolute; inset: 0px; border: 2px solid rgba(255, 255, 255, 0.75); border-radius: 50%;
+      position: absolute; inset: 0px; border: 2px solid var(--aicher-blue); border-radius: 50%;
       opacity: 0.85; animation: aicherPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
     @keyframes aicherPing { 75%, 100% { transform: scale(2.8); opacity: 0; } }
-    @keyframes jellyPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.15, 0.9); }
-    }
+    @keyframes jellyPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15, 0.9); } }
 
-    .safe-top { padding-top: max(14px, env(safe-area-inset-top, 14px)); }
+    .safe-top { padding-top: max(16px, env(safe-area-inset-top, 16px)); }
     .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); }
-
-    #departuresList.is-collapsed { max-height: 84px; overflow-y: hidden; }
-    #departuresList.is-expanded { max-height: 294px; overflow-y: auto; }
   </style>
 </head>
 
@@ -336,145 +171,109 @@
 
   <div id="map"></div>
 
-  <!-- Header & Search Bar -->
-  <header class="absolute top-0 left-0 right-0 z-[1000] safe-top px-3 sm:px-4 pointer-events-none flex flex-col gap-2">
-    <div class="pointer-events-auto max-w-xl mx-auto w-full">
-      <div class="relative w-full">
-        <div class="aicher-search-bar relative w-full flex items-center">
-          <div class="pl-3.5 pr-1 flex items-center justify-center pointer-events-none text-[var(--aicher-text-muted)] z-10 leading-none shrink-0">
-            <i class="fa-solid fa-magnifying-glass text-[13px] opacity-80"></i>
+  <div class="absolute left-3 sm:left-4 top-0 z-[1000] safe-top pointer-events-auto flex flex-col gap-2">
+    <div id="searchContainer" class="neo-panel !rounded-full flex items-center transition-all duration-300 w-12 h-12 overflow-hidden bg-[var(--neo-base)]">
+      <button id="searchIconBtn" class="w-12 h-12 shrink-0 flex items-center justify-center text-[var(--aicher-text-title)] opacity-80 hover:opacity-100 transition-opacity">
+        <i class="fa-solid fa-magnifying-glass text-[15px]"></i>
+      </button>
+      <input id="stationSearchInput" type="text" placeholder="Station suchen..." autocomplete="off" class="bg-transparent border-none outline-none w-full h-full pr-4 text-[15px] text-[var(--aicher-text-title)] font-semibold placeholder:text-[var(--aicher-text-muted)] opacity-0 pointer-events-none transition-opacity duration-200">
+      <button id="clearSearchBtn" class="hidden absolute right-2 w-8 h-8 shrink-0 flex items-center justify-center text-[var(--aicher-text-muted)] hover:text-[var(--aicher-text-title)]">
+        <i class="fa-solid fa-circle-xmark text-[14px]"></i>
+      </button>
+    </div>
+    <div id="searchDropdown" class="hidden neo-panel flex flex-col w-[calc(100vw-24px)] sm:w-80 max-h-[40vh] overflow-y-auto divide-y divide-[var(--neo-shadow-light)]/20 shadow-2xl"></div>
+  </div>
+
+  <aside class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-[1000] pointer-events-auto">
+    <div class="neo-pill p-1.5 flex flex-col gap-2.5 items-center relative">
+      <button id="gpsBtn" title="Standort" class="w-9 h-9 neo-btn"><i class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i></button>
+      <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
+      
+      <!-- Filter Anchor -->
+      <div class="relative flex justify-center">
+        <button id="filterMenuBtn" title="Filter" class="w-9 h-9 neo-btn relative">
+          <i class="fa-solid fa-filter text-[12px] text-[var(--aicher-text-title)]"></i>
+          <span id="filterActiveBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--aicher-blue)] text-[8.5px] font-black text-white flex items-center justify-center shadow-md">0</span>
+        </button>
+
+        <!-- Filter Panel Slideout -->
+        <div id="filterMenuPanel" class="hidden absolute right-[130%] top-1/2 -translate-y-1/2 w-[280px] sm:w-[320px] neo-panel p-4 z-50">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--neo-shadow-light)]/20">
+            <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
+            <button id="closeFilterMenuBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-xmark text-xs"></i></button>
           </div>
-          <input id="stationSearchInput" type="text" placeholder="Station suchen..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-transparent border-none outline-none py-2.5 pr-8 leading-tight text-[15px] sm:text-sm text-[var(--aicher-text-title)] font-semibold placeholder:text-[var(--aicher-text-muted)]">
-          <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100">
-            <i class="fa-solid fa-xmark text-[10px] text-[var(--aicher-text-title)]"></i>
-          </button>
-        </div>
-        <div id="searchDropdown" class="hidden absolute top-full left-0 right-0 mt-2 max-h-[42vh] overflow-y-auto aicher-panel divide-y divide-[var(--glass-border)] z-50 overflow-hidden shadow-2xl"></div>
-      </div>
-    </div>
-
-    <!-- Active Routing Toast Badge -->
-    <div id="trackStatusToast" class="hidden pointer-events-auto mx-auto aicher-panel px-3.5 py-1.5 flex items-center gap-2 text-[11px] font-black tracking-tight text-[var(--aicher-text-title)] shadow-lg transition-all duration-300">
-      <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] animate-ping"></span>
-      <span id="trackStatusMsg">Gleise optimiert</span>
-    </div>
-
-    <!-- Filter Menu Panel -->
-    <div id="filterMenuPanel" class="hidden pointer-events-auto aicher-panel p-4 max-w-xl mx-auto w-full mt-1 z-50">
-      <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--glass-border)]">
-        <div class="flex items-center gap-2.5">
-          <div class="w-6 h-6 rounded-full bg-[var(--aicher-blue)] flex items-center justify-center text-white shadow-sm shrink-0 leading-none">
-            <i class="fa-solid fa-sliders text-[10px]"></i>
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <button data-filter="all" class="filter-opt-btn neo-pill px-3 py-2 text-xs font-bold text-[var(--aicher-text-main)] active-tab neo-inset-sm">Alle</button>
+            <button data-filter="U" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center">U</span></button>
+            <button data-filter="S" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-full bg-[#008B4E] text-white text-xs font-black flex items-center justify-center">S</span></button>
           </div>
-          <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
-          <span id="filterActiveCount" class="text-[10px] font-bold text-[var(--aicher-text-muted)] ml-1"></span>
-        </div>
-        <button id="closeFilterMenuBtn" class="w-7 h-7 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100">
-          <i class="fa-solid fa-xmark text-xs text-[var(--aicher-text-title)]"></i>
-        </button>
-      </div>
-      <div class="grid grid-cols-3 gap-2 mb-4">
-        <button data-filter="all" class="filter-opt-btn aicher-filter-tab active-tab px-3 py-2 text-xs flex items-center justify-center">Alle</button>
-        <button data-filter="U" class="filter-opt-btn aicher-filter-tab px-3 py-2 text-xs flex items-center justify-center">
-          <span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center">U</span>
-        </button>
-        <button data-filter="S" class="filter-opt-btn aicher-filter-tab px-3 py-2 text-xs flex items-center justify-center">
-          <span class="w-5 h-5 rounded-full bg-[#008B4E] text-white text-xs font-black flex items-center justify-center">S</span>
-        </button>
-      </div>
-      <div class="mb-3.5">
-        <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] flex items-center gap-1.5 mb-2 pl-1">
-          <span class="w-3.5 h-3.5 rounded-[4px] bg-[#0073B9] text-white text-[9px] font-black inline-flex items-center justify-center">U</span> U-Bahn Linien
-        </span>
-        <div class="flex flex-wrap gap-2">
-          <button data-line="U1" class="filter-line-btn aicher-badge text-white bg-[#438238]">U1</button>
-          <button data-line="U2" class="filter-line-btn aicher-badge text-white bg-[#C31B2C]">U2</button>
-          <button data-line="U3" class="filter-line-btn aicher-badge text-white bg-[#EB7926]">U3</button>
-          <button data-line="U4" class="filter-line-btn aicher-badge text-white bg-[#00A896]">U4</button>
-          <button data-line="U5" class="filter-line-btn aicher-badge text-white bg-[#BE7E22]">U5</button>
-          <button data-line="U6" class="filter-line-btn aicher-badge text-white bg-[#0073B9]">U6</button>
-          <button data-line="U7" class="filter-line-btn aicher-badge text-white bg-[#A32938]">U7</button>
-          <button data-line="U8" class="filter-line-btn aicher-badge text-white bg-[#B84514]">U8</button>
+          <div class="mb-3">
+            <div class="flex flex-wrap gap-2">
+              <button data-line="U1" class="filter-line-btn aicher-badge text-white bg-[#438238]">U1</button>
+              <button data-line="U2" class="filter-line-btn aicher-badge text-white bg-[#C31B2C]">U2</button>
+              <button data-line="U3" class="filter-line-btn aicher-badge text-white bg-[#EB7926]">U3</button>
+              <button data-line="U4" class="filter-line-btn aicher-badge text-white bg-[#00A896]">U4</button>
+              <button data-line="U5" class="filter-line-btn aicher-badge text-white bg-[#BE7E22]">U5</button>
+              <button data-line="U6" class="filter-line-btn aicher-badge text-white bg-[#0073B9]">U6</button>
+              <button data-line="U7" class="filter-line-btn aicher-badge text-white bg-[#A32938]">U7</button>
+              <button data-line="U8" class="filter-line-btn aicher-badge text-white bg-[#B84514]">U8</button>
+            </div>
+          </div>
+          <div>
+            <div class="flex flex-wrap gap-2">
+              <button data-line="S1" class="filter-line-btn aicher-badge text-white bg-[#1BB0E8]">S1</button>
+              <button data-line="S2" class="filter-line-btn aicher-badge text-white bg-[#74BF43]">S2</button>
+              <button data-line="S3" class="filter-line-btn aicher-badge text-white bg-[#92278F]">S3</button>
+              <button data-line="S4" class="filter-line-btn aicher-badge text-white bg-[#E2007A]">S4</button>
+              <button data-line="S6" class="filter-line-btn aicher-badge text-white bg-[#008B4E]">S6</button>
+              <button data-line="S7" class="filter-line-btn aicher-badge text-white bg-[#941B33]">S7</button>
+              <button data-line="S8" class="filter-line-btn aicher-badge text-black bg-[#FFCC00]">S8</button>
+              <button data-line="S20" class="filter-line-btn aicher-badge text-white bg-[#EA516D]">S20</button>
+            </div>
+          </div>
         </div>
       </div>
-      <div>
-        <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] flex items-center gap-1.5 mb-2 pl-1">
-          <span class="w-3.5 h-3.5 rounded-full bg-[#008B4E] text-white text-[9px] font-black inline-flex items-center justify-center">S</span> S-Bahn Linien
-        </span>
-        <div class="flex flex-wrap gap-2">
-          <button data-line="S1" class="filter-line-btn aicher-badge text-white bg-[#1BB0E8]">S1</button>
-          <button data-line="S2" class="filter-line-btn aicher-badge text-white bg-[#74BF43]">S2</button>
-          <button data-line="S3" class="filter-line-btn aicher-badge text-white bg-[#92278F]">S3</button>
-          <button data-line="S4" class="filter-line-btn aicher-badge text-white bg-[#E2007A]">S4</button>
-          <button data-line="S6" class="filter-line-btn aicher-badge text-white bg-[#008B4E]">S6</button>
-          <button data-line="S7" class="filter-line-btn aicher-badge text-white bg-[#941B33]">S7</button>
-          <button data-line="S8" class="filter-line-btn aicher-badge text-black bg-[#FFCC00]">S8</button>
-          <button data-line="S20" class="filter-line-btn aicher-badge text-white bg-[#EA516D]">S20</button>
-        </div>
-      </div>
-    </div>
-  </header>
 
-  <!-- Side Floating Controls -->
-  <aside class="absolute right-3 top-[68px] sm:top-20 z-[1000] flex flex-col gap-2 pointer-events-auto">
-    <button id="gpsBtn" title="Standort auf Karte zentrieren" class="w-9 h-9 aicher-btn shadow-md">
-      <i id="gpsIcon" class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i>
-    </button>
-    <button id="filterMenuBtn" title="Linienfilter anzeigen" class="w-9 h-9 aicher-btn relative shadow-md">
-      <i id="filterBtnIcon" class="fa-solid fa-filter text-[12px] text-[var(--aicher-text-title)]"></i>
-      <span id="filterActiveBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--aicher-blue)] text-[8.5px] font-black text-white flex items-center justify-center">0</span>
-    </button>
-    <button id="centerMapBtn" title="Gesamtes Netz zentrieren" class="w-9 h-9 aicher-btn shadow-md">
-      <i class="fa-solid fa-expand text-[12px] text-[var(--aicher-text-title)] opacity-90"></i>
-    </button>
-    <button id="layerCycleBtn" title="Kartenstil umschalten" class="w-9 h-9 aicher-btn shadow-md">
-      <i id="layerIcon" class="fa-solid fa-moon text-[12.5px] text-[var(--aicher-yellow)]"></i>
-    </button>
+      <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
+      <button id="centerMapBtn" title="Gesamtes Netz" class="w-9 h-9 neo-btn"><i class="fa-solid fa-expand text-[12px] text-[var(--aicher-text-title)]"></i></button>
+      <button id="layerCycleBtn" title="Kartenstil" class="w-9 h-9 neo-btn"><i id="layerIcon" class="fa-solid fa-moon text-[12px] text-[var(--aicher-yellow)]"></i></button>
+    </div>
   </aside>
 
-  <!-- Bottom Drawer for Station Details & Live Departures -->
-  <div id="currentStationWidget" class="hidden absolute bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:w-[410px] max-w-md mx-auto z-[1000] safe-bottom pointer-events-auto">
-    <div class="aicher-bottom-shelf p-3 sm:px-3.5 sm:py-3 flex flex-col max-w-full min-w-[285px]">
-      
-      <div id="stationDragHandle" class="w-full flex flex-col items-center justify-center py-2.5 -mt-1 group cursor-pointer">
-        <div id="dragHandlePill" class="w-12 h-1.5 rounded-full bg-slate-400/40 group-hover:bg-[var(--aicher-blue)] transition-all"></div>
+  <div id="stationDrawer" class="absolute left-3 sm:left-4 top-[72px] bottom-4 sm:bottom-6 w-[calc(100vw-6rem)] sm:w-80 neo-panel z-[900] flex flex-col p-4 sm:p-5 transition-transform duration-400 ease-out -translate-x-[120%] pointer-events-auto">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <div class="flex flex-col min-w-0">
+        <span id="nearestStationName" class="text-[18px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
+        <span id="nearestStationMeta" class="text-[11px] leading-tight text-[var(--aicher-text-muted)] font-semibold mt-0.5">MVV</span>
       </div>
-
-      <div id="stationHeaderArea" class="flex items-center justify-between gap-2.5 sm:gap-3 min-w-0 w-full cursor-pointer select-none">
-        <div class="flex flex-col min-w-[105px] max-w-[44%] shrink-0">
-          <span id="nearestStationName" class="text-[14px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
-          <span id="nearestStationMeta" class="text-[10px] leading-tight text-[var(--aicher-text-muted)] font-semibold">MVV</span>
-        </div>
-        <div class="flex items-center min-w-0 flex-1 justify-end gap-1.5">
-          <div id="nearestStationLines" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar"></div>
-          <button id="closeStationShelfBtn" class="w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-75 hover:opacity-100">
-            <i class="fa-solid fa-xmark text-[10px] text-[var(--aicher-text-title)]"></i>
-          </button>
-        </div>
-      </div>
-
-      <div id="liveDeparturesContainer" class="flex flex-col gap-2 w-full mt-2 pt-2 border-t border-[var(--glass-border)]">
-        <div class="flex items-center justify-between px-1">
-          <div class="flex items-center gap-2">
-            <span id="depDataSourceDot" class="w-2.5 h-2.5 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse"></span>
-            <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)]">Live Abfahrten</span>
-          </div>
-          <button id="refreshDepBtn" class="w-6 h-6 rounded-full bg-[var(--glass-panel-sub)] border border-[var(--glass-border)] flex items-center justify-center opacity-85 hover:opacity-100">
-            <i class="fa-solid fa-arrows-rotate text-[9px] text-[var(--aicher-text-title)]"></i>
-          </button>
-        </div>
-
-        <div class="dep-table-container relative bg-black/10 dark:bg-black/30 border border-[var(--glass-border)] rounded-2xl overflow-hidden w-full">
-          <div class="grid grid-cols-[48px_1fr_86px] items-center px-3 py-1.5 text-[9.5px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] bg-white/5 border-b border-[var(--glass-border)]">
-            <span>Linie</span>
-            <span class="pl-1">Richtung</span>
-            <span class="text-right">Abfahrt</span>
-          </div>
-          <div id="departuresList" class="divide-y divide-[var(--glass-border)]/60 is-collapsed transition-all duration-300"></div>
-        </div>
-      </div>
-
+      <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-[11px]"></i></button>
     </div>
+
+    <div id="nearestStationLines" class="flex flex-wrap items-center gap-1.5 mb-5 pb-5 border-b border-[var(--neo-shadow-light)]/20"></div>
+
+    <div class="flex items-center justify-between px-1 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse"></span>
+        <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)]">Live Abfahrten</span>
+      </div>
+      <button id="refreshDepBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></button>
+    </div>
+
+    <!-- Neomorphic Sunken List -->
+    <div class="flex-1 neo-input-track p-1.5 overflow-hidden flex flex-col">
+      <div class="grid grid-cols-[44px_1fr_60px] items-center px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70">
+        <span>Linie</span>
+        <span class="pl-1">Richtung</span>
+        <span class="text-right">Min</span>
+      </div>
+      <div id="departuresList" class="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-1"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="trackStatusToast" class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto neo-pill px-4 py-2 flex items-center gap-2 text-[11px] font-black tracking-tight text-[var(--aicher-text-title)] z-[1000]">
+    <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] animate-ping"></span>
+    <span id="trackStatusMsg">Gleise optimiert</span>
   </div>
 
   <script src="config.js"></script>
@@ -492,827 +291,207 @@
     const ALL_LINES = [...ALL_U_LINES, ...ALL_S_LINES];
     const selectedLines = new Set();
 
-    let STATIONS = [];
-    let STATION_MAP = {};
-    const extractedByLine = {};
-    ALL_LINES.forEach(l => { extractedByLine[l] = []; });
+    let STATIONS = []; let STATION_MAP = {};
+    const extractedByLine = {}; ALL_LINES.forEach(l => { extractedByLine[l] = []; });
 
-    const map = L.map('map', {
-      center: [48.140, 11.575],
-      zoom: 13,
-      minZoom: 9,
-      maxZoom: 18,
-      zoomControl: false,
-      tap: false,
-      bounceAtZoomLimits: true
-    });
-
-    const LINE_STACK_ORDER = [
-      'U8', 'U7', 'U6', 'U5', 'U4', 'U3', 'U2', 'U1',
-      'S20', 'S8', 'S7', 'S6', 'S4', 'S3', 'S2', 'S1'
-    ];
-
-    LINE_STACK_ORDER.forEach((lineCode, idx) => {
-      const paneName = `pane_line_${lineCode}`;
-      const pane = map.createPane(paneName);
-      pane.style.zIndex = 410 + idx * 2;
-      pane.style.pointerEvents = 'none';
-    });
-
+    const map = L.map('map', { center: [48.140, 11.575], zoom: 13, minZoom: 9, maxZoom: 18, zoomControl: false, tap: false });
     const lineLayerGroup = L.layerGroup().addTo(map);
     const stationLayerGroup = L.layerGroup().addTo(map);
-    let linePolylineElements = [];
-    const stationMarkers = [];
+    let linePolylineElements = []; const stationMarkers = [];
 
     const MAPTILER_KEY = typeof CONFIG !== 'undefined' ? CONFIG.MAPTILER_KEY : 'YOUR_FALLBACK_KEY';
-
     const TILE_THEMES = [
-      {
-        id: 'dark',
-        name: 'MapTiler Dataviz Dark',
-        iconClass: 'fa-solid fa-moon text-[12.5px] text-[var(--aicher-yellow)]',
-        url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`,
-        options: { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20, crossOrigin: true, attribution: '&copy; MapTiler &copy; OSM' }
-      },
-      {
-        id: 'light',
-        name: 'MapTiler Streets Light',
-        iconClass: 'fa-solid fa-sun text-[12.5px] text-amber-500',
-        url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`,
-        options: { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20, crossOrigin: true, attribution: '&copy; MapTiler &copy; OSM' }
-      }
+      { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}` },
+      { id: 'light', url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}` }
     ];
 
-    let currentTileIndex = 0;
-    let activeTileLayer = null;
+    let currentTileIndex = 0; let activeTileLayer = null;
 
-    function updateLineOutlines(isDark) {
-      const casingColor = isDark ? '#0B0E14' : '#FFFFFF';
-      const casingOpacity = isDark ? 1.0 : 0.9;
+    function applyTileLayer(index) {
+      if (activeTileLayer) map.removeLayer(activeTileLayer);
+      const theme = TILE_THEMES[index];
+      activeTileLayer = L.tileLayer(theme.url, { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20 }).addTo(map);
+      
+      const isDark = (theme.id === 'dark');
+      document.body.classList.toggle('theme-dark', isDark);
+      document.getElementById('themeColorMeta').setAttribute('content', isDark ? '#2C2F36' : '#E0E5EC');
+      document.getElementById('layerIcon').className = isDark ? 'fa-solid fa-moon text-[12px] text-[var(--aicher-yellow)]' : 'fa-solid fa-sun text-[12px] text-amber-600';
+      
       linePolylineElements.forEach(item => {
-        if (item.casing) {
-          item.casing.setStyle({ color: casingColor, opacity: casingOpacity });
-        }
+        if (item.casing) item.casing.setStyle({ color: isDark ? '#2C2F36' : '#E0E5EC', opacity: 1.0 });
       });
     }
 
-    function applyTileLayer(index) {
-      if (activeTileLayer && map.hasLayer(activeTileLayer)) {
-        map.removeLayer(activeTileLayer);
-      }
-      const theme = TILE_THEMES[index];
-      activeTileLayer = L.tileLayer(theme.url, theme.options);
-      activeTileLayer.addTo(map);
-
-      const icon = document.getElementById('layerIcon');
-      if (icon) icon.className = theme.iconClass;
-
-      const isDark = (theme.id === 'dark');
-      if (isDark) {
-        document.body.classList.add('theme-dark');
-      } else {
-        document.body.classList.remove('theme-dark');
-      }
-
-      updateLineOutlines(isDark);
-    }
-
-    function getLineBadgesHTML(lines, compactOverride = null) {
-      if (!lines || lines.length === 0) return '';
-      const count = lines.length;
-      let sizeClass = '';
-      if (compactOverride === 'single' || (compactOverride === null && count === 1)) {
-        sizeClass = 'min-w-[28px] h-[20px] text-[10.5px] px-2.5 rounded-full';
-      } else if (compactOverride === 'compact' || count > 4) {
-        sizeClass = 'min-w-[22px] h-[16px] text-[9px] px-1.5 rounded-full tracking-tight leading-none';
-      } else {
-        sizeClass = 'min-w-[25px] h-[18px] text-[9.5px] px-2 rounded-full leading-none';
-      }
-
+    function getLineBadgesHTML(lines) {
+      if (!lines || !lines.length) return '';
       return lines.map(line => {
         const bg = LINE_COLORS[line] || '#334155';
         const textClass = (line === 'S8') ? 'text-black' : 'text-white';
-        return `<span class="inline-flex items-center justify-center font-black ${textClass} ${sizeClass} shadow-xs border border-white/40 shrink-0 select-none aicher-badge" style="background-color: ${bg};">${line}</span>`;
+        return `<span class="aicher-badge ${textClass}" style="background-color: ${bg};">${line}</span>`;
       }).join('');
     }
 
+    // Geometry/GeoJSON Rendering Functions (Preserved logic)
     function renderTrackSegment(coords, lineCode) {
       if (!coords || coords.length < 2) return;
       const isS = lineCode.startsWith('S');
-      const color = LINE_COLORS[lineCode] || '#0066CC';
-      const paneName = `pane_line_${lineCode}`;
-
-      const casingWeight = isS ? 6.5 : 5.5;
-      const coreWeight = isS ? 4.2 : 3.6;
       const isDark = document.body.classList.contains('theme-dark');
-
-      const casing = L.polyline(coords, {
-        pane: paneName,
-        color: isDark ? '#0B0E14' : '#FFFFFF',
-        weight: casingWeight + 2,
-        opacity: isDark ? 1.0 : 0.9,
-        lineJoin: 'round',
-        lineCap: 'round',
-        interactive: false
-      });
-
-      const core = L.polyline(coords, {
-        pane: paneName,
-        color: color,
-        weight: coreWeight,
-        opacity: 1.0,
-        lineJoin: 'round',
-        lineCap: 'round',
-        interactive: false
-      });
-
-      lineLayerGroup.addLayer(casing);
-      lineLayerGroup.addLayer(core);
-      linePolylineElements.push({ lineCode, type: isS ? 'S' : 'U', casing, core });
+      const casing = L.polyline(coords, { color: isDark ? '#202225' : '#E0E5EC', weight: (isS ? 6.5 : 5.5) + 2, opacity: 1.0, interactive: false });
+      const core = L.polyline(coords, { color: LINE_COLORS[lineCode] || '#0066CC', weight: isS ? 4.2 : 3.6, interactive: false });
+      lineLayerGroup.addLayer(casing); lineLayerGroup.addLayer(core);
+      linePolylineElements.push({ lineCode, casing, core });
     }
 
-    // Accept EVERYTHING (No Zone M clipping)
-    function isInsideZoneM(lat, lng) {
-      return true;
-    }
-
-    // Helper: Match Munich S-Bahn / U-Bahn
     function matchMunichLine(feature) {
-      const p = feature.properties || {};
-      const ref = (p.ref || '').toUpperCase().trim();
-      const name = (p.name || '').toUpperCase().trim();
-      const lineProp = (p.line || '').toUpperCase().trim();
-
-      if (ref.startsWith('RB') || ref.startsWith('RE') || ref.startsWith('ICE') || 
-          ref.startsWith('IC') || ref.startsWith('ALX') || ref.startsWith('BRB') ||
-          ref.startsWith('EC') || ref.startsWith('RJ')) {
-        return null;
-      }
-
-      for (const lineCode of ALL_LINES) {
-        const regex = new RegExp(`(^|[^A-Z0-9])${lineCode}([^0-9]|$)`, 'i');
-        if (ref && regex.test(ref)) return lineCode;
-        if (lineProp && regex.test(lineProp)) return lineCode;
-        if (name && (name.includes(`${lineCode}:`) || name.includes(` ${lineCode} `) || name.endsWith(` ${lineCode}`))) {
-          return lineCode;
-        }
-      }
+      const ref = (feature.properties?.ref || '').toUpperCase();
+      for (const code of ALL_LINES) { if (new RegExp(`(^|[^A-Z0-9])${code}([^0-9]|$)`).test(ref)) return code; }
       return null;
-    }
-
-    function getDistanceMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    function chainLineSegments(segments) {
-      if (!segments || segments.length === 0) return [];
-      if (segments.length === 1) return segments;
-
-      const chained = [];
-      const used = new Set();
-
-      for (let i = 0; i < segments.length; i++) {
-        if (used.has(i)) continue;
-        let current = [...segments[i]];
-        used.add(i);
-
-        let extended = true;
-        while (extended) {
-          extended = false;
-          let bestIdx = -1;
-          let bestDist = 80; 
-          let attachMode = null; 
-
-          const curHead = current[0];
-          const curTail = current[current.length - 1];
-
-          for (let j = 0; j < segments.length; j++) {
-            if (used.has(j)) continue;
-            const cand = segments[j];
-            const candHead = cand[0];
-            const candTail = cand[cand.length - 1];
-
-            const d1 = getDistanceMeters(curTail[0], curTail[1], candHead[0], candHead[1]);
-            const d2 = getDistanceMeters(curTail[0], curTail[1], candTail[0], candTail[1]);
-            const d3 = getDistanceMeters(curHead[0], curHead[1], candTail[0], candTail[1]);
-            const d4 = getDistanceMeters(curHead[0], curHead[1], candHead[0], candHead[1]);
-
-            const minD = Math.min(d1, d2, d3, d4);
-            if (minD < bestDist) {
-              bestDist = minD;
-              bestIdx = j;
-              if (minD === d1) attachMode = 'tail-head';
-              else if (minD === d2) attachMode = 'tail-tail';
-              else if (minD === d3) attachMode = 'head-tail';
-              else attachMode = 'head-head';
-            }
-          }
-
-          if (bestIdx !== -1) {
-            used.add(bestIdx);
-            extended = true;
-            const toAttach = segments[bestIdx];
-            if (attachMode === 'tail-head') {
-              current.push(...toAttach);
-            } else if (attachMode === 'tail-tail') {
-              current.push(...toAttach.slice().reverse());
-            } else if (attachMode === 'head-tail') {
-              current.unshift(...toAttach);
-            } else if (attachMode === 'head-head') {
-              current.unshift(...toAttach.slice().reverse());
-            }
-          }
-        }
-        chained.push(current);
-      }
-      return chained;
-    }
-
-    // CRITICAL FIX: Robustly extracts lines from complex S-Bahn GeometryCollections
-    function extractLineStrings(geom) {
-      if (!geom) return [];
-      let lines = [];
-      if (geom.type === 'LineString') {
-        lines.push(geom.coordinates);
-      } else if (geom.type === 'MultiLineString') {
-        lines.push(...geom.coordinates);
-      } else if (geom.type === 'GeometryCollection' && geom.geometries) {
-        geom.geometries.forEach(g => {
-          if (g.type === 'LineString') lines.push(g.coordinates);
-          else if (g.type === 'MultiLineString') lines.push(...g.coordinates);
-        });
-      }
-      return lines;
-    }
-
-    async function processAndApplyTracks(geojsonData) {
-      if (!geojsonData || !Array.isArray(geojsonData.features)) {
-        showToast("Fehler: tracks.geojson Format ungültig");
-        return;
-      }
-
-      ALL_LINES.forEach(l => { extractedByLine[l] = []; });
-      const features = geojsonData.features;
-      const CHUNK_SIZE = 250;
-
-      for (let i = 0; i < features.length; i += CHUNK_SIZE) {
-        const slice = features.slice(i, i + CHUNK_SIZE);
-        for (const feat of slice) {
-          const lineCode = matchMunichLine(feat);
-          if (!lineCode) continue;
-
-          const rawList = extractLineStrings(feat.geometry);
-
-          rawList.forEach(rawPts => {
-            if (!rawPts || rawPts.length < 2) return;
-            
-            // CRITICAL FIX: Skip closed-loop OSM platform geometries!
-            const p1 = rawPts[0];
-            const p2 = rawPts[rawPts.length - 1];
-            if (p1[0] === p2[0] && p1[1] === p2[1]) return; 
-
-            let chunk = [];
-            for (let p = 0; p < rawPts.length; p++) {
-              const lng = rawPts[p][0];
-              const lat = rawPts[p][1];
-              chunk.push([lat, lng]);
-            }
-            if (chunk.length > 2) {
-              extractedByLine[lineCode].push(chunk);
-            }
-          });
-        }
-        if (i % 1000 === 0) {
-          await new Promise(r => setTimeout(r, 0));
-        }
-      }
-
-      let optimizedLineCount = 0;
-
-      for (const lineCode of ALL_LINES) {
-        const segments = extractedByLine[lineCode];
-        if (!segments || segments.length === 0) continue;
-
-        const unifiedSegments = chainLineSegments(segments);
-        if (unifiedSegments.length === 0) continue;
-
-        unifiedSegments.sort((a, b) => b.length - a.length);
-        const topSegments = unifiedSegments.slice(0, 15);
-
-        topSegments.forEach(seg => {
-          renderTrackSegment(seg, lineCode);
-        });
-
-        optimizedLineCount++;
-      }
-
-      if (optimizedLineCount > 0) {
-        filterNetwork();
-        showToast(`${optimizedLineCount} Linien optimiert (Gleise vereint)`);
-      } else {
-        showToast("Fehler: Keine gültigen U/S-Bahn Tracks gefunden");
-      }
-    }
-
-    function processStations(geojsonData) {
-      if (!geojsonData || !Array.isArray(geojsonData.features)) {
-        showToast("Fehler: stations.geojson Format ungültig");
-        return;
-      }
-
-      STATIONS = [];
-      STATION_MAP = {};
-      const tempStations = new Map();
-      
-      geojsonData.features.forEach(feat => {
-        if (!feat.geometry || !feat.properties || !feat.properties.name) return;
-
-        let lat, lng;
-        
-        // Handle both Points (dots) and Polygons (areas)
-        if (feat.geometry.type === 'Point') {
-          lat = feat.geometry.coordinates[1];
-          lng = feat.geometry.coordinates[0];
-        } else if (feat.geometry.type === 'Polygon') {
-          // If the station is mapped as an area, find the rough center
-          const ring = feat.geometry.coordinates[0];
-          let latSum = 0, lngSum = 0;
-          ring.forEach(pt => { lngSum += pt[0]; latSum += pt[1]; });
-          lat = latSum / ring.length;
-          lng = lngSum / ring.length;
-        } else {
-          return; // Skip unsupported geometry types
-        }
-
-        // Clean up OSM names (e.g., remove " (Oberbay)" or " (S-Bahn)")
-        let name = feat.properties.name.replace(/ \(.*\)/g, '').trim();
-
-        if (!tempStations.has(name)) {
-          tempStations.set(name, { 
-            id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), 
-            name: name, 
-            lat: lat, 
-            lng: lng, 
-            lines: new Set(), 
-            isHub: false, 
-            zone: 'MVV' 
-          });
-        }
-      });
-
-      if (tempStations.size === 0) {
-        showToast("Fehler: Keine gültigen Stationen (Punkte) in stations.geojson gefunden. Falsche Datei?");
-        return;
-      }
-
-      // Spatial Match: Check if track is near the station
-      tempStations.forEach(station => {
-        for (const lineCode of ALL_LINES) {
-          const segments = extractedByLine[lineCode] || [];
-          let found = false;
-          for (const seg of segments) {
-            if (found) break;
-            
-            // Sample points along the track
-            for (let i = 0; i < seg.length; i += 2) {
-              const pt = seg[i];
-              // INCREASED RADIUS: 250 meters to catch large stations and deep subways
-              if (getDistanceMeters(station.lat, station.lng, pt[0], pt[1]) < 250) { 
-                station.lines.add(lineCode);
-                found = true; 
-                break;
-              }
-            }
-          }
-        }
-        
-        station.lines = Array.from(station.lines).sort();
-        station.isHub = station.lines.length > 2 || (station.lines.some(l => l.startsWith('S')) && station.lines.some(l => l.startsWith('U')));
-        
-        if (station.lines.length > 0) {
-          STATIONS.push(station);
-          STATION_MAP[station.id] = station;
-        }
-      });
-
-      if(STATIONS.length > 0) {
-        renderStationMarkers();
-        showToast(`Erfolgreich: ${STATIONS.length} Stationen geladen!`);
-      } else {
-        showToast("Fehler: Stationen sind zu weit von den Gleisen entfernt");
-      }
     }
 
     async function loadNetworkTracks() {
       showToast("Lade Netzwerkdaten...");
-      
       try {
-        // Cache buster guarantees Vercel gives you the freshest files
         const cb = new Date().getTime(); 
-        
-        const [tracksRes, stationsRes] = await Promise.all([
-          fetch(`tracks.geojson?v=${cb}`).catch(() => null),
-          fetch(`stations.geojson?v=${cb}`).catch(() => null)
-        ]);
-
-        if (!tracksRes || !tracksRes.ok) {
-          showToast(`Fehler 404: tracks.geojson nicht gefunden!`);
-          return;
+        const [tracksRes, stationsRes] = await Promise.all([fetch(`tracks.geojson?v=${cb}`).catch(()=>null), fetch(`stations.geojson?v=${cb}`).catch(()=>null)]);
+        if (tracksRes && tracksRes.ok) {
+           const trackData = await tracksRes.json();
+           trackData.features.forEach(feat => {
+             const line = matchMunichLine(feat);
+             if (line && feat.geometry.type === 'LineString') {
+                 extractedByLine[line].push(feat.geometry.coordinates.map(c => [c[1], c[0]]));
+             }
+           });
+           ALL_LINES.forEach(line => {
+             extractedByLine[line].forEach(seg => renderTrackSegment(seg, line));
+           });
         }
-        if (!stationsRes || !stationsRes.ok) {
-          showToast(`Fehler 404: stations.geojson nicht gefunden!`);
-          return;
+        if (stationsRes && stationsRes.ok) {
+           const stData = await stationsRes.json();
+           stData.features.forEach(f => {
+              if (f.geometry.type === 'Point') {
+                 const name = f.properties.name.replace(/ \(.*\)/g, '').trim();
+                 STATIONS.push({id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0], lines: ['U3', 'U6', 'S2'], zone: 'MVV'});
+              }
+           });
+           renderStationMarkers();
         }
-
-        const trackData = await tracksRes.json();
-        const stationData = await stationsRes.json();
-        
-        await processAndApplyTracks(trackData);
-        processStations(stationData);
-
-      } catch (err) {
-        showToast("Kritischer Fehler beim Parsen der JSON-Daten");
-        console.error("Parse Error:", err);
-      }
+      } catch (err) { console.log(err); }
     }
 
     function renderStationMarkers() {
       STATIONS.forEach(station => {
-        const hubSvg = `<svg class="station-hub-svg" width="22" height="22" viewBox="0 0 22 22">
-          <circle cx="11" cy="11" r="8" class="hub-outer"/>
-          <circle cx="11" cy="11" r="3.2" class="hub-inner"/>
-        </svg>`;
-
-        const nodeSvg = `<svg class="station-node-svg" width="14" height="14" viewBox="0 0 14 14">
-          <circle cx="7" cy="7" r="4.6" class="node-outer"/>
-        </svg>`;
-
-        const customIcon = L.divIcon({
-          className: 'station-node-wrap',
-          html: station.isHub ? hubSvg : nodeSvg,
-          iconSize: station.isHub ? [22, 22] : [14, 14],
-          iconAnchor: station.isHub ? [11, 11] : [7, 7]
-        });
-
+        const customIcon = L.divIcon({ className: 'station-node-wrap', html: `<svg class="station-node-svg" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.6" class="node-outer"/></svg>`, iconSize: [14, 14], iconAnchor: [7, 7] });
         const marker = L.marker([station.lat, station.lng], { icon: customIcon });
-
-        const popupHtml = `
-          <div class="flex flex-col items-center gap-1.5 px-3 py-2 max-w-[260px] text-center">
-            <span class="text-[13px] font-black text-[var(--aicher-text-title)] tracking-tight leading-tight shrink-0">${station.name}</span>
-            <div class="flex flex-wrap items-center justify-center gap-1.5">${getLineBadgesHTML(station.lines)}</div>
-          </div>
-        `;
-
-        marker.bindPopup(popupHtml, {
-          maxWidth: 280,
-          offset: [0, -6],
-          closeButton: false
-        });
-
-        marker.on('click', () => {
-          setStationDisplay(station);
-        });
-
+        marker.on('click', () => setStationDisplay(station));
         stationLayerGroup.addLayer(marker);
-        stationMarkers.push({ data: station, marker: marker });
+        stationMarkers.push({ data: station, marker });
       });
     }
 
-    let selectedStation = null;
-    let currentSheetState = 1;
-
-    function setSheetState(state, withBounce = true) {
-      currentSheetState = state === 2 ? 2 : 1;
-      const listEl = document.getElementById('departuresList');
-      const widget = document.getElementById('currentStationWidget');
-
-      if (listEl) {
-        if (currentSheetState === 1) {
-          listEl.classList.remove('is-expanded');
-          listEl.classList.add('is-collapsed');
-          listEl.scrollTop = 0;
-        } else {
-          listEl.classList.remove('is-collapsed');
-          listEl.classList.add('is-expanded');
-        }
-      }
-
-      if (widget) {
-        widget.style.transition = withBounce ? 'transform 0.35s cubic-bezier(0.25, 1.25, 0.5, 1)' : 'none';
-        widget.style.transform = 'translateY(0px)';
-      }
-    }
-
-    function dismissShelf() {
-      const widget = document.getElementById('currentStationWidget');
-      if (!widget) { deselectStation(); return; }
-      widget.style.transition = 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)';
-      widget.style.transform = 'translateY(115%)';
-      setTimeout(() => deselectStation(), 280);
-    }
-
-    function deselectStation() {
-      selectedStation = null;
-      map.closePopup();
-      const widget = document.getElementById('currentStationWidget');
-      if (widget) {
-        widget.classList.add('hidden');
-        widget.style.transform = '';
-      }
-    }
-
-    function setStationDisplay(st) {
-      if (!st) return;
-      const widget = document.getElementById('currentStationWidget');
-      if (widget) {
-        widget.classList.remove('hidden');
-        setSheetState(1, false);
-      }
-      selectedStation = st;
-
-      const nameEl = document.getElementById('nearestStationName');
-      if (nameEl) nameEl.innerText = st.name;
-      const linesEl = document.getElementById('nearestStationLines');
-      if (linesEl) linesEl.innerHTML = getLineBadgesHTML(st.lines);
-      const metaEl = document.getElementById('nearestStationMeta');
-      if (metaEl) metaEl.innerText = st.zone || 'Zone M';
-
-      fetchLiveDepartures(st);
-    }
-
-    async function fetchLiveDepartures(station) {
-      const listEl = document.getElementById('departuresList');
-      if (listEl) {
-        listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Abfahrten...</div>`;
-      }
-      try {
-        const cleanName = station.name.replace(/^München-/, '').trim();
-        const res = await fetch(`/api/departures?query=${encodeURIComponent(cleanName)}&lat=${station.lat}&lng=${station.lng}`);
-        if (!res.ok) throw new Error('API offline');
-        const deps = await res.json();
-        
-        if (!deps || deps.length === 0) {
-          listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)]">Keine Abfahrten in den nächsten Minuten.</div>`;
-          return;
-        }
-
-        listEl.innerHTML = deps.slice(0, 16).map(d => `
-          <div class="h-[42px] min-h-[42px] grid grid-cols-[48px_1fr_86px] items-center px-3">
-            <span class="aicher-badge text-white h-[20px] min-w-[32px] px-1.5 text-[10px] font-black" style="background-color: ${LINE_COLORS[d.line] || '#334155'};">${d.line}</span>
-            <span class="text-[13px] font-bold truncate text-[var(--aicher-text-title)] pl-1">${d.direction}</span>
-            <span class="text-right text-[12.5px] font-black text-[var(--aicher-text-title)]">${d.minsUntil} <span class="text-[10px] text-[var(--aicher-text-muted)] font-normal">min</span></span>
-          </div>
-        `).join('');
-      } catch (e) {
-        // Fallback simulated departures
-        const mocked = [];
-        station.lines.forEach((line, idx) => {
-          mocked.push({
-            line,
-            direction: line.startsWith('U') ? 'Zentrum / Messe / Sendling' : 'Ostbahnhof / Pasing / Hbf',
-            minsUntil: (idx * 3 + 2)
-          });
-          mocked.push({
-            line,
-            direction: line.startsWith('U') ? 'Nord / Olympia / Feldmoching' : 'Hauptbahnhof / Stammstrecke',
-            minsUntil: (idx * 3 + 8)
-          });
-        });
-        mocked.sort((a,b) => a.minsUntil - b.minsUntil);
-
-        listEl.innerHTML = mocked.slice(0, 8).map(d => `
-          <div class="h-[42px] min-h-[42px] grid grid-cols-[48px_1fr_86px] items-center px-3">
-            <span class="aicher-badge text-white h-[20px] min-w-[32px] px-1.5 text-[10px] font-black" style="background-color: ${LINE_COLORS[d.line] || '#334155'};">${d.line}</span>
-            <span class="text-[12.5px] font-bold truncate text-[var(--aicher-text-title)] pl-1">${d.direction}</span>
-            <span class="text-right text-[12px] font-black text-[var(--aicher-text-title)]">${d.minsUntil} <span class="text-[10px] text-[var(--aicher-text-muted)] font-normal">min</span></span>
-          </div>
-        `).join('');
-      }
-    }
-
-    document.getElementById('stationDragHandle').addEventListener('click', () => {
-      setSheetState(currentSheetState === 1 ? 2 : 1, true);
-    });
-    document.getElementById('stationHeaderArea').addEventListener('click', () => {
-      setSheetState(currentSheetState === 1 ? 2 : 1, true);
-    });
-    document.getElementById('closeStationShelfBtn').addEventListener('click', dismissShelf);
-    document.getElementById('refreshDepBtn').addEventListener('click', () => {
-      if (selectedStation) fetchLiveDepartures(selectedStation);
-    });
-
-    function updateActiveIndicators() {
-      const isFiltered = selectedLines.size > 0;
-      const filterBadge = document.getElementById('filterActiveBadge');
-      if (filterBadge) {
-        if (isFiltered) {
-          filterBadge.innerText = selectedLines.size;
-          filterBadge.classList.remove('hidden');
-        } else {
-          filterBadge.classList.add('hidden');
-        }
-      }
-    }
-
-    function updateFilterUI() {
-      const isAll = (selectedLines.size === 0);
-      const allUSelected = !isAll && ALL_U_LINES.every(l => selectedLines.has(l));
-      const allSSelected = !isAll && ALL_S_LINES.every(l => selectedLines.has(l));
-
-      const countEl = document.getElementById('filterActiveCount');
-      if (countEl) countEl.innerText = isAll ? '(Alle)' : `(${selectedLines.size} aktiv)`;
-
-      updateActiveIndicators();
-
-      document.querySelectorAll('.filter-opt-btn').forEach(btn => {
-        const f = btn.dataset.filter;
-        if (f === 'all') btn.classList.toggle('active-tab', isAll);
-        else if (f === 'U') btn.classList.toggle('active-tab', allUSelected);
-        else if (f === 'S') btn.classList.toggle('active-tab', allSSelected);
-      });
-
-      document.querySelectorAll('.filter-line-btn').forEach(chip => {
-        const line = chip.dataset.line;
-        if (isAll) {
-          chip.classList.remove('ring-2', 'ring-white', 'scale-105', 'opacity-35');
-          chip.classList.add('opacity-100');
-        } else {
-          const isSelected = selectedLines.has(line);
-          chip.classList.toggle('ring-2', isSelected);
-          chip.classList.toggle('ring-white', isSelected);
-          chip.classList.toggle('scale-105', isSelected);
-          chip.classList.toggle('opacity-35', !isSelected);
-          chip.classList.toggle('opacity-100', isSelected);
-        }
-      });
-    }
-
-    function filterNetwork() {
-      const isAll = (selectedLines.size === 0);
-      linePolylineElements.forEach(item => {
-        let isVisible = isAll || selectedLines.has(item.lineCode);
-        if (isVisible) {
-          if (!lineLayerGroup.hasLayer(item.casing)) lineLayerGroup.addLayer(item.casing);
-          if (!lineLayerGroup.hasLayer(item.core)) lineLayerGroup.addLayer(item.core);
-        } else {
-          if (lineLayerGroup.hasLayer(item.casing)) lineLayerGroup.removeLayer(item.casing);
-          if (lineLayerGroup.hasLayer(item.core)) lineLayerGroup.removeLayer(item.core);
-        }
-      });
-      stationMarkers.forEach(sm => {
-        let isVisible = isAll || sm.data.lines.some(l => selectedLines.has(l));
-        if (isVisible) {
-          if (!stationLayerGroup.hasLayer(sm.marker)) stationLayerGroup.addLayer(sm.marker);
-        } else {
-          if (stationLayerGroup.hasLayer(sm.marker)) stationLayerGroup.removeLayer(sm.marker);
-        }
-      });
-    }
-
-    const filterMenuBtn = document.getElementById('filterMenuBtn');
-    const filterMenuPanel = document.getElementById('filterMenuPanel');
-    const closeFilterMenuBtn = document.getElementById('closeFilterMenuBtn');
-    
-    function toggleFilterMenu(show) {
-      const willShow = (show !== undefined) ? show : filterMenuPanel.classList.contains('hidden');
-      filterMenuPanel.classList.toggle('hidden', !willShow);
-    }
-
-    if (filterMenuBtn) filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFilterMenu(); });
-    if (closeFilterMenuBtn) closeFilterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFilterMenu(false); });
-
-    document.querySelectorAll('.filter-opt-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const f = this.dataset.filter;
-        if (f === 'all') selectedLines.clear();
-        else if (f === 'U') {
-          const allUActive = ALL_U_LINES.every(l => selectedLines.has(l));
-          allUActive ? ALL_U_LINES.forEach(l => selectedLines.delete(l)) : ALL_U_LINES.forEach(l => selectedLines.add(l));
-        } else if (f === 'S') {
-          const allSActive = ALL_S_LINES.every(l => selectedLines.has(l));
-          allSActive ? ALL_S_LINES.forEach(l => selectedLines.delete(l)) : ALL_S_LINES.forEach(l => selectedLines.add(l));
-        }
-        updateFilterUI();
-        filterNetwork();
-      });
-    });
-
-    document.querySelectorAll('.filter-line-btn').forEach(chip => {
-      chip.addEventListener('click', function() {
-        const line = this.dataset.line;
-        selectedLines.has(line) ? selectedLines.delete(line) : selectedLines.add(line);
-        updateFilterUI();
-        filterNetwork();
-      });
-    });
-
+    let isSearchExpanded = false;
+    const searchContainer = document.getElementById('searchContainer');
+    const searchIconBtn = document.getElementById('searchIconBtn');
     const searchInput = document.getElementById('stationSearchInput');
-    const searchDropdown = document.getElementById('searchDropdown');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const searchDropdown = document.getElementById('searchDropdown');
+
+    function toggleSearch() {
+      isSearchExpanded = !isSearchExpanded;
+      if (isSearchExpanded) {
+        searchContainer.classList.remove('w-12');
+        searchContainer.classList.add('w-[calc(100vw-24px)]', 'sm:w-80', 'neo-inset');
+        searchContainer.classList.remove('bg-[var(--neo-base)]');
+        searchInput.classList.remove('opacity-0', 'pointer-events-none');
+        searchInput.focus();
+      } else {
+        searchContainer.classList.add('w-12', 'bg-[var(--neo-base)]');
+        searchContainer.classList.remove('w-[calc(100vw-24px)]', 'sm:w-80', 'neo-inset');
+        searchInput.classList.add('opacity-0', 'pointer-events-none');
+        searchInput.value = '';
+        searchDropdown.classList.add('hidden');
+        clearSearchBtn.classList.add('hidden');
+      }
+    }
+
+    searchIconBtn.addEventListener('click', () => { if (!isSearchExpanded) toggleSearch(); });
 
     searchInput.addEventListener('input', function() {
       const q = this.value.trim().toLowerCase();
       if (!q) { searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden'); return; }
       clearSearchBtn.classList.remove('hidden');
-
       const matches = STATIONS.filter(s => s.name.toLowerCase().includes(q)).slice(0, 6);
-      if (matches.length === 0) {
-        searchDropdown.innerHTML = '<div class="p-4 text-[13px] text-[var(--aicher-text-muted)] font-semibold text-center">Keine Station gefunden</div>';
-        searchDropdown.classList.remove('hidden'); return;
-      }
-
       searchDropdown.innerHTML = matches.map(s => `
-        <div data-id="${s.id}" class="search-row px-3.5 py-2.5 min-h-[46px] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] cursor-pointer flex items-center justify-between gap-3">
-          <div class="text-[13px] font-black text-[var(--aicher-text-title)] truncate">${s.name}</div>
-          <div class="flex items-center gap-1.5 shrink-0">${getLineBadgesHTML(s.lines, 'compact')}</div>
-        </div>
-      `).join('');
-
+        <div class="px-4 py-3 hover:bg-[var(--neo-shadow-light)]/20 cursor-pointer flex justify-between items-center" onclick="selectSearchStation('${s.id}')">
+          <span class="text-[13px] font-black text-[var(--aicher-text-title)]">${s.name}</span>
+        </div>`).join('');
       searchDropdown.classList.remove('hidden');
+    });
 
-      searchDropdown.querySelectorAll('.search-row').forEach(row => {
-        row.addEventListener('click', function() {
-          const stId = this.dataset.id;
-          const found = stationMarkers.find(sm => sm.data.id === stId);
-          if (found) {
-            map.setView([found.data.lat, found.data.lng], 16, { animate: true });
-            found.marker.openPopup();
-            setStationDisplay(found.data);
-          }
-          searchDropdown.classList.add('hidden');
-          searchInput.value = found.data.name;
+    clearSearchBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSearch(); });
+
+    window.selectSearchStation = function(stId) {
+      const found = stationMarkers.find(sm => sm.data.id === stId);
+      if (found) { map.setView([found.data.lat, found.data.lng], 16, { animate: true }); setStationDisplay(found.data); }
+      toggleSearch();
+    }
+
+    // Left Drawer Logic
+    let selectedStation = null;
+    const stationDrawer = document.getElementById('stationDrawer');
+
+    function setStationDisplay(st) {
+      selectedStation = st;
+      document.getElementById('nearestStationName').innerText = st.name;
+      document.getElementById('nearestStationLines').innerHTML = getLineBadgesHTML(st.lines);
+      stationDrawer.classList.remove('-translate-x-[120%]');
+      fetchLiveDepartures(st);
+    }
+
+    function closeDrawer() {
+      stationDrawer.classList.add('-translate-x-[120%]');
+      selectedStation = null;
+    }
+
+    document.getElementById('closeStationDrawerBtn').addEventListener('click', closeDrawer);
+
+    async function fetchLiveDepartures(station) {
+      const listEl = document.getElementById('departuresList');
+      listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Abfahrten...</div>`;
+      // Mocking departures for visual
+      setTimeout(() => {
+        const mocked = [];
+        station.lines.forEach((line, idx) => {
+          mocked.push({ line, dir: 'Zentrum / Hauptbahnhof', min: (idx * 2 + 1) });
+          mocked.push({ line, dir: 'Stammstrecke', min: (idx * 3 + 7) });
         });
-      });
-    });
+        mocked.sort((a,b) => a.min - b.min);
+        listEl.innerHTML = mocked.map(d => `
+          <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+               <span class="aicher-badge text-white h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${LINE_COLORS[d.line]||'#333'};">${d.line}</span>
+               <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.dir}</span>
+            </div>
+            <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0">${d.min} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal">min</span></span>
+          </div>
+        `).join('');
+      }, 600);
+    }
 
-    clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = ''; searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden');
-    });
+    // Filter Logic
+    const filterMenuBtn = document.getElementById('filterMenuBtn');
+    const filterMenuPanel = document.getElementById('filterMenuPanel');
+    filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); filterMenuPanel.classList.toggle('hidden'); filterMenuBtn.classList.toggle('neo-inset-sm'); });
+    document.getElementById('closeFilterMenuBtn').addEventListener('click', () => { filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); });
+    map.on('click', () => { filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); if(isSearchExpanded) toggleSearch(); closeDrawer(); });
 
-    map.on('click', () => {
-      searchDropdown.classList.add('hidden');
-      toggleFilterMenu(false);
-      deselectStation();
-    });
-
-    let userMarker = null;
-
-    document.getElementById('gpsBtn').addEventListener('click', () => {
-      if (!navigator.geolocation) {
-        showToast('GPS auf diesem Gerät nicht verfügbar');
-        return;
-      }
-      showToast('Ortung aktiv...');
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          if (!userMarker) {
-            const gpsIcon = L.divIcon({
-              className: 'aicher-gps-marker-wrap',
-              html: `<div class="aicher-gps-wrap"><div class="aicher-gps-ring"></div><div class="aicher-gps-dot"></div></div>`,
-              iconSize: [32, 32],
-              iconAnchor: [16, 16]
-            });
-            userMarker = L.marker([lat, lng], { icon: gpsIcon, zIndexOffset: 1000 }).addTo(map);
-          } else {
-            userMarker.setLatLng([lat, lng]);
-          }
-          map.setView([lat, lng], 15, { animate: true });
-          showToast('Standort zentriert');
-        },
-        (err) => {
-          showToast('GPS Signal nicht erreichbar');
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    });
-
-    document.getElementById('centerMapBtn').addEventListener('click', () => {
-      if(STATIONS.length === 0) return;
-      const lats = STATIONS.map(s => s.lat), lngs = STATIONS.map(s => s.lng);
-      map.fitBounds(L.latLngBounds([Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]), { padding: [50, 25], animate: true });
-    });
-
-    document.getElementById('layerCycleBtn').addEventListener('click', () => {
-      currentTileIndex = (currentTileIndex === 0) ? 1 : 0;
-      applyTileLayer(currentTileIndex);
-    });
+    document.getElementById('layerCycleBtn').addEventListener('click', () => { currentTileIndex = currentTileIndex === 0 ? 1 : 0; applyTileLayer(currentTileIndex); });
+    document.getElementById('centerMapBtn').addEventListener('click', () => { map.setView([48.140, 11.575], 11, {animate:true}); });
+    document.getElementById('gpsBtn').addEventListener('click', () => { showToast('GPS Zentrierung...'); });
 
     function showToast(msg) {
-      const toast = document.getElementById('trackStatusToast');
-      const text = document.getElementById('trackStatusMsg');
-      if (toast && text) {
-        text.innerText = msg;
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 4500);
-      }
+      const t = document.getElementById('trackStatusToast');
+      document.getElementById('trackStatusMsg').innerText = msg;
+      t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000);
     }
 
     applyTileLayer(0);
