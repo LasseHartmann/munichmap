@@ -1,760 +1,141 @@
-<!DOCTYPE html>
-<html lang="de" class="h-full">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Munich Zone M Transit GPS Map</title>
-  <meta name="theme-color" content="#E0E5EC" id="themeColorMeta" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+// Vercel Serverless Function: api/departures.js
+// Proxies Munich Public Transit (MVG) live departures using GPS-first lookups for expanded zones.
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+module.exports = async function handler(req, res) {
+  // CORS headers allowing browser frontend access
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  <style>
-    html, body {
-      margin: 0; padding: 0; width: 100%; height: 100%; height: 100dvh;
-      overflow: hidden;
-      background-color: var(--neo-base);
-    }
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-    :root {
-      /* Neomorphism Light Theme */
-      --neo-base: #E0E5EC;
-      --neo-shadow-light: #ffffff;
-      --neo-shadow-dark: #a3b1c6;
-      --neo-border: rgba(255, 255, 255, 0.4);
-      
-      --neo-outset: 8px 8px 16px var(--neo-shadow-dark), -8px -8px 16px var(--neo-shadow-light);
-      --neo-inset: inset 6px 6px 12px var(--neo-shadow-dark), inset -6px -6px 12px var(--neo-shadow-light);
-      --neo-outset-sm: 4px 4px 8px var(--neo-shadow-dark), -4px -4px 8px var(--neo-shadow-light);
-      --neo-inset-sm: inset 3px 3px 6px var(--neo-shadow-dark), inset -3px -3px 6px var(--neo-shadow-light);
+  const query = req.query.query || '';
+  const lat = req.query.lat ? parseFloat(req.query.lat) : null;
+  const lng = req.query.lng ? parseFloat(req.query.lng) : null;
 
-      --aicher-blue: #3182ce;
-      --aicher-yellow: #d69e2e;
-      --aicher-green: #38a169;
-      --aicher-text-title: #2d3748;
-      --aicher-text-main: #4a5568;
-      --aicher-text-muted: #718096;
-      
-      --spring-bouncy: cubic-bezier(0.34, 1.68, 0.64, 1);
-    }
+  if (!query && (lat === null || lng === null)) {
+    return res.status(400).json({ error: 'Missing query or coordinates.' });
+  }
 
-    body.theme-dark {
-      /* Neomorphism Dark Theme - Dark Grey */
-      --neo-base: #2C2F36; 
-      --neo-shadow-dark: rgba(0, 0, 0, 0.75);
-      --neo-border: rgba(255, 255, 255, 0.04);
-      
-      /* Redefining shadows: only black outer shadows, thin inner white rim */
-      --neo-outset: 8px 8px 16px var(--neo-shadow-dark), inset 1px 1px 1.5px rgba(255, 255, 255, 0.04);
-      --neo-inset: inset 6px 6px 12px var(--neo-shadow-dark), inset -1px -1px 2px rgba(255, 255, 255, 0.02);
-      --neo-outset-sm: 4px 4px 8px var(--neo-shadow-dark), inset 1px 1px 1.5px rgba(255, 255, 255, 0.04);
-      --neo-inset-sm: inset 3px 3px 6px var(--neo-shadow-dark), inset -1px -1px 2px rgba(255, 255, 255, 0.02);
+  // Required headers to bypass MVG Web Application Firewall (WAF)
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'application/json',
+    'X-MVG-Authorization-Key': '5af1beca494712ed38d313714d4caff6', // Official public MVG key
+    'Origin': 'https://www.mvg.de',
+    'Referer': 'https://www.mvg.de/'
+  };
 
-      --aicher-blue: #63b3ed;
-      --aicher-yellow: #ecc94b;
-      --aicher-green: #48bb78;
-      --aicher-text-title: #f7fafc;
-      --aicher-text-main: #e2e8f0;
-      --aicher-text-muted: #9ca3af;
-    }
+  try {
+    let targetStationIds = new Set();
 
-    * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Univers", "SF Pro Display", "Helvetica Neue", sans-serif;
-      color: var(--aicher-text-main);
-      transition: background-color 0.4s ease, color 0.4s ease;
-    }
-
-    #map {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--neo-base); z-index: 1; touch-action: manipulation;
-    }
-
-    .neo-panel {
-      background: var(--neo-base);
-      border: 1px solid var(--neo-border);
-      box-shadow: var(--neo-outset);
-      border-radius: 28px;
-    }
-
-    .neo-btn {
-      position: relative;
-      display: inline-flex; align-items: center; justify-content: center;
-      background: var(--neo-base);
-      border: 1px solid var(--neo-border);
-      color: var(--aicher-text-title);
-      box-shadow: var(--neo-outset-sm);
-      border-radius: 50%;
-      transition: all 0.2s ease;
-      touch-action: manipulation;
-    }
-    
-    .neo-btn:hover { transform: translateY(-1px); }
-    .neo-btn:active, .neo-btn.is-active {
-      box-shadow: var(--neo-inset-sm) !important;
-      transform: translateY(1px) scale(0.95);
-      color: var(--aicher-blue);
-    }
-
-    .neo-input-track {
-      background: var(--neo-base);
-      box-shadow: var(--neo-inset);
-      border-radius: 16px;
-    }
-
-    .neo-pill {
-      background: var(--neo-base);
-      box-shadow: var(--neo-outset-sm);
-      border-radius: 9999px;
-    }
-
-    .aicher-badge {
-      display: inline-flex; align-items: center; justify-content: center;
-      font-weight: 800; border-radius: 9999px; min-width: 30px; height: 22px; padding: 0 8px;
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.25), inset 1px 1px 2px rgba(255,255,255,0.25);
-      transition: transform 0.2s ease; border: none;
-    }
-    .aicher-badge:hover { transform: scale(1.08) translateY(-1px); }
-
-    .station-node-wrap.leaflet-div-icon, .station-node-wrap {
-      background: transparent !important; border: none !important;
-      display: flex !important; align-items: center !important; justify-content: center !important;
-      transition: transform 0.3s var(--spring-bouncy);
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-    }
-    .station-node-wrap:hover { transform: scale(1.25); }
-
-    .station-node-svg circle.node-outer { fill: #E0E5EC; stroke: #2d3748; stroke-width: 2.2px; }
-    .station-hub-svg circle.hub-outer { fill: #E0E5EC; stroke: #2d3748; stroke-width: 2.4px; }
-    .station-hub-svg circle.hub-inner { fill: #2d3748; }
-
-    body.theme-dark .station-node-svg circle.node-outer { fill: #2C2F36; stroke: #f7fafc; stroke-width: 2.2px; }
-    body.theme-dark .station-hub-svg circle.hub-outer { fill: #2C2F36; stroke: #f7fafc; stroke-width: 2.4px; }
-    body.theme-dark .station-hub-svg circle.hub-inner { fill: #f7fafc; }
-
-    .leaflet-popup-content-wrapper {
-      background: var(--neo-base) !important;
-      border: 1px solid var(--neo-border) !important;
-      border-radius: 20px !important;
-      box-shadow: var(--neo-outset) !important;
-      color: var(--aicher-text-title) !important;
-      padding: 4px 6px !important;
-    }
-    .leaflet-popup-content { margin: 0 !important; line-height: 1.35 !important; }
-    .leaflet-popup-tip { background: var(--neo-base) !important; box-shadow: 3px 3px 6px var(--neo-shadow-dark) !important; }
-
-    .aicher-gps-marker-wrap.leaflet-div-icon { background: transparent !important; border: none !important; }
-    .aicher-gps-wrap { position: relative; width: 32px; height: 32px; }
-    .aicher-gps-dot {
-      width: 16px; height: 16px; background: var(--aicher-blue); border: 3px solid var(--neo-base);
-      border-radius: 50%; position: absolute; top: 8px; left: 8px; box-shadow: var(--neo-outset-sm);
-      animation: jellyPulse 3s infinite var(--spring-bouncy);
-    }
-    .aicher-gps-ring {
-      position: absolute; inset: 0px; border: 2px solid var(--aicher-blue); border-radius: 50%;
-      opacity: 0.85; animation: aicherPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
-    }
-    @keyframes aicherPing { 75%, 100% { transform: scale(2.8); opacity: 0; } }
-    @keyframes jellyPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15, 0.9); } }
-
-    .safe-top { padding-top: max(16px, env(safe-area-inset-top, 16px)); }
-    .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); }
-  </style>
-</head>
-
-<body class="theme-dark h-[100dvh] w-full fixed inset-0 overflow-hidden flex flex-col">
-
-  <div id="map"></div>
-
-  <div class="absolute left-3 sm:left-4 top-0 z-[1000] safe-top pointer-events-auto flex flex-col gap-2">
-    <div id="searchContainer" class="neo-panel !rounded-full flex items-center transition-all duration-300 w-12 h-12 overflow-hidden bg-[var(--neo-base)]">
-      <button id="searchIconBtn" class="w-12 h-12 shrink-0 flex items-center justify-center text-[var(--aicher-text-title)] opacity-80 hover:opacity-100 transition-opacity">
-        <i class="fa-solid fa-magnifying-glass text-[15px]"></i>
-      </button>
-      <input id="stationSearchInput" type="text" placeholder="Station suchen..." autocomplete="off" class="bg-transparent border-none outline-none w-full h-full pr-4 text-[15px] text-[var(--aicher-text-title)] font-semibold placeholder:text-[var(--aicher-text-muted)] opacity-0 pointer-events-none transition-opacity duration-200">
-      <button id="clearSearchBtn" class="hidden absolute right-2 w-8 h-8 shrink-0 flex items-center justify-center text-[var(--aicher-text-muted)] hover:text-[var(--aicher-text-title)]">
-        <i class="fa-solid fa-circle-xmark text-[14px]"></i>
-      </button>
-    </div>
-    <div id="searchDropdown" class="hidden neo-panel flex flex-col w-[calc(100vw-24px)] sm:w-80 max-h-[40vh] overflow-y-auto divide-y divide-[var(--neo-shadow-light)]/20 shadow-2xl"></div>
-  </div>
-
-  <aside class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-[1000] pointer-events-auto">
-    <div class="neo-pill p-1.5 flex flex-col gap-2.5 items-center relative">
-      <button id="gpsBtn" title="Standort" class="w-9 h-9 neo-btn"><i class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i></button>
-      <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
-      
-      <!-- Filter Anchor -->
-      <div class="relative flex justify-center">
-        <button id="filterMenuBtn" title="Filter" class="w-9 h-9 neo-btn relative">
-          <i class="fa-solid fa-filter text-[12px] text-[var(--aicher-text-title)]"></i>
-          <span id="filterActiveBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--aicher-blue)] text-[8.5px] font-black text-white flex items-center justify-center shadow-md">0</span>
-        </button>
-
-        <!-- Filter Panel Slideout -->
-        <div id="filterMenuPanel" class="hidden absolute right-[130%] top-1/2 -translate-y-1/2 w-[280px] sm:w-[320px] neo-panel p-4 z-50">
-          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--neo-shadow-light)]/20">
-            <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
-            <button id="closeFilterMenuBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-xmark text-xs"></i></button>
-          </div>
-          <div class="grid grid-cols-3 gap-2 mb-4">
-            <button data-filter="all" class="filter-opt-btn neo-pill px-3 py-2 text-xs font-bold text-[var(--aicher-text-main)] active-tab neo-inset-sm">Alle</button>
-            <button data-filter="U" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center">U</span></button>
-            <button data-filter="S" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-full bg-[#008B4E] text-white text-xs font-black flex items-center justify-center">S</span></button>
-          </div>
-          <div class="mb-3">
-            <div class="flex flex-wrap gap-2">
-              <button data-line="U1" class="filter-line-btn aicher-badge text-white bg-[#438238]">U1</button>
-              <button data-line="U2" class="filter-line-btn aicher-badge text-white bg-[#C31B2C]">U2</button>
-              <button data-line="U3" class="filter-line-btn aicher-badge text-white bg-[#EB7926]">U3</button>
-              <button data-line="U4" class="filter-line-btn aicher-badge text-white bg-[#00A896]">U4</button>
-              <button data-line="U5" class="filter-line-btn aicher-badge text-white bg-[#BE7E22]">U5</button>
-              <button data-line="U6" class="filter-line-btn aicher-badge text-white bg-[#0073B9]">U6</button>
-              <button data-line="U7" class="filter-line-btn aicher-badge text-white bg-[#A32938]">U7</button>
-              <button data-line="U8" class="filter-line-btn aicher-badge text-white bg-[#B84514]">U8</button>
-            </div>
-          </div>
-          <div>
-            <div class="flex flex-wrap gap-2">
-              <button data-line="S1" class="filter-line-btn aicher-badge text-white bg-[#1BB0E8]">S1</button>
-              <button data-line="S2" class="filter-line-btn aicher-badge text-white bg-[#74BF43]">S2</button>
-              <button data-line="S3" class="filter-line-btn aicher-badge text-white bg-[#92278F]">S3</button>
-              <button data-line="S4" class="filter-line-btn aicher-badge text-white bg-[#E2007A]">S4</button>
-              <button data-line="S6" class="filter-line-btn aicher-badge text-white bg-[#008B4E]">S6</button>
-              <button data-line="S7" class="filter-line-btn aicher-badge text-white bg-[#941B33]">S7</button>
-              <button data-line="S8" class="filter-line-btn aicher-badge text-black bg-[#FFCC00]">S8</button>
-              <button data-line="S20" class="filter-line-btn aicher-badge text-white bg-[#EA516D]">S20</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
-      <button id="centerMapBtn" title="Gesamtes Netz" class="w-9 h-9 neo-btn"><i class="fa-solid fa-expand text-[12px] text-[var(--aicher-text-title)]"></i></button>
-      <button id="layerCycleBtn" title="Kartenstil" class="w-9 h-9 neo-btn"><i id="layerIcon" class="fa-solid fa-moon text-[12px] text-[var(--aicher-yellow)]"></i></button>
-    </div>
-  </aside>
-
-  <div id="stationDrawer" class="absolute left-3 sm:left-4 top-[72px] bottom-4 sm:bottom-6 w-[calc(100vw-6rem)] sm:w-80 neo-panel z-[900] flex flex-col p-4 sm:p-5 transition-transform duration-400 ease-out -translate-x-[120%] pointer-events-auto">
-    <div class="flex items-start justify-between gap-3 mb-4">
-      <div class="flex flex-col min-w-0">
-        <span id="nearestStationName" class="text-[18px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
-        <span id="nearestStationMeta" class="text-[11px] leading-tight text-[var(--aicher-text-muted)] font-semibold mt-0.5">MVV</span>
-      </div>
-      <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-[11px]"></i></button>
-    </div>
-
-    <div id="nearestStationLines" class="flex flex-wrap items-center gap-1.5 mb-5 pb-5 border-b border-[var(--neo-shadow-light)]/20"></div>
-
-    <div class="flex items-center justify-between px-1 mb-3">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse"></span>
-        <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)]">Live Abfahrten</span>
-      </div>
-      <button id="refreshDepBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></button>
-    </div>
-
-    <!-- Neomorphic Sunken List -->
-    <div class="flex-1 neo-input-track p-1.5 overflow-hidden flex flex-col">
-      <div class="grid grid-cols-[44px_1fr_60px] items-center px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70">
-        <span>Linie</span>
-        <span class="pl-1">Richtung</span>
-        <span class="text-right">Min</span>
-      </div>
-      <div id="departuresList" class="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-1"></div>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div id="trackStatusToast" class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto neo-pill px-4 py-2 flex items-center gap-2 text-[11px] font-black tracking-tight text-[var(--aicher-text-title)] z-[1000]">
-    <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] animate-ping"></span>
-    <span id="trackStatusMsg">Gleise optimiert</span>
-  </div>
-
-  <script>
-    const LINE_COLORS = {
-      'U1': '#438238', 'U2': '#C31B2C', 'U3': '#EB7926', 'U4': '#00A896',
-      'U5': '#BE7E22', 'U6': '#0073B9', 'U7': '#A32938', 'U8': '#B84514',
-      'S1': '#1BB0E8', 'S2': '#74BF43', 'S3': '#92278F', 'S4': '#E2007A',
-      'S6': '#008B4E', 'S7': '#941B33', 'S8': '#FFCC00', 'S20': '#EA516D'
-    };
-
-    const ALL_U_LINES = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6', 'U7', 'U8'];
-    const ALL_S_LINES = ['S1', 'S2', 'S3', 'S4', 'S6', 'S7', 'S8', 'S20'];
-    const ALL_LINES = [...ALL_U_LINES, ...ALL_S_LINES];
-    const selectedLines = new Set();
-
-    let STATIONS = []; let STATION_MAP = {};
-    const extractedByLine = {}; ALL_LINES.forEach(l => { extractedByLine[l] = []; });
-
-    // ==========================================
-    // IMPROVEMENT 1: preferCanvas: true
-    // ==========================================
-    const map = L.map('map', { 
-      center: [48.140, 11.575], 
-      zoom: 13, 
-      minZoom: 9, 
-      maxZoom: 18, 
-      zoomControl: false, 
-      tap: false,
-      preferCanvas: true // Draws thousands of line paths onto one hardware-accelerated canvas
-    });
-    
-    const lineLayerGroup = L.layerGroup().addTo(map);
-    const stationLayerGroup = L.layerGroup().addTo(map);
-    let linePolylineElements = []; const stationMarkers = [];
-
-    const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
-    const TILE_THEMES = [
-      { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-moon', color: 'text-[var(--aicher-yellow)]' },
-      { id: 'light', url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-600' },
-      { id: 'satellite', url: `https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, icon: 'fa-satellite', color: 'text-blue-400' }
-    ];
-
-    let currentTileIndex = 0; let activeTileLayer = null;
-
-    function applyTileLayer(index) {
-      if (!TILE_THEMES.length) return;
-      if (activeTileLayer) map.removeLayer(activeTileLayer);
-      const theme = TILE_THEMES[index];
-      activeTileLayer = L.tileLayer(theme.url, { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20 }).addTo(map);
-      
-      const isDark = (theme.id === 'dark' || theme.id === 'satellite');
-      document.body.classList.toggle('theme-dark', isDark);
-      document.getElementById('themeColorMeta').setAttribute('content', isDark ? '#2C2F36' : '#E0E5EC');
-      document.getElementById('layerIcon').className = `fa-solid ${theme.icon} text-[12px] ${theme.color}`;
-      
-      linePolylineElements.forEach(item => {
-        if (item.casing) item.casing.setStyle({ color: isDark ? '#2C2F36' : '#E0E5EC', opacity: 1.0 });
-      });
-    }
-
-    function getLineBadgesHTML(lines) {
-      if (!lines || !lines.length) return '';
-      return lines.map(line => {
-        const bg = LINE_COLORS[line] || '#334155';
-        const textClass = (line === 'S8') ? 'text-black' : 'text-white';
-        return `<span class="aicher-badge ${textClass}" style="background-color: ${bg};">${line}</span>`;
-      }).join('');
-    }
-
-    function renderTrackSegment(coords, lineCode) {
-      if (!coords || coords.length < 2) return;
-      const isS = lineCode.startsWith('S');
-      const isDark = document.body.classList.contains('theme-dark');
-      const casing = L.polyline(coords, { color: isDark ? '#2C2F36' : '#E0E5EC', weight: (isS ? 6.5 : 5.5) + 2, opacity: 1.0, interactive: false });
-      const core = L.polyline(coords, { color: LINE_COLORS[lineCode] || '#0066CC', weight: isS ? 4.2 : 3.6, interactive: false });
-      lineLayerGroup.addLayer(casing); lineLayerGroup.addLayer(core);
-      linePolylineElements.push({ lineCode, casing, core });
-    }
-
-    function matchMunichLine(feature) {
-      const p = feature.properties || {};
-      const ref = (p.ref || '').toUpperCase().trim();
-      const name = (p.name || '').toUpperCase().trim();
-      const lineProp = (p.line || '').toUpperCase().trim();
-
-      if (ref.startsWith('RB') || ref.startsWith('RE') || ref.startsWith('ICE') || 
-          ref.startsWith('IC') || ref.startsWith('ALX') || ref.startsWith('BRB') ||
-          ref.startsWith('EC') || ref.startsWith('RJ')) {
-        return null;
-      }
-
-      for (const lineCode of ALL_LINES) {
-        const regex = new RegExp(`(^|[^A-Z0-9])${lineCode}([^0-9]|$)`, 'i');
-        if (ref && regex.test(ref)) return lineCode;
-        if (lineProp && regex.test(lineProp)) return lineCode;
-        if (name && (name.includes(`${lineCode}:`) || name.includes(` ${lineCode} `) || name.endsWith(` ${lineCode}`))) {
-          return lineCode;
-        }
-      }
-      return null;
-    }
-
-    function getDistanceMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    function extractLineStrings(geom) {
-      if (!geom) return [];
-      let lines = [];
-      if (geom.type === 'LineString') {
-        lines.push(geom.coordinates);
-      } else if (geom.type === 'MultiLineString') {
-        lines.push(...geom.coordinates);
-      } else if (geom.type === 'GeometryCollection' && geom.geometries) {
-        geom.geometries.forEach(g => {
-          if (g.type === 'LineString') lines.push(g.coordinates);
-          else if (g.type === 'MultiLineString') lines.push(...g.coordinates);
+    // STEP 1: Coordinate-based Search (Crucial for expanded zones)
+    // GPS lookups prevent API errors caused by slight naming differences outside Munich city limits.
+    if (lat !== null && lng !== null) {
+      const coordRes = await fetch(`https://www.mvg.de/api/bgw-pt/v3/locations/nearby?latitude=${lat}&longitude=${lng}`, { headers });
+      if (coordRes.ok) {
+        const locations = await coordRes.json();
+        // Grab all station nodes within a 350-meter radius (captures split Hbf platforms)
+        const closeStations = locations.filter(loc => 
+           (loc.type === 'STATION' || loc.type === 'STOP') && loc.distance <= 350
+        );
+        
+        closeStations.forEach(s => {
+          if (s.globalId) targetStationIds.add(s.globalId);
+          else if (s.id) targetStationIds.add(s.id);
         });
       }
-      return lines;
     }
 
-    async function processAndApplyTracks(geojsonData) {
-      if (!geojsonData || !Array.isArray(geojsonData.features)) return;
-      ALL_LINES.forEach(l => { extractedByLine[l] = []; });
+    // STEP 2: Fallback to Text Search (If GPS lookup returned nothing)
+    if (targetStationIds.size === 0 && query) {
+      let safeQuery = query.replace(/^München[-\s]+/i, '').trim();
       
-      geojsonData.features.forEach(feat => {
-        const lineCode = matchMunichLine(feat);
-        if (!lineCode) return;
-        const rawList = extractLineStrings(feat.geometry);
-        rawList.forEach(rawPts => {
-          if (!rawPts || rawPts.length < 2) return;
-          const p1 = rawPts[0];
-          const p2 = rawPts[rawPts.length - 1];
-          if (p1[0] === p2[0] && p1[1] === p2[1]) return; 
+      if (/hauptbahnhof|hbf/i.test(safeQuery)) {
+        targetStationIds.add('de:09162:6');   // U-Bahn
+        targetStationIds.add('de:09162:100'); // S-Bahn
+      } else {
+        const searchRes = await fetch(`https://www.mvg.de/api/bgw-pt/v3/locations?query=${encodeURIComponent(safeQuery)}`, { headers });
+        if (searchRes.ok) {
+          const locations = await searchRes.json();
+          if (locations.length > 0) {
+            targetStationIds.add(locations[0].globalId || locations[0].id);
+          }
+        }
+      }
+    }
 
-          let chunk = [];
-          for (let p = 0; p < rawPts.length; p++) {
-            chunk.push([rawPts[p][1], rawPts[p][0]]);
-          }
-          if (chunk.length > 1) {
-            extractedByLine[lineCode].push(chunk);
-          }
+    if (targetStationIds.size === 0) {
+      return res.status(404).json({ error: `Station "${query}" could not be resolved in the network.` });
+    }
+
+    // STEP 3: Fetch Departures
+    // We removed 'transportTypes=UBAHN,SBAHN' from the URL because in outer zones, 
+    // some S-Bahns are classified differently by MVG. We will filter them manually in JS.
+    const departurePromises = Array.from(targetStationIds).map(id => {
+      const depUrl = `https://www.mvg.de/api/bgw-pt/v3/departures?globalId=${encodeURIComponent(id)}&limit=40`;
+      return fetch(depUrl, { headers })
+        .then(r => r.ok ? r.json() : [])
+        .catch(err => {
+          console.warn(`Fetch failed for ID ${id}:`, err.message);
+          return [];
         });
-      });
-
-      ALL_LINES.forEach(lineCode => {
-        extractedByLine[lineCode].forEach(seg => renderTrackSegment(seg, lineCode));
-      });
-    }
-
-    function processStations(geojsonData) {
-      if (!geojsonData || !Array.isArray(geojsonData.features)) return;
-      STATIONS = []; STATION_MAP = {};
-      const tempStations = new Map();
-      
-      geojsonData.features.forEach(feat => {
-        if (!feat.geometry || !feat.properties || !feat.properties.name) return;
-        let lat, lng;
-        if (feat.geometry.type === 'Point') {
-          lat = feat.geometry.coordinates[1];
-          lng = feat.geometry.coordinates[0];
-        } else if (feat.geometry.type === 'Polygon') {
-          const ring = feat.geometry.coordinates[0];
-          let latSum = 0, lngSum = 0;
-          ring.forEach(pt => { lngSum += pt[0]; latSum += pt[1]; });
-          lat = latSum / ring.length;
-          lng = lngSum / ring.length;
-        } else return;
-
-        let name = feat.properties.name.replace(/ \(.*\)/g, '').trim();
-        if (!tempStations.has(name)) {
-          tempStations.set(name, { id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat, lng, lines: new Set(), isHub: false, zone: 'MVV' });
-        }
-      });
-
-      tempStations.forEach(station => {
-        for (const lineCode of ALL_LINES) {
-          const segments = extractedByLine[lineCode] || [];
-          let found = false;
-          for (const seg of segments) {
-            if (found) break;
-            for (let i = 0; i < seg.length; i += 2) {
-              const pt = seg[i];
-              if (getDistanceMeters(station.lat, station.lng, pt[0], pt[1]) < 250) { 
-                station.lines.add(lineCode);
-                found = true; break;
-              }
-            }
-          }
-        }
-        
-        station.lines = Array.from(station.lines).sort();
-        station.isHub = station.lines.length > 2 || (station.lines.some(l => l.startsWith('S')) && station.lines.some(l => l.startsWith('U')));
-        
-        if (station.lines.length > 0) {
-          STATIONS.push(station);
-          STATION_MAP[station.id] = station;
-        }
-      });
-      renderStationMarkers();
-    }
-
-    async function loadNetworkTracks() {
-      showToast("Lade Netzwerkdaten...");
-      try {
-        const cb = new Date().getTime(); 
-        const [tracksRes, stationsRes] = await Promise.all([fetch(`tracks.geojson?v=${cb}`).catch(()=>null), fetch(`stations.geojson?v=${cb}`).catch(()=>null)]);
-        
-        if (tracksRes && tracksRes.ok) {
-           const trackData = await tracksRes.json();
-           processAndApplyTracks(trackData);
-        }
-        if (stationsRes && stationsRes.ok) {
-           const stData = await stationsRes.json();
-           processStations(stData);
-        }
-        showToast("Netzwerk geladen");
-      } catch (err) { console.log(err); }
-    }
-
-    function renderStationMarkers() {
-      STATIONS.forEach(station => {
-        const hubSvg = `<svg class="station-hub-svg" width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" class="hub-outer"/><circle cx="11" cy="11" r="3.2" class="hub-inner"/></svg>`;
-        const nodeSvg = `<svg class="station-node-svg" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.6" class="node-outer"/></svg>`;
-        const customIcon = L.divIcon({ 
-          className: 'station-node-wrap', 
-          html: station.isHub ? hubSvg : nodeSvg, 
-          iconSize: station.isHub ? [22, 22] : [14, 14], 
-          iconAnchor: station.isHub ? [11, 11] : [7, 7] 
-        });
-        const marker = L.marker([station.lat, station.lng], { icon: customIcon });
-        marker.on('click', () => setStationDisplay(station));
-        stationLayerGroup.addLayer(marker);
-        stationMarkers.push({ data: station, marker });
-      });
-    }
-
-    let isSearchExpanded = false;
-    const searchContainer = document.getElementById('searchContainer');
-    const searchIconBtn = document.getElementById('searchIconBtn');
-    const searchInput = document.getElementById('stationSearchInput');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const searchDropdown = document.getElementById('searchDropdown');
-
-    function toggleSearch() {
-      isSearchExpanded = !isSearchExpanded;
-      if (isSearchExpanded) {
-        searchContainer.classList.remove('w-12');
-        searchContainer.classList.add('w-[calc(100vw-24px)]', 'sm:w-80', 'neo-inset');
-        searchContainer.classList.remove('bg-[var(--neo-base)]');
-        searchInput.classList.remove('opacity-0', 'pointer-events-none');
-        searchInput.focus();
-      } else {
-        searchContainer.classList.add('w-12', 'bg-[var(--neo-base)]');
-        searchContainer.classList.remove('w-[calc(100vw-24px)]', 'sm:w-80', 'neo-inset');
-        searchInput.classList.add('opacity-0', 'pointer-events-none');
-        searchInput.value = '';
-        searchDropdown.classList.add('hidden');
-        clearSearchBtn.classList.add('hidden');
-      }
-    }
-
-    searchIconBtn.addEventListener('click', () => { if (!isSearchExpanded) toggleSearch(); });
-
-    searchInput.addEventListener('input', function() {
-      const q = this.value.trim().toLowerCase();
-      if (!q) { searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden'); return; }
-      clearSearchBtn.classList.remove('hidden');
-      const matches = STATIONS.filter(s => s.name.toLowerCase().includes(q)).slice(0, 6);
-      searchDropdown.innerHTML = matches.map(s => `
-        <div class="px-4 py-3 hover:bg-[var(--neo-shadow-light)]/20 cursor-pointer flex justify-between items-center" onclick="selectSearchStation('${s.id}')">
-          <span class="text-[13px] font-black text-[var(--aicher-text-title)]">${s.name}</span>
-        </div>`).join('');
-      searchDropdown.classList.remove('hidden');
     });
 
-    clearSearchBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSearch(); });
+    const departureBatches = await Promise.all(departurePromises);
+    const rawDepartures = departureBatches.flat();
+    const now = Date.now();
+    const seenDepartures = new Set();
 
-    window.selectSearchStation = function(stId) {
-      const found = stationMarkers.find(sm => sm.data.id === stId);
-      if (found) { map.setView([found.data.lat, found.data.lng], 16, { animate: true }); setStationDisplay(found.data); }
-      toggleSearch();
-    }
-
-    let selectedStation = null;
-    const stationDrawer = document.getElementById('stationDrawer');
-
-    function setStationDisplay(st) {
-      selectedStation = st;
-      document.getElementById('nearestStationName').innerText = st.name;
-      document.getElementById('nearestStationLines').innerHTML = getLineBadgesHTML(st.lines);
-      stationDrawer.classList.remove('-translate-x-[120%]');
-      fetchLiveDepartures(st);
-    }
-
-    function closeDrawer() {
-      stationDrawer.classList.add('-translate-x-[120%]');
-      selectedStation = null;
-    }
-
-    document.getElementById('closeStationDrawerBtn').addEventListener('click', closeDrawer);
-
-    // Refresh button logic
-    document.getElementById('refreshDepBtn').addEventListener('click', () => {
-      if (selectedStation) {
-        fetchLiveDepartures(selectedStation);
-      }
-    });
-
-    async function fetchLiveDepartures(station) {
-      const listEl = document.getElementById('departuresList');
-      listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Live-Abfahrten...</div>`;
-      
-      try {
-        // Call your actual Vercel serverless function
-        const apiUrl = `/api/departures?query=${encodeURIComponent(station.name)}&lat=${station.lat}&lng=${station.lng}`;
+    const departures = rawDepartures
+      .filter(d => {
+        if (d.cancelled === true) return false;
+        const label = (d.label || d.lineNumber || '').toUpperCase().replace(/\s+/g, '');
+        // Keep ONLY U-Bahn and S-Bahn lines regardless of zone classification
+        return label.startsWith('U') || label.startsWith('S');
+      })
+      .map(d => {
+        const planned = d.plannedDepartureTime || d.departureTime || now;
+        const actual = d.realtimeDepartureTime || planned;
+        const diffMins = Math.max(0, Math.round((actual - now) / 60000));
         
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error('API-Fehler');
-        
-        const data = await response.json();
-
-        if (!data || data.length === 0) {
-          listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten gefunden.</div>`;
-          return;
+        let delayMins = d.delayInMinutes;
+        if (delayMins == null) {
+            delayMins = Math.max(0, Math.round((actual - planned) / 60000));
         }
 
-        // Render the REAL live departures coming from MVG!
-        listEl.innerHTML = data.map(d => {
-          const lineStr = String(d.line);
-          const textColor = lineStr === 'S8' ? 'text-black' : 'text-white';
-          const bgColor = LINE_COLORS[lineStr] || '#333333';
-          
-          // Show delay in red if the train is running late
-          const delayIndicator = d.delay > 0 
-            ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
-            : '';
+        let dest = d.destination || 'Zentrum';
+        if (dest.startsWith('München ')) dest = dest.substring(8);
 
-          return `
-            <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
-              <div class="flex items-center gap-2 flex-1 min-w-0">
-                 <span class="aicher-badge ${textColor} h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
-                 <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
-              </div>
-              <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center">
-                ${d.minsUntil} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal ml-0.5">min</span>
-                ${delayIndicator}
-              </span>
-            </div>
-          `;
-        }).join('');
+        return {
+          line: (d.label || d.lineNumber || '').replace(/\s+/g, ''),
+          direction: dest,
+          minsUntil: diffMins,
+          scheduledTime: new Date(planned),
+          delay: delayMins
+        };
+      })
+      .filter(d => {
+        if (!d.line) return false;
+        // Deduplicate identical train runs
+        const key = `${d.line}|${d.direction}|${d.scheduledTime.getTime()}`;
+        if (seenDepartures.has(key)) return false;
+        seenDepartures.add(key);
+        return true;
+      })
+      .sort((a, b) => a.minsUntil - b.minsUntil)
+      .slice(0, 32);
 
-      } catch (err) {
-        console.error("Failed to load departures:", err);
-        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[#C31B2C] font-bold">Fehler beim Verbinden mit MVG</div>`;
-      }
-    }
+    res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate=20');
+    return res.status(200).json(departures);
 
-    // Filter Logic
-    const filterMenuBtn = document.getElementById('filterMenuBtn');
-    const filterMenuPanel = document.getElementById('filterMenuPanel');
-    filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); filterMenuPanel.classList.toggle('hidden'); filterMenuBtn.classList.toggle('neo-inset-sm'); });
-    document.getElementById('closeFilterMenuBtn').addEventListener('click', () => { filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); });
-    map.on('click', () => { filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); if(isSearchExpanded) toggleSearch(); closeDrawer(); });
-
-    document.getElementById('layerCycleBtn').addEventListener('click', () => { currentTileIndex = (currentTileIndex + 1) % TILE_THEMES.length; applyTileLayer(currentTileIndex); });
-    document.getElementById('centerMapBtn').addEventListener('click', () => { map.setView([48.140, 11.575], 11, {animate:true}); });
-    
-    let isTrackingGps = false;
-    let gpsWatchId = null;
-    let userLocationMarker = null;
-    let currentUserLocation = null;
-
-    function startGpsTracking(auto = false) {
-      if (!navigator.geolocation) {
-        if (!auto) showToast('GPS wird nicht unterstützt');
-        return;
-      }
-
-      const btn = document.getElementById('gpsBtn');
-
-      if (isTrackingGps && currentUserLocation) {
-        map.setView(currentUserLocation, 16, { animate: true });
-        if (!auto) showToast('Karte zentriert');
-        return;
-      }
-
-      if (!auto) showToast('Suche Standort...');
-      btn.classList.add('is-active');
-      isTrackingGps = true;
-
-      gpsWatchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          currentUserLocation = [lat, lng];
-
-          if (!userLocationMarker) {
-            const customGpsIcon = L.divIcon({
-              className: 'aicher-gps-marker-wrap',
-              html: `<div class="aicher-gps-wrap"><div class="aicher-gps-ring"></div><div class="aicher-gps-dot"></div></div>`,
-              iconSize: [32, 32],
-              iconAnchor: [16, 16]
-            });
-            userLocationMarker = L.marker(currentUserLocation, { 
-              icon: customGpsIcon, 
-              zIndexOffset: 1000 
-            }).addTo(map);
-            
-            map.setView(currentUserLocation, 16, { animate: true });
-            if (!auto) showToast('Standort gefunden');
-          } else {
-            userLocationMarker.setLatLng(currentUserLocation);
-          }
-        },
-        (error) => {
-          console.warn('GPS Fehler:', error);
-          if (error.code === error.PERMISSION_DENIED) {
-             if (!auto) showToast('GPS Berechtigung verweigert');
-          } else {
-             if (!auto) showToast('GPS Signal schwach/deaktiviert');
-          }
-          btn.classList.remove('is-active');
-          isTrackingGps = false;
-          if (gpsWatchId) {
-            navigator.geolocation.clearWatch(gpsWatchId);
-            gpsWatchId = null;
-          }
-        },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-      );
-    }
-
-    document.getElementById('gpsBtn').addEventListener('click', () => startGpsTracking(false));
-
-    function showToast(msg) {
-      const t = document.getElementById('trackStatusToast');
-      document.getElementById('trackStatusMsg').innerText = msg;
-      t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000);
-    }
-
-    // ==========================================
-    // IMPROVEMENT 2: Zoom-Based Rendering
-    // Hides the hundreds of HTML elements when zoomed out
-    // ==========================================
-    map.on('zoomend', function() {
-      const currentZoom = map.getZoom();
-      
-      // Hide stations if zoomed out further than level 12
-      if (currentZoom < 12) {
-        if (map.hasLayer(stationLayerGroup)) {
-          map.removeLayer(stationLayerGroup);
-        }
-      } else {
-        if (!map.hasLayer(stationLayerGroup)) {
-          map.addLayer(stationLayerGroup);
-        }
-      }
-
-      // Hide lines entirely if zoomed out extremely far (e.g. level 9)
-      if (currentZoom < 10) {
-        if (map.hasLayer(lineLayerGroup)) {
-          map.removeLayer(lineLayerGroup);
-        }
-      } else {
-        if (!map.hasLayer(lineLayerGroup)) {
-          map.addLayer(lineLayerGroup);
-        }
-      }
+  } catch (error) {
+    console.error('Departures API Error:', error.message);
+    return res.status(502).json({ 
+      error: 'Fehler beim Verbinden mit MVG (WAF oder Netzwerkfehler)',
+      details: error.message 
     });
-
-    applyTileLayer(0);
-    loadNetworkTracks();
-    startGpsTracking(true);
-  </script>
-</body>
-</html>
+  }
+};
