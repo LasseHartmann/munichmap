@@ -104,7 +104,7 @@
     .neo-input-track {
       background: var(--neo-base);
       box-shadow: var(--neo-inset);
-      border-radius: 9999px;
+      border-radius: 16px;
     }
 
     .neo-pill {
@@ -579,12 +579,32 @@
     async function fetchLiveDepartures(station) {
       const listEl = document.getElementById('departuresList');
       listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Abfahrten...</div>`;
-      // Mocking departures for visual
+      
+      const endpoints = {
+        'U1': ['Olympia-Einkaufszentrum', 'Mangfallplatz'],
+        'U2': ['Feldmoching', 'Messestadt Ost'],
+        'U3': ['Moosach', 'Fürstenried West'],
+        'U4': ['Westendstraße', 'Arabellapark'],
+        'U5': ['Laimer Platz', 'Neuperlach Süd'],
+        'U6': ['Garching-Forschungsz.', 'Klinikum Großhadern'],
+        'U7': ['Olympia-Einkaufszentrum', 'Neuperlach Zentrum'],
+        'U8': ['Olympiazentrum', 'Sendlinger Tor'],
+        'S1': ['Freising / Flughafen', 'Leuchtenbergring'],
+        'S2': ['Petershausen', 'Erding'],
+        'S3': ['Mammendorf', 'Holzkirchen'],
+        'S4': ['Geltendorf', 'Ebersberg'],
+        'S6': ['Tutzing', 'Ebersberg'],
+        'S7': ['Wolfratshausen', 'Kreuzstraße'],
+        'S8': ['Herrsching', 'Flughafen München'],
+        'S20': ['München-Pasing', 'Höllriegelskreuth']
+      };
+
       setTimeout(() => {
         const mocked = [];
         station.lines.forEach((line, idx) => {
-          mocked.push({ line, dir: 'Zentrum / Hauptbahnhof', min: (idx * 2 + 1) });
-          mocked.push({ line, dir: 'Stammstrecke', min: (idx * 3 + 7) });
+          const dests = endpoints[line] || ['Richtung A', 'Richtung B'];
+          mocked.push({ line, dir: dests[0], min: (idx * 2 + 1) });
+          mocked.push({ line, dir: dests[1], min: (idx * 3 + 7) });
         });
         mocked.sort((a,b) => a.min - b.min);
         listEl.innerHTML = mocked.map(d => `
