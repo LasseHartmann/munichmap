@@ -282,6 +282,13 @@
   </div>
 
   <script>
+    // Haptic feedback helper
+    function haptic(pattern = 15) {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try { navigator.vibrate(pattern); } catch(e){}
+      }
+    }
+
     const LINE_COLORS = {
       'U1': '#438238', 'U2': '#C31B2C', 'U3': '#EB7926', 'U4': '#00A896',
       'U5': '#BE7E22', 'U6': '#0073B9', 'U7': '#A32938', 'U8': '#B84514',
@@ -292,7 +299,7 @@
     const ALL_U_LINES = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6', 'U7', 'U8'];
     const ALL_S_LINES = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S20'];
     const ALL_LINES = [...ALL_U_LINES, ...ALL_S_LINES];
-    const selectedLines = new Set();
+    let activeMapLines = new Set(ALL_LINES);
 
     let STATIONS = []; let STATION_MAP = {};
     const extractedByLine = {}; ALL_LINES.forEach(l => { extractedByLine[l] = []; });
@@ -515,7 +522,7 @@
           iconAnchor: station.isHub ? [11, 11] : [7, 7] 
         });
         const marker = L.marker([station.lat, station.lng], { icon: customIcon });
-        marker.on('click', () => setStationDisplay(station));
+        marker.on('click', () => { haptic(20); setStationDisplay(station); });
         stationLayerGroup.addLayer(marker);
         stationMarkers.push({ data: station, marker });
       });
@@ -546,7 +553,7 @@
       }
     }
 
-    searchIconBtn.addEventListener('click', () => { if (!isSearchExpanded) toggleSearch(); });
+    searchIconBtn.addEventListener('click', () => { haptic(15); if (!isSearchExpanded) toggleSearch(); });
 
     searchInput.addEventListener('input', function() {
       const q = this.value.trim().toLowerCase();
@@ -560,9 +567,10 @@
       searchDropdown.classList.remove('hidden');
     });
 
-    clearSearchBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSearch(); });
+    clearSearchBtn.addEventListener('click', (e) => { e.stopPropagation(); haptic(15); toggleSearch(); });
 
     window.selectSearchStation = function(stId) {
+      haptic(20);
       const found = stationMarkers.find(sm => sm.data.id === stId);
       if (found) { map.setView([found.data.lat, found.data.lng], 16, { animate: true }); setStationDisplay(found.data); }
       toggleSearch();
@@ -626,6 +634,7 @@
       // Event Listeners for new departure filters
       linesContainer.querySelectorAll('.dep-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+          haptic(15);
           const line = btn.getAttribute('data-dep-line');
           if (activeDepartureFilters.has(line)) {
             activeDepartureFilters.delete(line);
@@ -639,6 +648,7 @@
 
       // Clear button listener
       document.getElementById('clearDepFiltersBtn').addEventListener('click', () => {
+        haptic([15, 30, 15]);
         activeDepartureFilters.clear();
         updateDepFiltersUI();
         renderDeparturesList();
@@ -653,10 +663,11 @@
       selectedStation = null;
     }
 
-    document.getElementById('closeStationDrawerBtn').addEventListener('click', closeDrawer);
+    document.getElementById('closeStationDrawerBtn').addEventListener('click', () => { haptic(15); closeDrawer(); });
 
     // Refresh button logic calling the API
     document.getElementById('refreshDepBtn').addEventListener('click', () => {
+      haptic([10, 40, 10]);
       if (selectedStation) {
         fetchLiveDepartures(selectedStation);
       }
@@ -731,12 +742,107 @@
     // Map Filter Logic (Kept totally separate per constraints)
     const filterMenuBtn = document.getElementById('filterMenuBtn');
     const filterMenuPanel = document.getElementById('filterMenuPanel');
-    filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); filterMenuPanel.classList.toggle('hidden'); filterMenuBtn.classList.toggle('neo-inset-sm'); });
-    document.getElementById('closeFilterMenuBtn').addEventListener('click', () => { filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); });
+    filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); haptic(15); filterMenuPanel.classList.toggle('hidden'); filterMenuBtn.classList.toggle('neo-inset-sm'); });
+    document.getElementById('closeFilterMenuBtn').addEventListener('click', () => { haptic(15); filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); });
     map.on('click', () => { filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); if(isSearchExpanded) toggleSearch(); closeDrawer(); });
 
-    document.getElementById('layerCycleBtn').addEventListener('click', () => { currentTileIndex = (currentTileIndex + 1) % TILE_THEMES.length; applyTileLayer(currentTileIndex); });
-    document.getElementById('centerMapBtn').addEventListener('click', () => { map.setView([48.140, 11.575], 11, {animate:true}); });
+    function applyMapFilters() {
+      // Update Tracks
+      linePolylineElements.forEach(item => {
+        if (activeMapLines.has(item.lineCode)) {
+          if (!lineLayerGroup.hasLayer(item.casing)) lineLayerGroup.addLayer(item.casing);
+          if (!lineLayerGroup.hasLayer(item.core)) lineLayerGroup.addLayer(item.core);
+        } else {
+          if (lineLayerGroup.hasLayer(item.casing)) lineLayerGroup.removeLayer(item.casing);
+          if (lineLayerGroup.hasLayer(item.core)) lineLayerGroup.removeLayer(item.core);
+        }
+      });
+
+      // Update Stations
+      stationMarkers.forEach(item => {
+        const isVisible = item.data.lines.some(l => activeMapLines.has(l));
+        if (isVisible) {
+          if (!stationLayerGroup.hasLayer(item.marker)) stationLayerGroup.addLayer(item.marker);
+        } else {
+          if (stationLayerGroup.hasLayer(item.marker)) stationLayerGroup.removeLayer(item.marker);
+        }
+      });
+
+      // Update Active Badge
+      const badge = document.getElementById('filterActiveBadge');
+      if (activeMapLines.size === ALL_LINES.length) {
+        badge.classList.add('hidden');
+      } else {
+        badge.classList.remove('hidden');
+        badge.innerText = activeMapLines.size;
+      }
+
+      // Sync Line Buttons Visually
+      document.querySelectorAll('.filter-line-btn').forEach(btn => {
+        btn.style.transition = 'all 0.3s var(--spring-bouncy)';
+        const line = btn.getAttribute('data-line');
+        if (activeMapLines.size === ALL_LINES.length) {
+           btn.style.opacity = '1';
+           btn.style.transform = '';
+        } else if (activeMapLines.has(line)) {
+           btn.style.opacity = '1';
+           btn.style.transform = 'scale(1.1)';
+        } else {
+           btn.style.opacity = '0.35';
+           btn.style.transform = 'scale(0.95)';
+        }
+      });
+      
+      // Sync Top Category Buttons
+      document.querySelectorAll('.filter-opt-btn').forEach(btn => {
+         btn.classList.remove('neo-inset-sm', 'text-[var(--aicher-blue)]');
+      });
+      if (activeMapLines.size === ALL_LINES.length) {
+         document.querySelector('.filter-opt-btn[data-filter="all"]').classList.add('neo-inset-sm', 'text-[var(--aicher-blue)]');
+      } else if (activeMapLines.size === ALL_U_LINES.length && ALL_U_LINES.every(l => activeMapLines.has(l))) {
+         document.querySelector('.filter-opt-btn[data-filter="U"]').classList.add('neo-inset-sm');
+      } else if (activeMapLines.size === ALL_S_LINES.length && ALL_S_LINES.every(l => activeMapLines.has(l))) {
+         document.querySelector('.filter-opt-btn[data-filter="S"]').classList.add('neo-inset-sm');
+      }
+    }
+
+    // Attach Event Listeners to Map Filter Buttons
+    document.querySelectorAll('.filter-line-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        haptic(15);
+        const line = btn.getAttribute('data-line');
+        if (activeMapLines.size === ALL_LINES.length) {
+          // If all are showing, isolate the clicked line
+          activeMapLines.clear();
+          activeMapLines.add(line);
+        } else {
+          // Stack or unstack normally
+          if (activeMapLines.has(line)) {
+            activeMapLines.delete(line);
+            // If user unselects the last remaining line, automatically reset to show everything
+            if (activeMapLines.size === 0) ALL_LINES.forEach(l => activeMapLines.add(l));
+          } else {
+            activeMapLines.add(line);
+          }
+        }
+        applyMapFilters();
+      });
+    });
+
+    document.querySelectorAll('.filter-opt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        haptic(15);
+        const type = btn.getAttribute('data-filter');
+        activeMapLines.clear();
+        if (type === 'all') ALL_LINES.forEach(l => activeMapLines.add(l));
+        else if (type === 'U') ALL_U_LINES.forEach(l => activeMapLines.add(l));
+        else if (type === 'S') ALL_S_LINES.forEach(l => activeMapLines.add(l));
+        applyMapFilters();
+      });
+    });
+
+    document.getElementById('layerCycleBtn').addEventListener('click', () => { haptic(20); currentTileIndex = (currentTileIndex + 1) % TILE_THEMES.length; applyTileLayer(currentTileIndex); });
+    document.getElementById('centerMapBtn').addEventListener('click', () => { haptic(20); map.setView([48.140, 11.575], 11, {animate:true}); });
     
     let isTrackingGps = false;
     let gpsWatchId = null;
@@ -803,7 +909,7 @@
       );
     }
 
-    document.getElementById('gpsBtn').addEventListener('click', () => startGpsTracking(false));
+    document.getElementById('gpsBtn').addEventListener('click', () => { haptic(20); startGpsTracking(false); });
 
     function showToast(msg) {
       const t = document.getElementById('trackStatusToast');
