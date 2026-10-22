@@ -225,6 +225,7 @@
               <button data-line="S2" class="filter-line-btn aicher-badge text-white bg-[#74BF43]">S2</button>
               <button data-line="S3" class="filter-line-btn aicher-badge text-white bg-[#92278F]">S3</button>
               <button data-line="S4" class="filter-line-btn aicher-badge text-white bg-[#E2007A]">S4</button>
+              <button data-line="S5" class="filter-line-btn aicher-badge text-white bg-[#00517F]">S5</button>
               <button data-line="S6" class="filter-line-btn aicher-badge text-white bg-[#008B4E]">S6</button>
               <button data-line="S7" class="filter-line-btn aicher-badge text-white bg-[#941B33]">S7</button>
               <button data-line="S8" class="filter-line-btn aicher-badge text-black bg-[#FFCC00]">S8</button>
@@ -281,28 +282,21 @@
       'U1': '#438238', 'U2': '#C31B2C', 'U3': '#EB7926', 'U4': '#00A896',
       'U5': '#BE7E22', 'U6': '#0073B9', 'U7': '#A32938', 'U8': '#B84514',
       'S1': '#1BB0E8', 'S2': '#74BF43', 'S3': '#92278F', 'S4': '#E2007A',
-      'S6': '#008B4E', 'S7': '#941B33', 'S8': '#FFCC00', 'S20': '#EA516D'
+      'S5': '#00517F', 'S6': '#008B4E', 'S7': '#941B33', 'S8': '#FFCC00', 'S20': '#EA516D'
     };
 
     const ALL_U_LINES = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6', 'U7', 'U8'];
-    const ALL_S_LINES = ['S1', 'S2', 'S3', 'S4', 'S6', 'S7', 'S8', 'S20'];
+    const ALL_S_LINES = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S20'];
     const ALL_LINES = [...ALL_U_LINES, ...ALL_S_LINES];
     const selectedLines = new Set();
 
     let STATIONS = []; let STATION_MAP = {};
     const extractedByLine = {}; ALL_LINES.forEach(l => { extractedByLine[l] = []; });
 
-    // ==========================================
-    // IMPROVEMENT 1: preferCanvas: true
-    // ==========================================
+    // Hardware-accelerated canvas for mapping performance
     const map = L.map('map', { 
-      center: [48.140, 11.575], 
-      zoom: 13, 
-      minZoom: 9, 
-      maxZoom: 18, 
-      zoomControl: false, 
-      tap: false,
-      preferCanvas: true // Draws thousands of line paths onto one hardware-accelerated canvas
+      center: [48.140, 11.575], zoom: 13, minZoom: 9, maxZoom: 18, 
+      zoomControl: false, tap: false, preferCanvas: true 
     });
     
     const lineLayerGroup = L.layerGroup().addTo(map);
@@ -583,19 +577,22 @@
 
     document.getElementById('closeStationDrawerBtn').addEventListener('click', closeDrawer);
 
-    // Refresh button logic
+    // Refresh button logic calling the API
     document.getElementById('refreshDepBtn').addEventListener('click', () => {
       if (selectedStation) {
         fetchLiveDepartures(selectedStation);
       }
     });
 
+    // ==========================================
+    // REAL LIVE DEPARTURES API CONNECTION
+    // (NO MORE MOCK DATA!)
+    // ==========================================
     async function fetchLiveDepartures(station) {
       const listEl = document.getElementById('departuresList');
       listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Live-Abfahrten...</div>`;
       
       try {
-        // Call your actual Vercel serverless function
         const apiUrl = `/api/departures?query=${encodeURIComponent(station.name)}&lat=${station.lat}&lng=${station.lng}`;
         
         const response = await fetch(apiUrl);
@@ -608,13 +605,11 @@
           return;
         }
 
-        // Render the REAL live departures coming from MVG!
         listEl.innerHTML = data.map(d => {
           const lineStr = String(d.line);
           const textColor = lineStr === 'S8' ? 'text-black' : 'text-white';
           const bgColor = LINE_COLORS[lineStr] || '#333333';
           
-          // Show delay in red if the train is running late
           const delayIndicator = d.delay > 0 
             ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
             : '';
@@ -722,33 +717,20 @@
       t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000);
     }
 
-    // ==========================================
-    // IMPROVEMENT 2: Zoom-Based Rendering
-    // Hides the hundreds of HTML elements when zoomed out
-    // ==========================================
+    // Hide stations/lines when zooming out far to keep the map fast
     map.on('zoomend', function() {
       const currentZoom = map.getZoom();
       
-      // Hide stations if zoomed out further than level 12
       if (currentZoom < 12) {
-        if (map.hasLayer(stationLayerGroup)) {
-          map.removeLayer(stationLayerGroup);
-        }
+        if (map.hasLayer(stationLayerGroup)) map.removeLayer(stationLayerGroup);
       } else {
-        if (!map.hasLayer(stationLayerGroup)) {
-          map.addLayer(stationLayerGroup);
-        }
+        if (!map.hasLayer(stationLayerGroup)) map.addLayer(stationLayerGroup);
       }
 
-      // Hide lines entirely if zoomed out extremely far (e.g. level 9)
       if (currentZoom < 10) {
-        if (map.hasLayer(lineLayerGroup)) {
-          map.removeLayer(lineLayerGroup);
-        }
+        if (map.hasLayer(lineLayerGroup)) map.removeLayer(lineLayerGroup);
       } else {
-        if (!map.hasLayer(lineLayerGroup)) {
-          map.addLayer(lineLayerGroup);
-        }
+        if (!map.hasLayer(lineLayerGroup)) map.addLayer(lineLayerGroup);
       }
     });
 
