@@ -603,8 +603,12 @@
         const mocked = [];
         station.lines.forEach((line, idx) => {
           const dests = endpoints[line] || ['Richtung A', 'Richtung B'];
-          mocked.push({ line, dir: dests[0], min: (idx * 2 + 1) });
-          mocked.push({ line, dir: dests[1], min: (idx * 3 + 7) });
+          
+          // Generate 4 future departures per direction in realistic ~10-minute intervals
+          for (let i = 0; i < 4; i++) {
+            mocked.push({ line, dir: dests[0], min: (idx * 2 + 1) + (i * 10) + Math.floor(Math.random() * 3) });
+            mocked.push({ line, dir: dests[1], min: (idx * 3 + 6) + (i * 10) + Math.floor(Math.random() * 3) });
+          }
         });
         mocked.sort((a,b) => a.min - b.min);
         listEl.innerHTML = mocked.map(d => `
