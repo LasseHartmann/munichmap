@@ -121,6 +121,9 @@
     }
     .aicher-badge:hover { transform: scale(1.08) translateY(-1px); }
 
+    /* For departure filter line badges specifically to style smooth transitions */
+    .dep-filter-btn { transition: all 0.3s var(--spring-bouncy); outline: none; }
+
     .station-node-wrap.leaflet-div-icon, .station-node-wrap {
       background: transparent !important; border: none !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
@@ -250,6 +253,7 @@
       <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-[11px]"></i></button>
     </div>
 
+    <!-- Departure Filters (Line Badges) -->
     <div id="nearestStationLines" class="flex flex-wrap items-center gap-1.5 mb-5 pb-5 border-b border-[var(--neo-shadow-light)]/20"></div>
 
     <div class="flex items-center justify-between px-1 mb-3">
@@ -328,12 +332,17 @@
       });
     }
 
+    // Departure list state to allow filtering without API recall
+    let currentDeparturesData = [];
+    let activeDepartureFilters = new Set();
+
     function getLineBadgesHTML(lines) {
       if (!lines || !lines.length) return '';
       return lines.map(line => {
         const bg = LINE_COLORS[line] || '#334155';
         const textClass = (line === 'S8') ? 'text-black' : 'text-white';
-        return `<span class="aicher-badge ${textClass}" style="background-color: ${bg};">${line}</span>`;
+        // Now outputting a <button> instead of a <span> so it's a clickable filter
+        return `<button data-dep-line="${line}" class="dep-filter-btn aicher-badge ${textClass}" style="background-color: ${bg};">${line}</button>`;
       }).join('');
     }
 
@@ -562,10 +571,79 @@
     let selectedStation = null;
     const stationDrawer = document.getElementById('stationDrawer');
 
+    // UI Updates for the departure filters (does not alter the map)
+    function updateDepFiltersUI() {
+      const btns = document.querySelectorAll('.dep-filter-btn');
+      btns.forEach(btn => {
+        const line = btn.getAttribute('data-dep-line');
+        if (activeDepartureFilters.size === 0) {
+          btn.style.opacity = '1';
+          btn.style.transform = '';
+        } else if (activeDepartureFilters.has(line)) {
+          btn.style.opacity = '1';
+          btn.style.transform = 'scale(1.1)';
+        } else {
+          btn.style.opacity = '0.35';
+          btn.style.transform = 'scale(0.95)';
+        }
+      });
+
+      const clearBtn = document.getElementById('clearDepFiltersBtn');
+      if (clearBtn) {
+        if (activeDepartureFilters.size > 0) {
+          clearBtn.classList.remove('hidden');
+          // small delay for transition magic
+          requestAnimationFrame(() => {
+            clearBtn.classList.remove('scale-0');
+            clearBtn.classList.add('scale-100');
+          });
+        } else {
+          clearBtn.classList.remove('scale-100');
+          clearBtn.classList.add('scale-0');
+          setTimeout(() => {
+            if (activeDepartureFilters.size === 0) clearBtn.classList.add('hidden');
+          }, 300);
+        }
+      }
+    }
+
     function setStationDisplay(st) {
       selectedStation = st;
+      
+      // Reset filter data when swapping to a new station
+      activeDepartureFilters.clear();
+      currentDeparturesData = [];
+
       document.getElementById('nearestStationName').innerText = st.name;
-      document.getElementById('nearestStationLines').innerHTML = getLineBadgesHTML(st.lines);
+      
+      // Render badges alongside the animated 'Clear Filter' button
+      const badgesHtml = getLineBadgesHTML(st.lines);
+      const clearBtnHtml = `<button id="clearDepFiltersBtn" class="hidden neo-btn w-7 h-7 ml-auto shrink-0 transition-all duration-300 transform scale-0" title="Filter zurücksetzen"><i class="fa-solid fa-filter-circle-xmark text-[11px] text-[#C31B2C]"></i></button>`;
+      
+      const linesContainer = document.getElementById('nearestStationLines');
+      linesContainer.innerHTML = badgesHtml + clearBtnHtml;
+
+      // Event Listeners for new departure filters
+      linesContainer.querySelectorAll('.dep-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const line = btn.getAttribute('data-dep-line');
+          if (activeDepartureFilters.has(line)) {
+            activeDepartureFilters.delete(line);
+          } else {
+            activeDepartureFilters.add(line);
+          }
+          updateDepFiltersUI();
+          renderDeparturesList(); // Re-render from saved JSON (no API call)
+        });
+      });
+
+      // Clear button listener
+      document.getElementById('clearDepFiltersBtn').addEventListener('click', () => {
+        activeDepartureFilters.clear();
+        updateDepFiltersUI();
+        renderDeparturesList();
+      });
+
       stationDrawer.classList.remove('-translate-x-[120%]');
       fetchLiveDepartures(st);
     }
@@ -584,9 +662,51 @@
       }
     });
 
+    // Separated render logic so filtering operates on cached data
+    function renderDeparturesList() {
+      const listEl = document.getElementById('departuresList');
+
+      if (!currentDeparturesData || currentDeparturesData.length === 0) {
+        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten gefunden.</div>`;
+        return;
+      }
+
+      // Apply the active stackable filters specifically to the departures
+      const filteredData = activeDepartureFilters.size > 0
+        ? currentDeparturesData.filter(d => activeDepartureFilters.has(String(d.line)))
+        : currentDeparturesData;
+
+      if (filteredData.length === 0) {
+        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Keine Abfahrten für gewählte Filter.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = filteredData.map(d => {
+        const lineStr = String(d.line);
+        const textColor = lineStr === 'S8' ? 'text-black' : 'text-white';
+        const bgColor = LINE_COLORS[lineStr] || '#333333';
+        
+        const delayIndicator = d.delay > 0 
+          ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
+          : '';
+
+        return `
+          <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+               <span class="aicher-badge ${textColor} h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
+               <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
+            </div>
+            <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center">
+              ${d.minsUntil} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal ml-0.5">min</span>
+              ${delayIndicator}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
     // ==========================================
     // REAL LIVE DEPARTURES API CONNECTION
-    // (NO MORE MOCK DATA!)
     // ==========================================
     async function fetchLiveDepartures(station) {
       const listEl = document.getElementById('departuresList');
@@ -598,35 +718,9 @@
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error('API-Fehler');
         
-        const data = await response.json();
-
-        if (!data || data.length === 0) {
-          listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten gefunden.</div>`;
-          return;
-        }
-
-        listEl.innerHTML = data.map(d => {
-          const lineStr = String(d.line);
-          const textColor = lineStr === 'S8' ? 'text-black' : 'text-white';
-          const bgColor = LINE_COLORS[lineStr] || '#333333';
-          
-          const delayIndicator = d.delay > 0 
-            ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
-            : '';
-
-          return `
-            <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
-              <div class="flex items-center gap-2 flex-1 min-w-0">
-                 <span class="aicher-badge ${textColor} h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
-                 <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
-              </div>
-              <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center">
-                ${d.minsUntil} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal ml-0.5">min</span>
-                ${delayIndicator}
-              </span>
-            </div>
-          `;
-        }).join('');
+        // Save to current state & render
+        currentDeparturesData = await response.json();
+        renderDeparturesList();
 
       } catch (err) {
         console.error("Failed to load departures:", err);
@@ -634,7 +728,7 @@
       }
     }
 
-    // Filter Logic
+    // Map Filter Logic (Kept totally separate per constraints)
     const filterMenuBtn = document.getElementById('filterMenuBtn');
     const filterMenuPanel = document.getElementById('filterMenuPanel');
     filterMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); filterMenuPanel.classList.toggle('hidden'); filterMenuBtn.classList.toggle('neo-inset-sm'); });
