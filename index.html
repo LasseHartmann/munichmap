@@ -336,16 +336,143 @@
       if (!coords || coords.length < 2) return;
       const isS = lineCode.startsWith('S');
       const isDark = document.body.classList.contains('theme-dark');
-      const casing = L.polyline(coords, { color: isDark ? '#202225' : '#E0E5EC', weight: (isS ? 6.5 : 5.5) + 2, opacity: 1.0, interactive: false });
+      const casing = L.polyline(coords, { color: isDark ? '#2C2F36' : '#E0E5EC', weight: (isS ? 6.5 : 5.5) + 2, opacity: 1.0, interactive: false });
       const core = L.polyline(coords, { color: LINE_COLORS[lineCode] || '#0066CC', weight: isS ? 4.2 : 3.6, interactive: false });
       lineLayerGroup.addLayer(casing); lineLayerGroup.addLayer(core);
       linePolylineElements.push({ lineCode, casing, core });
     }
 
+    // Helper: Match Munich S-Bahn / U-Bahn
     function matchMunichLine(feature) {
-      const ref = (feature.properties?.ref || '').toUpperCase();
-      for (const code of ALL_LINES) { if (new RegExp(`(^|[^A-Z0-9])${code}([^0-9]|$)`).test(ref)) return code; }
+      const p = feature.properties || {};
+      const ref = (p.ref || '').toUpperCase().trim();
+      const name = (p.name || '').toUpperCase().trim();
+      const lineProp = (p.line || '').toUpperCase().trim();
+
+      if (ref.startsWith('RB') || ref.startsWith('RE') || ref.startsWith('ICE') || 
+          ref.startsWith('IC') || ref.startsWith('ALX') || ref.startsWith('BRB') ||
+          ref.startsWith('EC') || ref.startsWith('RJ')) {
+        return null;
+      }
+
+      for (const lineCode of ALL_LINES) {
+        const regex = new RegExp(`(^|[^A-Z0-9])${lineCode}([^0-9]|$)`, 'i');
+        if (ref && regex.test(ref)) return lineCode;
+        if (lineProp && regex.test(lineProp)) return lineCode;
+        if (name && (name.includes(`${lineCode}:`) || name.includes(` ${lineCode} `) || name.endsWith(` ${lineCode}`))) {
+          return lineCode;
+        }
+      }
       return null;
+    }
+
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function extractLineStrings(geom) {
+      if (!geom) return [];
+      let lines = [];
+      if (geom.type === 'LineString') {
+        lines.push(geom.coordinates);
+      } else if (geom.type === 'MultiLineString') {
+        lines.push(...geom.coordinates);
+      } else if (geom.type === 'GeometryCollection' && geom.geometries) {
+        geom.geometries.forEach(g => {
+          if (g.type === 'LineString') lines.push(g.coordinates);
+          else if (g.type === 'MultiLineString') lines.push(...g.coordinates);
+        });
+      }
+      return lines;
+    }
+
+    async function processAndApplyTracks(geojsonData) {
+      if (!geojsonData || !Array.isArray(geojsonData.features)) return;
+      ALL_LINES.forEach(l => { extractedByLine[l] = []; });
+      
+      geojsonData.features.forEach(feat => {
+        const lineCode = matchMunichLine(feat);
+        if (!lineCode) return;
+        const rawList = extractLineStrings(feat.geometry);
+        rawList.forEach(rawPts => {
+          if (!rawPts || rawPts.length < 2) return;
+          // Skip closed-loop OSM platform geometries
+          const p1 = rawPts[0];
+          const p2 = rawPts[rawPts.length - 1];
+          if (p1[0] === p2[0] && p1[1] === p2[1]) return; 
+
+          let chunk = [];
+          for (let p = 0; p < rawPts.length; p++) {
+            chunk.push([rawPts[p][1], rawPts[p][0]]); // lat, lng
+          }
+          if (chunk.length > 1) {
+            extractedByLine[lineCode].push(chunk);
+          }
+        });
+      });
+
+      ALL_LINES.forEach(lineCode => {
+        extractedByLine[lineCode].forEach(seg => renderTrackSegment(seg, lineCode));
+      });
+    }
+
+    function processStations(geojsonData) {
+      if (!geojsonData || !Array.isArray(geojsonData.features)) return;
+      STATIONS = []; STATION_MAP = {};
+      const tempStations = new Map();
+      
+      geojsonData.features.forEach(feat => {
+        if (!feat.geometry || !feat.properties || !feat.properties.name) return;
+        let lat, lng;
+        if (feat.geometry.type === 'Point') {
+          lat = feat.geometry.coordinates[1];
+          lng = feat.geometry.coordinates[0];
+        } else if (feat.geometry.type === 'Polygon') {
+          const ring = feat.geometry.coordinates[0];
+          let latSum = 0, lngSum = 0;
+          ring.forEach(pt => { lngSum += pt[0]; latSum += pt[1]; });
+          lat = latSum / ring.length;
+          lng = lngSum / ring.length;
+        } else return;
+
+        let name = feat.properties.name.replace(/ \(.*\)/g, '').trim();
+        if (!tempStations.has(name)) {
+          tempStations.set(name, { id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat, lng, lines: new Set(), isHub: false, zone: 'MVV' });
+        }
+      });
+
+      // Spatial Match to find which lines pass through this station
+      tempStations.forEach(station => {
+        for (const lineCode of ALL_LINES) {
+          const segments = extractedByLine[lineCode] || [];
+          let found = false;
+          for (const seg of segments) {
+            if (found) break;
+            for (let i = 0; i < seg.length; i += 2) {
+              const pt = seg[i];
+              if (getDistanceMeters(station.lat, station.lng, pt[0], pt[1]) < 250) { 
+                station.lines.add(lineCode);
+                found = true; break;
+              }
+            }
+          }
+        }
+        
+        station.lines = Array.from(station.lines).sort();
+        station.isHub = station.lines.length > 2 || (station.lines.some(l => l.startsWith('S')) && station.lines.some(l => l.startsWith('U')));
+        
+        if (station.lines.length > 0) {
+          STATIONS.push(station);
+          STATION_MAP[station.id] = station;
+        }
+      });
+      renderStationMarkers();
     }
 
     async function loadNetworkTracks() {
@@ -353,34 +480,29 @@
       try {
         const cb = new Date().getTime(); 
         const [tracksRes, stationsRes] = await Promise.all([fetch(`tracks.geojson?v=${cb}`).catch(()=>null), fetch(`stations.geojson?v=${cb}`).catch(()=>null)]);
+        
         if (tracksRes && tracksRes.ok) {
            const trackData = await tracksRes.json();
-           trackData.features.forEach(feat => {
-             const line = matchMunichLine(feat);
-             if (line && feat.geometry.type === 'LineString') {
-                 extractedByLine[line].push(feat.geometry.coordinates.map(c => [c[1], c[0]]));
-             }
-           });
-           ALL_LINES.forEach(line => {
-             extractedByLine[line].forEach(seg => renderTrackSegment(seg, line));
-           });
+           processAndApplyTracks(trackData);
         }
         if (stationsRes && stationsRes.ok) {
            const stData = await stationsRes.json();
-           stData.features.forEach(f => {
-              if (f.geometry.type === 'Point') {
-                 const name = f.properties.name.replace(/ \(.*\)/g, '').trim();
-                 STATIONS.push({id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0], lines: ['U3', 'U6', 'S2'], zone: 'MVV'});
-              }
-           });
-           renderStationMarkers();
+           processStations(stData);
         }
+        showToast("Netzwerk geladen");
       } catch (err) { console.log(err); }
     }
 
     function renderStationMarkers() {
       STATIONS.forEach(station => {
-        const customIcon = L.divIcon({ className: 'station-node-wrap', html: `<svg class="station-node-svg" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.6" class="node-outer"/></svg>`, iconSize: [14, 14], iconAnchor: [7, 7] });
+        const hubSvg = `<svg class="station-hub-svg" width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" class="hub-outer"/><circle cx="11" cy="11" r="3.2" class="hub-inner"/></svg>`;
+        const nodeSvg = `<svg class="station-node-svg" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.6" class="node-outer"/></svg>`;
+        const customIcon = L.divIcon({ 
+          className: 'station-node-wrap', 
+          html: station.isHub ? hubSvg : nodeSvg, 
+          iconSize: station.isHub ? [22, 22] : [14, 14], 
+          iconAnchor: station.isHub ? [11, 11] : [7, 7] 
+        });
         const marker = L.marker([station.lat, station.lng], { icon: customIcon });
         marker.on('click', () => setStationDisplay(station));
         stationLayerGroup.addLayer(marker);
