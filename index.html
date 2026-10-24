@@ -328,9 +328,8 @@
     });
     
     const lineLayerGroup = L.layerGroup().addTo(map);
-    <comment-tag id="1">const stationLayerGroup = L.markerClusterGroup({
-      maxClusterRadius: 50, showCoverageOnHover: false, zoomToBoundsOnClick: true,</comment-tag id="1" text="Reducing the 'maxClusterRadius' forces the markers to get closer together before merging. Adding 'disableClusteringAtZoom: 14' ensures that if you zoom in past a certain level, they will always stay separated, preventing annoyingly aggressive clustering." type="suggestion">const stationLayerGroup = L.markerClusterGroup({
-      maxClusterRadius: 30, disableClusteringAtZoom: 14, showCoverageOnHover: false, zoomToBoundsOnClick: true,</comment-tag>
+    const stationLayerGroup = L.markerClusterGroup({
+      maxClusterRadius: 30, disableClusteringAtZoom: 14, showCoverageOnHover: false, zoomToBoundsOnClick: true,
       iconCreateFunction: function(cluster) {
         return L.divIcon({ html: `<div>${cluster.getChildCount()}</div>`, className: 'm-cluster', iconSize: L.point(36, 36) });
       }
@@ -484,6 +483,11 @@
         } else return;
 
         let name = feat.properties.name.replace(/ \(.*\)/g, '').trim();
+        
+        // Normalize names to merge different platforms/nodes into one station
+        if (name.includes('Hauptbahnhof') || name.includes('München Hbf')) name = 'Hauptbahnhof';
+        if (name.includes('Ostbahnhof')) name = 'Ostbahnhof';
+
         if (!tempStations.has(name)) {
           tempStations.set(name, { id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat, lng, lines: new Set(), isHub: false, zone: 'MVV' });
         }
