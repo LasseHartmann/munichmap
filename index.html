@@ -317,7 +317,7 @@
     const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
     const TILE_THEMES = [
       { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-moon', color: 'text-[var(--aicher-yellow)]' },
-      { id: 'light', url: `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-600' },
+      { id: 'light', url: `https://api.maptiler.com/maps/dataviz-light/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-600' },
       { id: 'satellite', url: `https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, icon: 'fa-satellite', color: 'text-blue-400' }
     ];
 
@@ -864,7 +864,6 @@
       }
 
       if (!auto) showToast('Suche Standort...');
-      btn.classList.add('is-active');
       isTrackingGps = true;
 
       gpsWatchId = navigator.geolocation.watchPosition(
@@ -898,7 +897,6 @@
           } else {
              if (!auto) showToast('GPS Signal schwach/deaktiviert');
           }
-          btn.classList.remove('is-active');
           isTrackingGps = false;
           if (gpsWatchId) {
             navigator.geolocation.clearWatch(gpsWatchId);
