@@ -11,6 +11,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
@@ -140,6 +143,16 @@
     body.theme-dark .station-hub-svg circle.hub-outer { fill: #2C2F36; stroke: #f7fafc; stroke-width: 2.4px; }
     body.theme-dark .station-hub-svg circle.hub-inner { fill: #f7fafc; }
 
+    /* Marker Cluster Style */
+    .m-cluster {
+      background: var(--neo-base); border: 1px solid var(--neo-border); box-shadow: var(--neo-outset-sm);
+      border-radius: 50%; color: var(--aicher-text-title); font-weight: 800; font-size: 13px;
+      display: flex !important; align-items: center; justify-content: center; transition: transform 0.2s ease;
+    }
+    .m-cluster:hover { transform: scale(1.1); box-shadow: var(--neo-inset-sm); }
+    .search-item-active { background-color: rgba(163, 177, 198, 0.2); }
+    body.theme-dark .search-item-active { background-color: rgba(255, 255, 255, 0.1); }
+
     .leaflet-popup-content-wrapper {
       background: var(--neo-base) !important;
       border: 1px solid var(--neo-border) !important;
@@ -156,14 +169,18 @@
     .aicher-gps-dot {
       width: 16px; height: 16px; background: var(--aicher-blue); border: 3px solid var(--neo-base);
       border-radius: 50%; position: absolute; top: 8px; left: 8px; box-shadow: var(--neo-outset-sm);
-      animation: jellyPulse 3s infinite var(--spring-bouncy);
+      animation: jellyPulse 3s infinite var(--spring-bouncy); transition: background-color 0.5s ease;
     }
     .aicher-gps-ring {
       position: absolute; inset: 0px; border: 2px solid var(--aicher-blue); border-radius: 50%;
-      opacity: 0.85; animation: aicherPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      opacity: 0.85; animation: aicherPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite; transition: border-color 0.5s ease;
     }
+
+    .gps-stale .aicher-gps-dot { background: var(--aicher-text-muted); border-color: var(--neo-base); animation: none; }
+    .gps-stale .aicher-gps-ring { border-color: var(--aicher-text-muted); animation: none; opacity: 0.3; }
+
     @keyframes aicherPing { 75%, 100% { transform: scale(2.8); opacity: 0; } }
-    @keyframes jellyPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15, 0.9); } }
+    @keyframes jellyPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
     .safe-top { padding-top: max(16px, env(safe-area-inset-top, 16px)); }
     .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); }
@@ -311,7 +328,12 @@
     });
     
     const lineLayerGroup = L.layerGroup().addTo(map);
-    const stationLayerGroup = L.layerGroup().addTo(map);
+    const stationLayerGroup = L.markerClusterGroup({
+      maxClusterRadius: 50, showCoverageOnHover: false, zoomToBoundsOnClick: true,
+      iconCreateFunction: function(cluster) {
+        return L.divIcon({ html: `<div>${cluster.getChildCount()}</div>`, className: 'm-cluster', iconSize: L.point(36, 36) });
+      }
+    }).addTo(map);
     let linePolylineElements = []; const stationMarkers = [];
 
     const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
@@ -518,8 +540,8 @@
         const customIcon = L.divIcon({ 
           className: 'station-node-wrap', 
           html: station.isHub ? hubSvg : nodeSvg, 
-          iconSize: station.isHub ? [22, 22] : [14, 14], 
-          iconAnchor: station.isHub ? [11, 11] : [7, 7] 
+          iconSize: [44, 44], 
+          iconAnchor: [22, 22] 
         });
         const marker = L.marker([station.lat, station.lng], { icon: customIcon });
         marker.on('click', () => { haptic(20); setStationDisplay(station); });
@@ -529,6 +551,8 @@
     }
 
     let isSearchExpanded = false;
+    let currentSearchMatches = [];
+    let searchSelectedIndex = -1;
     const searchContainer = document.getElementById('searchContainer');
     const searchIconBtn = document.getElementById('searchIconBtn');
     const searchInput = document.getElementById('stationSearchInput');
@@ -555,16 +579,54 @@
 
     searchIconBtn.addEventListener('click', () => { haptic(15); if (!isSearchExpanded) toggleSearch(); });
 
+    function renderSearchDropdown() {
+      if (currentSearchMatches.length === 0) {
+        searchDropdown.innerHTML = `<div class="px-4 py-3 text-[13px] font-semibold text-[var(--aicher-text-muted)]">Keine Stationen gefunden</div>`;
+      } else {
+        searchDropdown.innerHTML = currentSearchMatches.map((s, index) => `
+          <div class="px-4 py-3 hover:bg-[var(--neo-shadow-light)]/20 cursor-pointer flex justify-between items-center ${index === searchSelectedIndex ? 'search-item-active' : ''}" onclick="selectSearchStation('${s.id}')">
+            <span class="text-[13px] font-black text-[var(--aicher-text-title)]">${s.name}</span>
+          </div>`).join('');
+      }
+      searchDropdown.classList.remove('hidden');
+    }
+
     searchInput.addEventListener('input', function() {
       const q = this.value.trim().toLowerCase();
+      searchSelectedIndex = -1;
       if (!q) { searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden'); return; }
       clearSearchBtn.classList.remove('hidden');
-      const matches = STATIONS.filter(s => s.name.toLowerCase().includes(q)).slice(0, 6);
-      searchDropdown.innerHTML = matches.map(s => `
-        <div class="px-4 py-3 hover:bg-[var(--neo-shadow-light)]/20 cursor-pointer flex justify-between items-center" onclick="selectSearchStation('${s.id}')">
-          <span class="text-[13px] font-black text-[var(--aicher-text-title)]">${s.name}</span>
-        </div>`).join('');
-      searchDropdown.classList.remove('hidden');
+      currentSearchMatches = STATIONS.filter(s => s.name.toLowerCase().includes(q)).slice(0, 6);
+      renderSearchDropdown();
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (searchDropdown.classList.contains('hidden') || currentSearchMatches.length === 0) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        searchSelectedIndex = (searchSelectedIndex + 1) % currentSearchMatches.length;
+        renderSearchDropdown();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        searchSelectedIndex = (searchSelectedIndex - 1 + currentSearchMatches.length) % currentSearchMatches.length;
+        renderSearchDropdown();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchSelectedIndex >= 0 && searchSelectedIndex < currentSearchMatches.length) {
+          selectSearchStation(currentSearchMatches[searchSelectedIndex].id);
+        } else if (currentSearchMatches.length > 0) {
+          selectSearchStation(currentSearchMatches[0].id);
+        }
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (isSearchExpanded) toggleSearch();
+        closeDrawer();
+        filterMenuPanel.classList.add('hidden');
+        filterMenuBtn.classList.remove('neo-inset-sm');
+      }
     });
 
     clearSearchBtn.addEventListener('click', (e) => { e.stopPropagation(); haptic(15); toggleSearch(); });
@@ -848,6 +910,7 @@
     let gpsWatchId = null;
     let userLocationMarker = null;
     let currentUserLocation = null;
+    let gpsStaleTimeout = null;
 
     function startGpsTracking(auto = false) {
       if (!navigator.geolocation) {
@@ -872,6 +935,8 @@
           const lng = position.coords.longitude;
           currentUserLocation = [lat, lng];
 
+          if (gpsStaleTimeout) clearTimeout(gpsStaleTimeout);
+
           if (!userLocationMarker) {
             const customGpsIcon = L.divIcon({
               className: 'aicher-gps-marker-wrap',
@@ -888,7 +953,18 @@
             if (!auto) showToast('Standort gefunden');
           } else {
             userLocationMarker.setLatLng(currentUserLocation);
+            const iconWrap = document.querySelector('.aicher-gps-marker-wrap');
+            if (iconWrap) iconWrap.classList.remove('gps-stale');
           }
+
+          gpsStaleTimeout = setTimeout(() => {
+            const iconWrap = document.querySelector('.aicher-gps-marker-wrap');
+            if (iconWrap) {
+                iconWrap.classList.add('gps-stale');
+                // Optional: Notify user once when signal gets stale
+                // if (!auto) showToast('GPS Signal alt/verloren');
+            }
+          }, 10000); // 10 seconds of no updates triggers stale state
         },
         (error) => {
           console.warn('GPS Fehler:', error);
@@ -915,15 +991,9 @@
       t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000);
     }
 
-    // Hide stations/lines when zooming out far to keep the map fast
+    // Hide lines when zooming out far to keep the map fast (clustering handles stations)
     map.on('zoomend', function() {
       const currentZoom = map.getZoom();
-      
-      if (currentZoom < 12) {
-        if (map.hasLayer(stationLayerGroup)) map.removeLayer(stationLayerGroup);
-      } else {
-        if (!map.hasLayer(stationLayerGroup)) map.addLayer(stationLayerGroup);
-      }
 
       if (currentZoom < 10) {
         if (map.hasLayer(lineLayerGroup)) map.removeLayer(lineLayerGroup);
