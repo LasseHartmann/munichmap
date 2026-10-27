@@ -124,6 +124,7 @@
       transition-property: transform, opacity;
       transition-duration: 0.5s;
       transition-timing-function: var(--spring-bouncy);
+      will-change: transform, opacity; /* GPU Boost */
     }
 
     .dep-filter-btn { transition: all 0.3s var(--spring-bouncy); outline: none; }
@@ -976,6 +977,7 @@
       let startX = 0, startY = 0;
       let isDragging = false, isScrolling = false, isDetermining = false;
       let scrollTarget = null;
+      let ticking = false; // Added for Frame Syncing
 
       element.addEventListener('touchstart', e => {
         if (e.touches.length > 1) return;
@@ -1016,15 +1018,23 @@
           return; // Let native list scroll happen, don't move the panel at all
         }
 
-        // Apply "Rubber-band" physics for X axis if pulling in the wrong direction
-        if (direction === 'left' && diffX > 0) diffX = diffX * 0.25;
-        if (direction === 'right' && diffX < 0) diffX = diffX * 0.25;
-        
-        // Apply "Rubber-band" physics for Y axis (360 degree drag)
-        let rubberY = diffY * 0.25;
-        
-        // Physically move the menu 360 degrees with the finger
-        element.style.transform = `translate(${diffX}px, ${rubberY}px) ${baseTransform}`;
+        // Frame Syncing (requestAnimationFrame) & GPU Boost (translate3d)
+        if (!ticking) {
+          requestAnimationFrame(() => {
+            // Apply "Rubber-band" physics for X axis if pulling in the wrong direction
+            let physX = diffX;
+            if (direction === 'left' && physX > 0) physX = physX * 0.25;
+            if (direction === 'right' && physX < 0) physX = physX * 0.25;
+            
+            // Apply "Rubber-band" physics for Y axis (360 degree drag)
+            let rubberY = diffY * 0.25;
+            
+            // Physically move the menu 360 degrees using 3D acceleration
+            element.style.transform = `translate3d(${physX}px, ${rubberY}px, 0) ${baseTransform}`;
+            ticking = false;
+          });
+          ticking = true;
+        }
       }, {passive: true});
       
       element.addEventListener('touchend', e => {
@@ -1049,7 +1059,7 @@
         if ((direction === 'left' && diffX < -60) || (direction === 'right' && diffX > 60)) {
            if (direction === 'right') {
                // Slide right-menu out visually (maintaining Y pull) before triggering callback
-               element.style.transform = `translate(120%, ${rubberY}px) ${baseTransform}`;
+               element.style.transform = `translate3d(120%, ${rubberY}px, 0) ${baseTransform}`;
                element.style.opacity = '0';
                setTimeout(() => {
                    element.style.transform = '';
@@ -1058,7 +1068,7 @@
                }, 300);
            } else {
                // Slide left drawer out visually (maintaining Y pull)
-               element.style.transform = `translate(-120%, ${rubberY}px) ${baseTransform}`;
+               element.style.transform = `translate3d(-120%, ${rubberY}px, 0) ${baseTransform}`;
                setTimeout(() => {
                    element.style.transform = '';
                    closeCallback();
