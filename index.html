@@ -194,13 +194,17 @@
     <div id="searchDropdown" class="hidden neo-panel flex flex-col w-[calc(100vw-24px)] sm:w-80 max-h-[40vh] overflow-y-auto divide-y divide-[var(--neo-shadow-light)]/20 shadow-2xl"></div>
   </div>
 
-  <!-- Station Details Drawer (Left Side) -->
-  <div id="stationDrawer" class="aicher-slide absolute left-0 top-0 bottom-0 w-[85vw] sm:w-[360px] bg-[var(--neo-base)] border-r border-[var(--neo-border)] shadow-[var(--neo-outset)] z-[900] flex flex-col -translate-x-[120%] safe-top safe-bottom pointer-events-auto">
+  <!-- Station Details Drawer (Floating Card Design) -->
+  <div id="stationDrawer" 
+       class="aicher-slide absolute left-3 sm:left-4 w-[calc(100vw-24px)] sm:w-[350px] bg-[var(--neo-base)] border border-[var(--neo-border)] shadow-[var(--neo-outset)] rounded-[28px] z-[900] flex flex-col -translate-x-[120%] pointer-events-auto"
+       style="top: calc(max(16px, env(safe-area-inset-top, 16px)) + 60px); bottom: calc(max(16px, env(safe-area-inset-bottom, 16px)) + 12px);">
+    
     <div class="p-4 sm:p-5 flex flex-col gap-3 border-b border-[var(--neo-shadow-light)]/20 shrink-0">
       <div class="flex justify-between items-start gap-3">
-        <h2 id="nearestStationName" class="text-[20px] font-black tracking-tight text-[var(--aicher-text-title)] truncate flex-1 pt-1">Station</h2>
+        <h2 id="nearestStationName" class="text-[22px] font-black tracking-tight text-[var(--aicher-text-title)] truncate flex-1 pt-0.5">Station</h2>
         <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
+      
       <!-- Flex Layout for Lines and Button with min-w-0 to prevent wrapping collisions on tiny screens -->
       <div class="flex items-start justify-between gap-2 min-h-[28px]">
         <div id="nearestStationLines" class="flex flex-wrap gap-1.5 flex-1 min-w-0"></div>
@@ -213,13 +217,13 @@
     <div class="flex-1 flex flex-col min-h-0 p-3 sm:p-4 pb-4">
       <div class="flex items-center justify-between px-1 mb-3 shrink-0">
         <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse"></span>
+          <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] shadow-[0_0_6px_rgba(56,161,105,0.6)] animate-pulse"></span>
           <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)]">Live Abfahrten</span>
         </div>
         <button id="refreshDepBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></button>
       </div>
 
-      <!-- Departures List -->
+      <!-- Departures List Box -->
       <div class="flex-1 neo-input-track p-1.5 overflow-hidden flex flex-col">
         <!-- Flexbox Header synced perfectly with list items -->
         <div class="flex items-center justify-between px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70 shrink-0 gap-2">
@@ -237,7 +241,7 @@
   <!-- Map Controls & Filter Menu (Right Side) -->
   <aside class="absolute right-3 sm:right-4 bottom-8 sm:bottom-12 z-[1000] pointer-events-none flex items-end justify-end">
     
-    <!-- Filter Panel Slideout (Hidden behind the Pill naturally via z-index and translation) -->
+    <!-- Filter Panel Slideout -->
     <div id="filterMenuPanel" class="aicher-slide absolute right-full mr-4 bottom-0 w-[280px] sm:w-[320px] neo-panel p-4 z-[-1] opacity-0 pointer-events-none translate-x-[120%]">
       <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--neo-shadow-light)]/20">
         <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
@@ -306,17 +310,11 @@
   </aside>
 
   <!-- Solid Slide-In Error Toast (Top Right) -->
-  <!-- Note: Removed tight height and overflow limits so the neumorphic shadow isn't chopped off! -->
   <div class="absolute top-4 right-0 safe-top z-[1050] pointer-events-none flex justify-end w-full pb-8">
-    <!-- Slide-in Container -->
     <div id="toastPill" class="flex items-center h-12 p-1 mr-3 sm:mr-4 bg-[var(--neo-base)] border border-[var(--neo-border)] rounded-full shadow-[var(--neo-outset)] transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[150%]">
-      
-      <!-- Inner Light Container (Perfectly matches pill height minus padding) -->
       <div class="w-10 h-10 rounded-full bg-[var(--neo-base)] shadow-[var(--neo-inset)] flex items-center justify-center shrink-0">
         <span class="w-2.5 h-2.5 rounded-full bg-[#C31B2C] shadow-[0_0_5px_rgba(195,27,44,0.6)] animate-pulse"></span>
       </div>
-      
-      <!-- Text Container -->
       <span id="trackStatusMsg" class="whitespace-nowrap text-[15px] font-black tracking-tight text-[var(--aicher-text-title)] pl-4 pr-3">Fehler</span>
     </div>
   </div>
@@ -1048,7 +1046,7 @@
       }, 3500)); 
     }
 
-    // Touch gesture physics
+    // GPU-accelerated touch gesture physics
     function makeSwipeable(element, direction, closeCallback) {
       let startX = 0, startY = 0;
       let isDragging = false, isScrolling = false, isDetermining = false, ticking = false;
@@ -1105,7 +1103,6 @@
         }
 
         let diffX = e.changedTouches[0].screenX - startX;
-        
         element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
         
         if ((direction === 'left' && diffX < -60) || (direction === 'right' && diffX > 60)) {
