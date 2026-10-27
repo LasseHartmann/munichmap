@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de" class="h-full">
 <head>
@@ -200,10 +201,10 @@
         <h2 id="nearestStationName" class="text-[20px] font-black tracking-tight text-[var(--aicher-text-title)] truncate flex-1 pt-1">Station</h2>
         <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
-      <!-- Fixed Grid Layout for Lines and Button to prevent wrapping collisions -->
-      <div class="flex items-center justify-between gap-3 min-h-[28px]">
-        <div id="nearestStationLines" class="flex flex-wrap gap-1.5 flex-1"></div>
-        <div class="shrink-0 flex justify-end w-8">
+      <!-- Flex Layout for Lines and Button with min-w-0 to prevent wrapping collisions on tiny screens -->
+      <div class="flex items-start justify-between gap-2 min-h-[28px]">
+        <div id="nearestStationLines" class="flex flex-wrap gap-1.5 flex-1 min-w-0"></div>
+        <div class="shrink-0 flex justify-end w-8 pt-0.5">
             <button id="clearDepFiltersBtn" class="hidden neo-btn w-7 h-7 transition-all duration-300 transform scale-0" title="Filter zurücksetzen"><i class="fa-solid fa-filter-circle-xmark text-[11px] text-[#C31B2C]"></i></button>
         </div>
       </div>
@@ -220,10 +221,13 @@
 
       <!-- Departures List -->
       <div class="flex-1 neo-input-track p-1.5 overflow-hidden flex flex-col">
-        <div class="grid grid-cols-[44px_1fr_60px] items-center px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70 shrink-0">
-          <span>Linie</span>
-          <span class="pl-1">Richtung</span>
-          <span class="text-right">Min</span>
+        <!-- Flexbox Header synced perfectly with list items -->
+        <div class="flex items-center justify-between px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70 shrink-0 gap-2">
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <span class="w-[32px] text-center shrink-0">Linie</span>
+            <span>Richtung</span>
+          </div>
+          <span class="min-w-[40px] text-right">Min</span>
         </div>
         <div id="departuresList" class="flex-1 overflow-y-auto pr-1 space-y-1 pb-2" style="scrollbar-width: none; -ms-overflow-style: none;"></div>
       </div>
@@ -789,14 +793,14 @@
           ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
           : '';
 
-        // Restored EXACT original format per user request
+        // Highly robust mobile flex layout. Forces text to truncate before it can squish the badges or times.
         return `
-          <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
+          <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors gap-2">
             <div class="flex items-center gap-2 flex-1 min-w-0">
-               <span class="aicher-badge ${textColor} h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
+               <span class="aicher-badge ${textColor} h-[20px] w-[32px] px-0 text-[10px] shrink-0 justify-center" style="background-color: ${bgColor};">${lineStr}</span>
                <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
             </div>
-            <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center">
+            <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center justify-end min-w-[40px]">
               ${d.minsUntil} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal ml-0.5">min</span>
               ${delayIndicator}
             </span>
@@ -1149,3 +1153,4 @@
   </script>
 </body>
 </html>
+```
