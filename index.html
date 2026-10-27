@@ -220,7 +220,6 @@
     @keyframes jellyPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
     .safe-top { padding-top: max(16px, env(safe-area-inset-top, 16px)); }
-    .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); }
   </style>
 </head>
 
@@ -307,10 +306,9 @@
 
   <!-- Station Information Drawer -->
   <div id="stationDrawer" class="aicher-slide absolute left-3 sm:left-4 top-[72px] bottom-4 sm:bottom-6 w-[calc(100vw-6rem)] sm:w-80 neo-panel z-[900] flex flex-col p-4 sm:p-5 -translate-x-[120%] pointer-events-auto">
-    <div class="flex items-start justify-between gap-3 mb-4">
+    <div class="flex items-center justify-between gap-3 mb-4">
       <div class="flex flex-col min-w-0">
         <span id="nearestStationName" class="text-[18px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
-        <span id="nearestStationMeta" class="text-[11px] leading-tight text-[var(--aicher-text-muted)] font-semibold mt-0.5">MVV</span>
       </div>
       <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-[11px]"></i></button>
     </div>
@@ -545,7 +543,7 @@
         if (name.includes('Ostbahnhof')) name = 'Ostbahnhof';
 
         if (!tempStations.has(name)) {
-          tempStations.set(name, { id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat, lng, lines: new Set(), isHub: false, zone: 'MVV' });
+          tempStations.set(name, { id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat, lng, lines: new Set(), isHub: false });
         }
       });
 
