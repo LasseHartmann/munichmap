@@ -195,20 +195,26 @@
 
   <!-- Station Details Drawer (Left Side) -->
   <div id="stationDrawer" class="aicher-slide absolute left-0 top-0 bottom-0 w-[85vw] sm:w-[360px] bg-[var(--neo-base)] border-r border-[var(--neo-border)] shadow-[var(--neo-outset)] z-[900] flex flex-col -translate-x-[120%] safe-top safe-bottom pointer-events-auto">
-    <div class="p-4 sm:p-5 flex flex-col gap-4 border-b border-[var(--neo-shadow-light)]/20">
-      <div class="flex justify-between items-center">
-        <h2 id="nearestStationName" class="text-[20px] font-black tracking-tight text-[var(--aicher-text-title)] truncate pr-2">Station</h2>
+    <div class="p-4 sm:p-5 flex flex-col gap-3 border-b border-[var(--neo-shadow-light)]/20 shrink-0">
+      <div class="flex justify-between items-start gap-3">
+        <h2 id="nearestStationName" class="text-[20px] font-black tracking-tight text-[var(--aicher-text-title)] truncate flex-1 pt-1">Station</h2>
         <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
-      <div id="nearestStationLines" class="flex flex-wrap gap-1.5 min-h-[22px]"></div>
+      <!-- Fixed Grid Layout for Lines and Button to prevent wrapping collisions -->
+      <div class="flex items-center justify-between gap-3 min-h-[28px]">
+        <div id="nearestStationLines" class="flex flex-wrap gap-1.5 flex-1"></div>
+        <div class="shrink-0 flex justify-end w-8">
+            <button id="clearDepFiltersBtn" class="hidden neo-btn w-7 h-7 transition-all duration-300 transform scale-0" title="Filter zurücksetzen"><i class="fa-solid fa-filter-circle-xmark text-[11px] text-[#C31B2C]"></i></button>
+        </div>
+      </div>
     </div>
     
     <div class="flex-1 overflow-y-auto p-2 sm:p-3 overscroll-contain">
-      <div class="flex items-center justify-between px-2 mb-2 mt-1">
+      <div class="flex items-center justify-between px-2 mb-2 mt-1 shrink-0">
         <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)] opacity-80">Live Abfahrten</span>
         <button id="refreshDepBtn" class="w-6 h-6 neo-btn"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
       </div>
-      <div id="departuresList" class="flex flex-col gap-1"></div>
+      <div id="departuresList" class="flex flex-col gap-1 pb-4"></div>
     </div>
   </div>
 
@@ -256,7 +262,8 @@
     <!-- Right Controls Pill -->
     <div class="neo-pill p-1.5 flex flex-col gap-2.5 items-center relative z-10 pointer-events-auto">
       <button id="gpsBtn" title="Standort" class="w-9 h-9 neo-btn relative">
-        <i class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i>
+        <i class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-text-title)]"></i>
+        <!-- Silent GPS Status Dot -->
         <span id="gpsStatusDot" class="hidden absolute top-0 right-0 w-[9px] h-[9px] rounded-full border-[1.5px] border-[var(--neo-base)]"></span>
       </button>
       <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
@@ -271,7 +278,7 @@
       <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
       
       <button id="layerCycleBtn" title="Kartenstil" class="w-9 h-9 neo-btn">
-        <i id="layerIcon" class="fa-solid fa-moon text-[12px]"></i>
+        <i id="layerIcon" class="fa-solid fa-sun text-[12px] text-amber-600"></i>
       </button>
       
       <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
@@ -284,9 +291,16 @@
 
   <!-- Solid Slide-In Error Toast (Top Right) -->
   <div class="absolute top-4 right-0 safe-top z-[1050] pointer-events-none flex justify-end overflow-hidden w-full h-12">
-    <div id="toastPill" class="flex items-center h-full px-4 mr-3 sm:mr-4 bg-[var(--neo-base)] border border-[var(--neo-border)] rounded-full shadow-[var(--neo-outset)] transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[150%]">
-      <span class="w-2.5 h-2.5 rounded-full bg-[#C31B2C] shadow-[0_0_5px_rgba(195,27,44,0.6)] animate-pulse shrink-0 mr-3"></span>
-      <span id="trackStatusMsg" class="whitespace-nowrap text-[14px] font-black tracking-tight text-[var(--aicher-text-title)]">Fehler</span>
+    <!-- Slide-in Container -->
+    <div id="toastPill" class="flex items-center h-12 p-1 mr-3 sm:mr-4 bg-[var(--neo-base)] border border-[var(--neo-border)] rounded-full shadow-[var(--neo-outset)] transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[150%]">
+      
+      <!-- Inner Light Container (Perfectly matches pill height minus padding) -->
+      <div class="w-10 h-10 rounded-full bg-[var(--neo-base)] shadow-[var(--neo-inset)] flex items-center justify-center shrink-0">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#C31B2C] shadow-[0_0_5px_rgba(195,27,44,0.6)] animate-pulse"></span>
+      </div>
+      
+      <!-- Text Container -->
+      <span id="trackStatusMsg" class="whitespace-nowrap text-[15px] font-black tracking-tight text-[var(--aicher-text-title)] px-4">Fehler</span>
     </div>
   </div>
 
@@ -324,8 +338,8 @@
 
     const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
     const TILE_THEMES = [
-      { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-moon', color: 'text-[var(--aicher-yellow)]' },
       { id: 'light', url: `https://api.maptiler.com/maps/dataviz-light/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-600' },
+      { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-moon', color: 'text-[var(--aicher-yellow)]' },
       { id: 'satellite', url: `https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, icon: 'fa-satellite', color: 'text-blue-400' }
     ];
 
@@ -688,10 +702,8 @@
       document.getElementById('nearestStationName').innerText = st.name;
       
       const badgesHtml = getLineBadgesHTML(st.lines);
-      const clearBtnHtml = `<button id="clearDepFiltersBtn" class="hidden neo-btn w-7 h-7 ml-auto shrink-0 transition-all duration-300 transform scale-0" title="Filter zurücksetzen"><i class="fa-solid fa-filter-circle-xmark text-[11px] text-[#C31B2C]"></i></button>`;
-      
       const linesContainer = document.getElementById('nearestStationLines');
-      linesContainer.innerHTML = badgesHtml + clearBtnHtml;
+      linesContainer.innerHTML = badgesHtml;
 
       linesContainer.querySelectorAll('.dep-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -706,17 +718,22 @@
           renderDeparturesList(); 
         });
       });
-
-      document.getElementById('clearDepFiltersBtn').addEventListener('click', () => {
-        haptic([15, 30, 15]);
-        activeDepartureFilters.clear();
-        updateDepFiltersUI();
-        renderDeparturesList();
-      });
+      
+      // Reset clear button state manually when opening a new station
+      const clearBtn = document.getElementById('clearDepFiltersBtn');
+      clearBtn.classList.add('hidden', 'scale-0');
+      clearBtn.classList.remove('scale-100');
 
       stationDrawer.classList.remove('-translate-x-[120%]');
       fetchLiveDepartures(st);
     }
+    
+    document.getElementById('clearDepFiltersBtn').addEventListener('click', () => {
+      haptic([15, 30, 15]);
+      activeDepartureFilters.clear();
+      updateDepFiltersUI();
+      renderDeparturesList();
+    });
 
     function closeDrawer() {
       stationDrawer.classList.add('-translate-x-[120%]');
@@ -736,7 +753,7 @@
       const listEl = document.getElementById('departuresList');
 
       if (!currentDeparturesData || currentDeparturesData.length === 0) {
-        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten gefunden.</div>`;
+        listEl.innerHTML = `<div class="py-6 text-center text-[12px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten.</div>`;
         return;
       }
 
@@ -745,29 +762,34 @@
         : currentDeparturesData;
 
       if (filteredData.length === 0) {
-        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Keine Abfahrten für gewählte Filter.</div>`;
+        listEl.innerHTML = `<div class="py-6 text-center text-[12px] text-[var(--aicher-text-muted)] font-bold">Keine Abfahrten für gewählte Filter.</div>`;
         return;
       }
 
+      // Rigid CSS Grid to guarantee pixel-perfect alignment and prevent squishing
       listEl.innerHTML = filteredData.map(d => {
         const lineStr = String(d.line);
         const textColor = lineStr === 'S8' ? 'text-black' : 'text-white';
         const bgColor = LINE_COLORS[lineStr] || '#333333';
         
         const delayIndicator = d.delay > 0 
-          ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
+          ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1.5">+${d.delay}</span>` 
           : '';
 
         return `
-          <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-               <span class="aicher-badge ${textColor} h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
-               <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
-            </div>
-            <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center">
-              ${d.minsUntil} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal ml-0.5">min</span>
+          <div class="grid grid-cols-[auto_1fr_auto] gap-3 items-center p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors border-b border-[var(--neo-shadow-light)]/5 last:border-0">
+            <!-- Line Badge -->
+            <span class="aicher-badge ${textColor} !h-[20px] !min-w-[32px] px-1 text-[10px]" style="background-color: ${bgColor};">${lineStr}</span>
+            
+            <!-- Destination (Truncates perfectly without breaking grid) -->
+            <span class="text-[13px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
+            
+            <!-- Time Display -->
+            <div class="flex items-baseline justify-end gap-0.5 min-w-[45px] text-right">
+              <span class="text-[14px] font-black text-[var(--aicher-text-title)]">${d.minsUntil}</span>
+              <span class="text-[9px] text-[var(--aicher-text-muted)] font-bold">min</span>
               ${delayIndicator}
-            </span>
+            </div>
           </div>
         `;
       }).join('');
@@ -775,7 +797,7 @@
 
     async function fetchLiveDepartures(station) {
       const listEl = document.getElementById('departuresList');
-      listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Live-Abfahrten...</div>`;
+      listEl.innerHTML = `<div class="py-6 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Live-Abfahrten...</div>`;
       
       try {
         const apiUrl = `/api/departures?query=${encodeURIComponent(station.name)}&lat=${station.lat}&lng=${station.lng}`;
@@ -785,7 +807,7 @@
         currentDeparturesData = await response.json();
         renderDeparturesList();
       } catch (err) {
-        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[#C31B2C] font-bold">Fehler beim Verbinden mit MVG</div>`;
+        listEl.innerHTML = `<div class="py-6 text-center text-[12px] text-[#C31B2C] font-bold">Fehler beim Verbinden mit MVG</div>`;
         showToast('MVG Live-Daten nicht erreichbar');
       }
     }
@@ -798,12 +820,14 @@
         filterMenuPanel.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-[120%]');
         filterMenuPanel.classList.add('translate-x-0', 'pointer-events-auto');
         filterMenuBtn.classList.add('neo-inset-sm');
+        filterMenuBtn.querySelector('i').classList.add('text-[var(--aicher-blue)]');
     }
 
     function closeFilterMenu() {
         filterMenuPanel.classList.add('opacity-0', 'pointer-events-none', 'translate-x-[120%]');
         filterMenuPanel.classList.remove('translate-x-0', 'pointer-events-auto');
         filterMenuBtn.classList.remove('neo-inset-sm');
+        filterMenuBtn.querySelector('i').classList.remove('text-[var(--aicher-blue)]');
     }
 
     filterMenuBtn.addEventListener('click', (e) => { 
@@ -919,14 +943,18 @@
 
     function updateGpsDot(status) {
       const dot = document.getElementById('gpsStatusDot');
+      const icon = document.querySelector('#gpsBtn i');
       dot.classList.remove('hidden', 'bg-[var(--aicher-green)]', 'bg-[var(--aicher-yellow)]', 'bg-[#C31B2C]', 'animate-pulse');
+      icon.classList.remove('text-[var(--aicher-blue)]', 'text-[#C31B2C]');
       
       if (status === 'searching') {
         dot.classList.add('bg-[var(--aicher-yellow)]', 'animate-pulse');
       } else if (status === 'connected') {
         dot.classList.add('bg-[var(--aicher-green)]');
+        icon.classList.add('text-[var(--aicher-blue)]');
       } else if (status === 'error') {
         dot.classList.add('bg-[#C31B2C]');
+        icon.classList.add('text-[#C31B2C]');
       } else {
         dot.classList.add('hidden');
       }
@@ -935,6 +963,7 @@
     function startGpsTracking(auto = false) {
       if (!navigator.geolocation) {
         updateGpsDot('error');
+        showToast('GPS wird nicht unterstützt');
         return;
       }
 
@@ -966,7 +995,6 @@
             }).addTo(map);
             
             map.setView(currentUserLocation, 16, { animate: true });
-            showToast('Standort gefunden');
           } else {
             userLocationMarker.setLatLng(currentUserLocation);
           }
@@ -974,6 +1002,7 @@
         (error) => {
           console.warn('GPS Fehler:', error);
           updateGpsDot('error');
+          showToast('GPS Signal verloren');
           isTrackingGps = false;
           if (gpsWatchId) {
             navigator.geolocation.clearWatch(gpsWatchId);
@@ -990,37 +1019,31 @@
     let toastAnimTimeouts = [];
     
     function showToast(msg) {
-      // Clear any ongoing animations to prevent overlapping bugs
       toastAnimTimeouts.forEach(clearTimeout);
       toastAnimTimeouts = [];
 
       const tPill = document.getElementById('toastPill');
       document.getElementById('trackStatusMsg').innerText = msg;
       
-      // Slide in from right
       tPill.classList.remove('translate-x-[150%]');
       tPill.classList.add('translate-x-0');
 
-      // Slide out sequence after 3.5 seconds
       toastAnimTimeouts.push(setTimeout(() => {
         tPill.classList.remove('translate-x-0');
         tPill.classList.add('translate-x-[150%]');
       }, 3500)); 
     }
 
-    // Touch gesture physics (Restored and fixed)
+    // Touch gesture physics
     function makeSwipeable(element, direction, closeCallback) {
       let startX = 0, startY = 0;
       let isDragging = false, isScrolling = false, isDetermining = false, ticking = false;
-      let baseTransform = '';
 
       element.addEventListener('touchstart', (e) => {
         startX = e.touches[0].screenX;
         startY = e.touches[0].screenY;
         isDragging = true; isScrolling = false; isDetermining = true;
-        baseTransform = window.getComputedStyle(element).transform;
-        if (baseTransform === 'none') baseTransform = '';
-        element.style.transition = 'none'; // Disable transition for instant finger tracking
+        element.style.transition = 'none'; 
       }, {passive: true});
 
       element.addEventListener('touchmove', (e) => {
@@ -1028,7 +1051,6 @@
         let diffX = e.touches[0].screenX - startX;
         let diffY = e.touches[0].screenY - startY;
 
-        // Intent threshold
         if (isDetermining) {
           if (Math.abs(diffY) > 5 && Math.abs(diffY) > Math.abs(diffX)) {
              isScrolling = true; isDetermining = false; isDragging = false;
@@ -1047,20 +1069,16 @@
         if (!ticking) {
           requestAnimationFrame(() => {
             let physX = diffX;
-            // Rubber-band for pulling wrong direction
             if (direction === 'left' && physX > 0) physX = physX * 0.25;
             if (direction === 'right' && physX < 0) physX = physX * 0.25;
-            
-            // 360 degree drag (Y-axis)
             let rubberY = diffY * 0.25;
             
-            // GPU acceleration
-            element.style.transform = `translate3d(${physX}px, ${rubberY}px, 0) ${baseTransform}`;
+            element.style.transform = `translate3d(${physX}px, ${rubberY}px, 0)`;
             ticking = false;
           });
           ticking = true;
         }
-      }, {passive: false}); // Required false to allow preventDefault
+      }, {passive: false});
 
       element.addEventListener('touchend', e => {
         if (!isDragging) return;
@@ -1073,14 +1091,12 @@
         }
 
         let diffX = e.changedTouches[0].screenX - startX;
-        let diffY = e.changedTouches[0].screenY - startY;
-        let rubberY = diffY * 0.25;
         
         element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
         
         if ((direction === 'left' && diffX < -60) || (direction === 'right' && diffX > 60)) {
            if (direction === 'right') {
-               element.style.transform = `translate3d(120%, ${rubberY}px, 0) ${baseTransform}`;
+               element.style.transform = `translate3d(120%, 0, 0)`;
                element.style.opacity = '0';
                setTimeout(() => {
                    element.style.transform = '';
@@ -1088,7 +1104,7 @@
                    closeCallback();
                }, 300);
            } else {
-               element.style.transform = `translate3d(-120%, ${rubberY}px, 0) ${baseTransform}`;
+               element.style.transform = `translate3d(-120%, 0, 0)`;
                setTimeout(() => {
                    element.style.transform = '';
                    closeCallback();
@@ -1103,7 +1119,6 @@
     makeSwipeable(stationDrawer, 'left', closeDrawer);
     makeSwipeable(filterMenuPanel, 'right', closeFilterMenu);
 
-    // Hide stations/lines when zooming out far to keep the map fast
     map.on('zoomend', function() {
       const currentZoom = map.getZoom();
       if (currentZoom < 12) {
