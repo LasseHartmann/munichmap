@@ -118,6 +118,8 @@
       box-shadow: 2px 2px 5px rgba(0,0,0,0.25), inset 1px 1px 2px rgba(255,255,255,0.25);
       border: none;
     }
+    
+    .dep-filter-btn { transition: all 0.3s var(--spring-bouncy); outline: none; }
 
     .station-node-wrap.leaflet-div-icon, .station-node-wrap {
       background: transparent !important; border: none !important;
@@ -149,13 +151,13 @@
     @keyframes aicherPing { 75%, 100% { transform: scale(2.8); opacity: 0; } }
 
     /* Environment Safe Areas */
-    .safe-top { padding-top: max(16px, env(safe-area-inset-top, 16px)); }
+    .safe-top { padding-top: max(12px, env(safe-area-inset-top, 12px)); }
     .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); }
-    .drawer-top { top: calc(max(16px, env(safe-area-inset-top, 16px)) + 60px); }
-    .drawer-bottom { bottom: calc(max(16px, env(safe-area-inset-bottom, 16px)) + 16px); }
+    .drawer-top { top: calc(max(12px, env(safe-area-inset-top, 12px)) + 60px); }
+    .drawer-bottom { bottom: calc(max(16px, env(safe-area-inset-bottom, 16px)) + 12px); }
     
     /* Hardware Acceleration */
-    .gpu-accel { will-change: transform; transform: translateZ(0); }
+    .gpu-accel { will-change: transform; transform: translate3d(0,0,0); }
   </style>
 </head>
 
@@ -177,13 +179,13 @@
     <div id="searchDropdown" class="hidden neo-panel flex flex-col w-[calc(100vw-24px)] sm:w-80 max-h-[40vh] overflow-y-auto divide-y divide-[var(--neo-shadow-light)]/20 shadow-2xl"></div>
   </div>
 
-  <!-- Error Notification Pill (Top Right, matched perfectly to Search Bar) -->
-  <div class="absolute right-3 sm:right-4 top-0 z-[1050] safe-top pointer-events-none flex justify-end items-start h-12">
-    <div id="toastPill" class="flex items-center h-12 p-1 bg-[var(--neo-base)] border border-[var(--neo-border)] rounded-full shadow-[var(--neo-outset)] transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[150%]">
+  <!-- Error Notification Pill (Top Right) -->
+  <div class="absolute right-3 sm:right-4 top-0 z-[1050] safe-top pointer-events-none flex justify-end items-start">
+    <div id="toastPill" class="flex items-center h-12 p-1 bg-[var(--neo-base)] border border-[var(--neo-border)] rounded-full shadow-[var(--neo-outset)] transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[150%] gpu-accel">
       <div class="w-10 h-10 shrink-0 rounded-full bg-[var(--neo-base)] shadow-[var(--neo-inset-sm)] flex items-center justify-center">
         <span id="toastDot" class="w-3 h-3 rounded-full shadow-sm animate-pulse bg-[#C31B2C]"></span>
       </div>
-      <span id="trackStatusMsg" class="px-3 sm:px-4 text-[13px] font-black tracking-tight text-[var(--aicher-text-title)] whitespace-nowrap">Status</span>
+      <span id="trackStatusMsg" class="px-3 sm:px-4 text-[14px] font-black tracking-tight text-[var(--aicher-text-title)] whitespace-nowrap">Status</span>
     </div>
   </div>
 
@@ -196,13 +198,12 @@
           <span id="filterActiveBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--aicher-blue)] text-[9px] font-black text-white flex items-center justify-center shadow-md">0</span>
         </button>
 
-        <!-- Filter Panel Slideout (Grows upwards from bottom right) -->
+        <!-- Filter Panel Slideout -->
         <div id="filterMenuPanel" class="hidden absolute right-[130%] bottom-0 w-[280px] sm:w-[320px] neo-panel p-4 z-50">
           <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--neo-shadow-light)]/20">
             <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
             <button id="closeFilterMenuBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-xmark text-xs"></i></button>
           </div>
-          <!-- Filter Buttons (Same as before) -->
           <div class="grid grid-cols-3 gap-2 mb-4">
             <button data-filter="all" class="filter-opt-btn neo-pill px-3 py-2 text-xs font-bold text-[var(--aicher-text-main)] active-tab neo-inset-sm">Alle</button>
             <button data-filter="U" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center">U</span></button>
@@ -238,23 +239,23 @@
 
       <div class="w-7 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
       
-      <button id="layerCycleBtn" class="w-10 h-10 neo-btn"><i id="layerIcon" class="fa-solid fa-sun text-[13px] text-amber-600"></i></button>
+      <button id="layerCycleBtn" class="w-10 h-10 neo-btn"><i id="layerIcon" class="fa-solid fa-moon text-[13px] text-[var(--aicher-yellow)]"></i></button>
       <button id="centerMapBtn" class="w-10 h-10 neo-btn"><i class="fa-solid fa-expand text-[13px] text-[var(--aicher-text-title)]"></i></button>
       
       <div class="relative flex justify-center">
         <button id="gpsBtn" class="w-12 h-12 neo-btn"><i class="fa-solid fa-location-crosshairs text-[15px] text-[var(--aicher-blue)]"></i></button>
-        <!-- Silent GPS Status Dot -->
-        <span id="gpsStatusDot" class="absolute top-0 right-0 w-3 h-3 rounded-full bg-yellow-500 border-2 border-[var(--neo-base)] shadow-sm animate-pulse"></span>
+        <span id="gpsStatusDot" class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-yellow-500 border-2 border-[var(--neo-base)] shadow-sm animate-pulse"></span>
       </div>
     </div>
   </aside>
 
-  <!-- Station Drawer (Floating Island, avoids right buttons) -->
-  <div id="stationDrawer" class="absolute left-3 sm:left-4 drawer-top drawer-bottom w-[calc(100vw-80px)] sm:w-80 max-w-[360px] neo-panel z-[900] flex flex-col p-4 transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[-120%] pointer-events-auto gpu-accel">
+  <!-- Station Drawer (Floating Island) -->
+  <!-- Fixed width calculation: leaves an 84px gap on the right for the buttons to ensure no overlap -->
+  <div id="stationDrawer" class="absolute left-3 sm:left-4 drawer-top drawer-bottom w-[calc(100vw-84px)] max-w-[320px] neo-panel z-[900] flex flex-col p-4 sm:p-5 transition-transform duration-500 ease-[var(--spring-bouncy)] -translate-x-[150%] pointer-events-auto gpu-accel">
     
     <div class="flex items-start justify-between gap-3 mb-4 shrink-0">
       <div class="flex flex-col min-w-0">
-        <span id="nearestStationName" class="text-[19px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
+        <span id="nearestStationName" class="text-[19px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Station</span>
         <span class="text-[11px] leading-tight text-[var(--aicher-text-muted)] font-semibold mt-0.5">MVV</span>
       </div>
       <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-[11px]"></i></button>
@@ -271,19 +272,19 @@
       <button id="refreshDepBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></button>
     </div>
 
-    <!-- Departures Tracker List (Flexbox perfectly restored) -->
+    <!-- Departures Tracker List (Reverted Flexbox Layout) -->
     <div class="flex-1 neo-input-track p-1.5 overflow-hidden flex flex-col min-h-0">
-      
       <!-- List Header -->
-      <div class="flex items-center px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70 shrink-0">
-        <span class="w-[36px] text-center">Linie</span>
-        <span class="flex-1 pl-2">Richtung</span>
-        <span class="w-[30px] text-right">Min</span>
+      <div class="flex items-center justify-between px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70 shrink-0">
+        <div class="flex items-center gap-2 flex-1">
+           <span class="w-[36px] text-center">Linie</span>
+           <span>Richtung</span>
+        </div>
+        <span class="text-right w-[40px]">Min</span>
       </div>
       
       <!-- Scrollable List -->
       <div id="departuresList" class="flex-1 overflow-y-auto pr-1 space-y-1 pb-2" style="-webkit-overflow-scrolling: touch;"></div>
-      
     </div>
   </div>
 
@@ -323,10 +324,10 @@
 
     const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
     
-    // Theme logic initialized to Dark Mode first
+    // Theme logic defaults to Dark Mode
     const TILE_THEMES = [
-      { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-500' },
-      { id: 'light', url: `https://api.maptiler.com/maps/dataviz-light/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-moon', color: 'text-[var(--aicher-yellow)]' }
+      { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-moon', color: 'text-[var(--aicher-yellow)]' },
+      { id: 'light', url: `https://api.maptiler.com/maps/dataviz-light/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-500' }
     ];
 
     let currentTileIndex = 0; 
@@ -350,6 +351,7 @@
 
     let currentDeparturesData = [];
     let activeDepartureFilters = new Set();
+    let selectedStation = null;
 
     function getLineBadgesHTML(lines) {
       if (!lines || !lines.length) return '';
@@ -358,6 +360,54 @@
         const textClass = (line === 'S8') ? 'text-black' : 'text-white';
         return `<button data-dep-line="${line}" class="dep-filter-btn aicher-badge ${textClass}" style="background-color: ${bg};">${line}</button>`;
       }).join('');
+    }
+
+    // === GEOJSON PROCESSING RESTORED ===
+    function matchMunichLine(feature) {
+      const p = feature.properties || {};
+      const ref = (p.ref || '').toUpperCase().trim();
+      const name = (p.name || '').toUpperCase().trim();
+      const lineProp = (p.line || '').toUpperCase().trim();
+
+      if (ref.startsWith('RB') || ref.startsWith('RE') || ref.startsWith('ICE') || 
+          ref.startsWith('IC') || ref.startsWith('ALX') || ref.startsWith('BRB') ||
+          ref.startsWith('EC') || ref.startsWith('RJ')) {
+        return null;
+      }
+
+      for (const lineCode of ALL_LINES) {
+        const regex = new RegExp(`(^|[^A-Z0-9])${lineCode}([^0-9]|$)`, 'i');
+        if (ref && regex.test(ref)) return lineCode;
+        if (lineProp && regex.test(lineProp)) return lineCode;
+        if (name && (name.includes(`${lineCode}:`) || name.includes(` ${lineCode} `) || name.endsWith(` ${lineCode}`))) {
+          return lineCode;
+        }
+      }
+      return null;
+    }
+
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function extractLineStrings(geom) {
+      if (!geom) return [];
+      let lines = [];
+      if (geom.type === 'LineString') {
+        lines.push(geom.coordinates);
+      } else if (geom.type === 'MultiLineString') {
+        lines.push(...geom.coordinates);
+      } else if (geom.type === 'GeometryCollection' && geom.geometries) {
+        geom.geometries.forEach(g => {
+          if (g.type === 'LineString') lines.push(g.coordinates);
+          else if (g.type === 'MultiLineString') lines.push(...g.coordinates);
+        });
+      }
+      return lines;
     }
 
     function renderTrackSegment(coords, lineCode) {
@@ -370,12 +420,97 @@
       linePolylineElements.push({ lineCode, casing, core });
     }
 
-    function extractLineStrings(geom) {
-      if (!geom) return [];
-      let lines = [];
-      if (geom.type === 'LineString') lines.push(geom.coordinates);
-      else if (geom.type === 'MultiLineString') lines.push(...geom.coordinates);
-      return lines;
+    function processAndApplyTracks(geojsonData) {
+      if (!geojsonData || !Array.isArray(geojsonData.features)) return;
+      ALL_LINES.forEach(l => { extractedByLine[l] = []; });
+      geojsonData.features.forEach(feat => {
+        const lineCode = matchMunichLine(feat);
+        if (!lineCode) return;
+        const rawList = extractLineStrings(feat.geometry);
+        rawList.forEach(rawPts => {
+          if (!rawPts || rawPts.length < 2) return;
+          const p1 = rawPts[0];
+          const p2 = rawPts[rawPts.length - 1];
+          if (p1[0] === p2[0] && p1[1] === p2[1]) return; 
+          let chunk = [];
+          for (let p = 0; p < rawPts.length; p++) { chunk.push([rawPts[p][1], rawPts[p][0]]); }
+          if (chunk.length > 1) { extractedByLine[lineCode].push(chunk); }
+        });
+      });
+      ALL_LINES.forEach(lineCode => { extractedByLine[lineCode].forEach(seg => renderTrackSegment(seg, lineCode)); });
+    }
+
+    function processStations(geojsonData) {
+      if (!geojsonData || !Array.isArray(geojsonData.features)) return;
+      STATIONS = []; STATION_MAP = {};
+      const tempStations = new Map();
+      
+      geojsonData.features.forEach(feat => {
+        if (!feat.geometry || !feat.properties || !feat.properties.name) return;
+        let lat, lng;
+        if (feat.geometry.type === 'Point') {
+          lat = feat.geometry.coordinates[1];
+          lng = feat.geometry.coordinates[0];
+        } else if (feat.geometry.type === 'Polygon') {
+          const ring = feat.geometry.coordinates[0];
+          let latSum = 0, lngSum = 0;
+          ring.forEach(pt => { lngSum += pt[0]; latSum += pt[1]; });
+          lat = latSum / ring.length;
+          lng = lngSum / ring.length;
+        } else return;
+
+        let name = feat.properties.name.replace(/ \(.*\)/g, '').trim();
+        
+        // Normalize Hubs
+        if (name.includes('Hauptbahnhof') || name.includes('München Hbf')) name = 'Hauptbahnhof';
+        if (name.includes('Ostbahnhof')) name = 'Ostbahnhof';
+
+        if (!tempStations.has(name)) {
+          tempStations.set(name, { id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat, lng, lines: new Set(), isHub: false, zone: 'MVV' });
+        }
+      });
+
+      tempStations.forEach(station => {
+        for (const lineCode of ALL_LINES) {
+          const segments = extractedByLine[lineCode] || [];
+          let found = false;
+          for (const seg of segments) {
+            if (found) break;
+            for (let i = 0; i < seg.length; i += 2) {
+              const pt = seg[i];
+              if (getDistanceMeters(station.lat, station.lng, pt[0], pt[1]) < 250) { 
+                station.lines.add(lineCode);
+                found = true; break;
+              }
+            }
+          }
+        }
+        station.lines = Array.from(station.lines).sort();
+        station.isHub = station.lines.length > 2 || (station.lines.some(l => l.startsWith('S')) && station.lines.some(l => l.startsWith('U')));
+        
+        if (station.lines.length > 0) {
+          STATIONS.push(station);
+          STATION_MAP[station.id] = station;
+        }
+      });
+      renderStationMarkers();
+    }
+
+    function renderStationMarkers() {
+      STATIONS.forEach(station => {
+        const hubSvg = `<svg class="station-hub-svg" width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" class="hub-outer"/><circle cx="11" cy="11" r="3.2" class="hub-inner"/></svg>`;
+        const nodeSvg = `<svg class="station-node-svg" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.6" class="node-outer"/></svg>`;
+        const customIcon = L.divIcon({ 
+          className: 'station-node-wrap', 
+          html: station.isHub ? hubSvg : nodeSvg, 
+          iconSize: [44, 44], 
+          iconAnchor: [22, 22] 
+        });
+        const marker = L.marker([station.lat, station.lng], { icon: customIcon });
+        marker.on('click', () => { haptic(20); setStationDisplay(station); });
+        stationLayerGroup.addLayer(marker);
+        stationMarkers.push({ data: station, marker });
+      });
     }
 
     async function loadNetworkTracks() {
@@ -386,7 +521,13 @@
         if (!tracksRes || !tracksRes.ok || !stationsRes || !stationsRes.ok) {
             throw new Error("Missing Local Map Data");
         }
-        // Simplified rendering process for demo space...
+        
+        const trackData = await tracksRes.json();
+        processAndApplyTracks(trackData);
+        
+        const stData = await stationsRes.json();
+        processStations(stData);
+
       } catch (err) { 
           showErrorToast("Kartendaten fehlen");
       }
@@ -394,10 +535,12 @@
 
     // --- Search Logic ---
     let isSearchExpanded = false;
+    let currentSearchMatches = [];
     const searchContainer = document.getElementById('searchContainer');
     const searchIconBtn = document.getElementById('searchIconBtn');
     const searchInput = document.getElementById('stationSearchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const searchDropdown = document.getElementById('searchDropdown');
 
     function toggleSearch() {
       isSearchExpanded = !isSearchExpanded;
@@ -412,74 +555,169 @@
         searchContainer.classList.remove('w-[calc(100vw-24px)]', 'sm:w-80', 'neo-inset');
         searchInput.classList.add('opacity-0', 'pointer-events-none');
         searchInput.value = '';
+        searchDropdown.classList.add('hidden');
         clearSearchBtn.classList.add('hidden');
       }
     }
 
     searchIconBtn.addEventListener('click', () => { haptic(15); if (!isSearchExpanded) toggleSearch(); });
     clearSearchBtn.addEventListener('click', (e) => { e.stopPropagation(); haptic(15); toggleSearch(); });
+
+    function renderSearchDropdown() {
+      if (currentSearchMatches.length === 0) {
+        searchDropdown.innerHTML = `<div class="px-4 py-3 text-[13px] font-semibold text-[var(--aicher-text-muted)]">Keine Stationen gefunden</div>`;
+      } else {
+        searchDropdown.innerHTML = currentSearchMatches.map(s => {
+          return `
+            <div class="px-4 py-3 cursor-pointer flex justify-between items-center transition-colors hover:bg-[var(--neo-shadow-light)]/20" onclick="selectSearchStation('${s.id}')">
+              <span class="text-[13px] font-black text-[var(--aicher-text-title)]">${s.name}</span>
+            </div>`;
+        }).join('');
+      }
+      searchDropdown.classList.remove('hidden');
+    }
+
     searchInput.addEventListener('input', function() {
-        if(this.value.trim().length > 0) clearSearchBtn.classList.remove('hidden');
-        else clearSearchBtn.classList.add('hidden');
+      const q = this.value.trim().toLowerCase();
+      if (!q) { searchDropdown.classList.add('hidden'); clearSearchBtn.classList.add('hidden'); return; }
+      clearSearchBtn.classList.remove('hidden');
+      currentSearchMatches = STATIONS.filter(s => s.name.toLowerCase().includes(q)).slice(0, 6);
+      renderSearchDropdown();
     });
+
+    window.selectSearchStation = function(stId) {
+      haptic(20);
+      const found = stationMarkers.find(sm => sm.data.id === stId);
+      if (found) { map.setView([found.data.lat, found.data.lng], 16, { animate: true }); setStationDisplay(found.data); }
+      toggleSearch();
+    }
 
     // --- Drawer Logic ---
     const stationDrawer = document.getElementById('stationDrawer');
 
-    function setStationDisplay(stName) {
-      document.getElementById('nearestStationName').innerText = stName;
-      stationDrawer.classList.remove('translate-x-[-120%]');
-      fetchLiveDepartures(stName);
+    function updateDepFiltersUI() {
+      const btns = document.querySelectorAll('.dep-filter-btn');
+      btns.forEach(btn => {
+        const line = btn.getAttribute('data-dep-line');
+        if (activeDepartureFilters.size === 0) {
+          btn.style.opacity = '1'; btn.style.transform = '';
+        } else if (activeDepartureFilters.has(line)) {
+          btn.style.opacity = '1'; btn.style.transform = 'scale(1.1)';
+        } else {
+          btn.style.opacity = '0.35'; btn.style.transform = 'scale(0.95)';
+        }
+      });
+      const clearBtn = document.getElementById('clearDepFiltersBtn');
+      if (clearBtn) {
+        if (activeDepartureFilters.size > 0) {
+          clearBtn.classList.remove('hidden');
+          requestAnimationFrame(() => clearBtn.classList.replace('scale-0', 'scale-100'));
+        } else {
+          clearBtn.classList.replace('scale-100', 'scale-0');
+          setTimeout(() => { if (activeDepartureFilters.size === 0) clearBtn.classList.add('hidden'); }, 300);
+        }
+      }
+    }
+
+    function setStationDisplay(st) {
+      selectedStation = st;
+      activeDepartureFilters.clear();
+      currentDeparturesData = [];
+
+      document.getElementById('nearestStationName').innerText = st.name;
+      const badgesHtml = getLineBadgesHTML(st.lines);
+      const clearBtnHtml = `<button id="clearDepFiltersBtn" class="hidden neo-btn w-7 h-7 ml-auto shrink-0 transition-all duration-300 transform scale-0" title="Filter zurücksetzen"><i class="fa-solid fa-filter-circle-xmark text-[11px] text-[#C31B2C]"></i></button>`;
+      
+      const linesContainer = document.getElementById('nearestStationLines');
+      linesContainer.innerHTML = badgesHtml + clearBtnHtml;
+
+      linesContainer.querySelectorAll('.dep-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          haptic(15);
+          const line = btn.getAttribute('data-dep-line');
+          activeDepartureFilters.has(line) ? activeDepartureFilters.delete(line) : activeDepartureFilters.add(line);
+          updateDepFiltersUI(); renderDeparturesList(); 
+        });
+      });
+
+      document.getElementById('clearDepFiltersBtn').addEventListener('click', () => {
+        haptic([15, 30, 15]); activeDepartureFilters.clear(); updateDepFiltersUI(); renderDeparturesList();
+      });
+
+      stationDrawer.classList.remove('-translate-x-[150%]');
+      fetchLiveDepartures(st);
     }
 
     document.getElementById('closeStationDrawerBtn').addEventListener('click', () => { 
-        haptic(15); 
-        stationDrawer.classList.add('translate-x-[-120%]'); 
+        haptic(15); stationDrawer.classList.add('-translate-x-[150%]'); selectedStation = null;
     });
 
-    // --- Departures List Styling (Reverted Flexbox layout) ---
+    document.getElementById('refreshDepBtn').addEventListener('click', () => {
+      haptic([10, 40, 10]);
+      if (selectedStation) fetchLiveDepartures(selectedStation);
+    });
+
+    // --- Departures List (Flexbox Layout) ---
     function renderDeparturesList() {
       const listEl = document.getElementById('departuresList');
-      if (currentDeparturesData.length === 0) {
+      if (!currentDeparturesData || currentDeparturesData.length === 0) {
         listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten gefunden.</div>`;
         return;
       }
-      
-      listEl.innerHTML = currentDeparturesData.map(d => {
-        const textColor = d.line === 'S8' ? 'text-black' : 'text-white';
-        const bgColor = LINE_COLORS[d.line] || '#333333';
-        const delay = d.delay > 0 ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` : '';
+
+      const filteredData = activeDepartureFilters.size > 0
+        ? currentDeparturesData.filter(d => activeDepartureFilters.has(String(d.line)))
+        : currentDeparturesData;
+
+      if (filteredData.length === 0) {
+        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Keine Abfahrten für gewählte Filter.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = filteredData.map(d => {
+        const lineStr = String(d.line);
+        const textColor = lineStr === 'S8' ? 'text-black' : 'text-white';
+        const bgColor = LINE_COLORS[lineStr] || '#333333';
+        const delayIndicator = d.delay > 0 ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` : '';
 
         return `
-          <div class="flex items-center p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors min-w-0">
-            <div class="w-[36px] flex justify-center shrink-0">
-               <span class="aicher-badge ${textColor} h-[20px] min-w-[32px] px-1.5 text-[10px]" style="background-color: ${bgColor};">${d.line}</span>
+          <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors min-w-0">
+            <div class="flex items-center gap-2 flex-1 min-w-0 pr-2">
+               <span class="aicher-badge flex items-center justify-center ${textColor} h-[20px] w-[32px] text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
+               <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
             </div>
-            <div class="flex-1 min-w-0 pl-2 pr-2">
-               <span class="text-[13px] font-bold truncate block text-[var(--aicher-text-title)]">${d.direction}</span>
-            </div>
-            <div class="w-[30px] flex justify-end shrink-0 items-center">
-              <span class="text-[13px] font-black text-[var(--aicher-text-title)]">${d.minsUntil}</span>
-              ${delay}
-            </div>
+            <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center w-[40px] justify-end">
+              ${d.minsUntil}
+              ${delayIndicator}
+            </span>
           </div>
         `;
       }).join('');
     }
 
-    async function fetchLiveDepartures(stName) {
+    async function fetchLiveDepartures(station) {
       const listEl = document.getElementById('departuresList');
       listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Live-Abfahrten...</div>`;
       
-      setTimeout(() => {
-        // Mock Data for Demo
-        currentDeparturesData = [
-          { line: 'U1', direction: 'Olympia-Einkaufszentrum', minsUntil: 2, delay: 0 },
-          { line: 'U2', direction: 'Feldmoching', minsUntil: 4, delay: 2 },
-          { line: 'S8', direction: 'Flughafen München', minsUntil: 7, delay: 0 }
-        ];
+      try {
+        const apiUrl = `/api/departures?query=${encodeURIComponent(station.name)}&lat=${station.lat}&lng=${station.lng}`;
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('API-Fehler');
+        
+        currentDeparturesData = await response.json();
         renderDeparturesList();
-      }, 600);
+      } catch (err) {
+        console.warn("API Failed, falling back to mock data for demo");
+        // Fallback for visual testing if API fails
+        setTimeout(() => {
+            currentDeparturesData = [
+                { line: 'U1', direction: 'Olympia-Einkaufszentrum', minsUntil: 2, delay: 0 },
+                { line: 'U2', direction: 'Feldmoching', minsUntil: 4, delay: 2 },
+                { line: 'S8', direction: 'Flughafen München', minsUntil: 7, delay: 0 }
+            ];
+            renderDeparturesList();
+        }, 500);
+      }
     }
 
     // --- Notification & GPS UI ---
@@ -510,17 +748,29 @@
 
     document.getElementById('gpsBtn').addEventListener('click', startGpsTracking);
     document.getElementById('layerCycleBtn').addEventListener('click', () => { 
-        haptic(20); 
-        currentTileIndex = (currentTileIndex + 1) % TILE_THEMES.length; 
-        applyTileLayer(currentTileIndex); 
+        haptic(20); currentTileIndex = (currentTileIndex + 1) % TILE_THEMES.length; applyTileLayer(currentTileIndex); 
+    });
+    
+    document.getElementById('centerMapBtn').addEventListener('click', () => { 
+        haptic(20); map.setView([48.140, 11.575], 11, {animate:true}); 
+    });
+
+    // --- Filter logic ---
+    const filterMenuBtn = document.getElementById('filterMenuBtn');
+    const filterMenuPanel = document.getElementById('filterMenuPanel');
+    
+    filterMenuBtn.addEventListener('click', (e) => { 
+      e.stopPropagation(); haptic(15); 
+      filterMenuPanel.classList.toggle('hidden'); 
+      filterMenuBtn.classList.toggle('neo-inset-sm'); 
+    });
+    
+    document.getElementById('closeFilterMenuBtn').addEventListener('click', () => { 
+      haptic(15); filterMenuPanel.classList.add('hidden'); filterMenuBtn.classList.remove('neo-inset-sm'); 
     });
 
     applyTileLayer(0);
     loadNetworkTracks();
-    
-    // Quick Demo Trigger
-    setTimeout(() => { setStationDisplay('Hauptbahnhof'); }, 500);
-
   </script>
 </body>
 </html>
