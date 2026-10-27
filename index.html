@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Munich Zone M Transit GPS Map</title>
-  <meta name="theme-color" content="#E0E5EC" id="themeColorMeta" />
+  <meta name="theme-color" content="#2C2F36" id="themeColorMeta" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
@@ -302,7 +302,8 @@
   </aside>
 
   <!-- Solid Slide-In Error Toast (Top Right) -->
-  <div class="absolute top-4 right-0 safe-top z-[1050] pointer-events-none flex justify-end overflow-hidden w-full h-12">
+  <!-- Note: Removed tight height and overflow limits so the neumorphic shadow isn't chopped off! -->
+  <div class="absolute top-4 right-0 safe-top z-[1050] pointer-events-none flex justify-end w-full pb-8">
     <!-- Slide-in Container -->
     <div id="toastPill" class="flex items-center h-12 p-1 mr-3 sm:mr-4 bg-[var(--neo-base)] border border-[var(--neo-border)] rounded-full shadow-[var(--neo-outset)] transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[150%]">
       
@@ -312,7 +313,7 @@
       </div>
       
       <!-- Text Container -->
-      <span id="trackStatusMsg" class="whitespace-nowrap text-[15px] font-black tracking-tight text-[var(--aicher-text-title)] px-4">Fehler</span>
+      <span id="trackStatusMsg" class="whitespace-nowrap text-[15px] font-black tracking-tight text-[var(--aicher-text-title)] pl-4 pr-3">Fehler</span>
     </div>
   </div>
 
@@ -349,9 +350,11 @@
     let linePolylineElements = []; const stationMarkers = [];
 
     const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
+    
+    // Defaulting to Dark theme by placing it at index 0
     const TILE_THEMES = [
-      { id: 'light', url: `https://api.maptiler.com/maps/dataviz-light/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-600' },
       { id: 'dark', url: `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-moon', color: 'text-[var(--aicher-yellow)]' },
+      { id: 'light', url: `https://api.maptiler.com/maps/dataviz-light/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, icon: 'fa-sun', color: 'text-amber-600' },
       { id: 'satellite', url: `https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, icon: 'fa-satellite', color: 'text-blue-400' }
     ];
 
@@ -731,7 +734,6 @@
         });
       });
       
-      // Reset clear button state manually when opening a new station
       const clearBtn = document.getElementById('clearDepFiltersBtn');
       clearBtn.classList.add('hidden', 'scale-0');
       clearBtn.classList.remove('scale-100');
@@ -787,10 +789,11 @@
           ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
           : '';
 
+        // Restored EXACT original format per user request
         return `
           <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
             <div class="flex items-center gap-2 flex-1 min-w-0">
-               <span class="aicher-badge ${textColor} !h-[20px] !min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
+               <span class="aicher-badge ${textColor} h-[20px] min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
                <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
             </div>
             <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center">
