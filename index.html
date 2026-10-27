@@ -283,10 +283,18 @@
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="trackStatusToast" class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto neo-pill px-4 py-2 flex items-center gap-2 text-[11px] font-black tracking-tight text-[var(--aicher-text-title)] z-[1000]">
-    <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] animate-ping"></span>
-    <span id="trackStatusMsg">Status</span>
+  <!-- Toast Notification (Top Right) -->
+  <div id="trackStatusToast" class="hidden absolute top-4 right-3 sm:right-4 safe-top z-[1050] pointer-events-none flex justify-end items-center h-10">
+    <div id="toastPill" class="neo-pill flex items-center h-full p-1 opacity-0 scale-50 transition-all duration-400 ease-[var(--spring-bouncy)] origin-right">
+      <!-- Text Container (Hidden initially, expands left) -->
+      <div id="toastTextWrap" class="overflow-hidden max-w-0 opacity-0 transition-all duration-500 ease-[var(--spring-bouncy)] flex items-center justify-end">
+        <span id="trackStatusMsg" class="whitespace-nowrap pl-3 pr-2 text-[11px] font-black tracking-tight text-[var(--aicher-text-title)]">Status</span>
+      </div>
+      <!-- Dot Container (Appears first, stays on right) -->
+      <div class="w-8 h-8 shrink-0 flex items-center justify-center rounded-full bg-[var(--neo-base)] shadow-[var(--neo-inset-sm)]">
+        <span class="w-2.5 h-2.5 rounded-full bg-[var(--aicher-green)] shadow-[0_0_5px_rgba(56,161,105,0.6)] animate-pulse"></span>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -963,88 +971,127 @@
 
     document.getElementById('gpsBtn').addEventListener('click', () => { haptic(20); startGpsTracking(false); });
 
-    let toastTimeout;
+    // Toast Animation Queue state
+    let toastAnimTimeouts = [];
+    
     function showToast(msg) {
-      const t = document.getElementById('trackStatusToast');
+      // Clear any ongoing animations to prevent overlapping bugs
+      toastAnimTimeouts.forEach(clearTimeout);
+      toastAnimTimeouts = [];
+
+      const tContainer = document.getElementById('trackStatusToast');
+      const tPill = document.getElementById('toastPill');
+      const tText = document.getElementById('toastTextWrap');
+      
       document.getElementById('trackStatusMsg').innerText = msg;
-      t.classList.remove('hidden');
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => t.classList.add('hidden'), 3000);
+      
+      // Reset state instantly before animating
+      tPill.classList.remove('opacity-100', 'scale-100', 'opacity-0', 'scale-50', 'duration-400', 'duration-200');
+      tText.classList.remove('max-w-[200px]', 'opacity-100', 'max-w-0', 'opacity-0', 'duration-500', 'duration-300');
+      
+      tPill.classList.add('opacity-0', 'scale-50', 'duration-400');
+      tText.classList.add('max-w-0', 'opacity-0', 'duration-500');
+      tContainer.classList.remove('hidden');
+
+      // Double requestAnimationFrame ensures the browser applies the reset classes before animating
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // 1. Pop the dot in
+          tPill.classList.remove('opacity-0', 'scale-50');
+          tPill.classList.add('opacity-100', 'scale-100');
+          
+          // 2. Extend the text to the left
+          toastAnimTimeouts.push(setTimeout(() => {
+            tText.classList.remove('max-w-0', 'opacity-0');
+            tText.classList.add('max-w-[200px]', 'opacity-100');
+          }, 350));
+        });
+      });
+
+      // Exit animation sequence (reverses the process)
+      toastAnimTimeouts.push(setTimeout(() => {
+        // 3. Retract text slightly faster than it opened
+        tText.classList.remove('duration-500');
+        tText.classList.add('duration-300'); 
+        tText.classList.remove('max-w-[200px]', 'opacity-100');
+        tText.classList.add('max-w-0', 'opacity-0');
+        
+        // 4. Shrink dot and hide container
+        toastAnimTimeouts.push(setTimeout(() => {
+          tPill.classList.remove('duration-400');
+          tPill.classList.add('duration-200');
+          tPill.classList.remove('opacity-100', 'scale-100');
+          tPill.classList.add('opacity-0', 'scale-50');
+          
+          // Wait for scale down to finish before applying hidden
+          toastAnimTimeouts.push(setTimeout(() => {
+            tContainer.classList.add('hidden');
+          }, 200));
+        }, 300)); // wait for text to finish retracting
+      }, 3500)); // Keep on screen for 3.5 seconds
     }
 
-    // Touch Swipe Gestures for physics-based menu closing
-    function makeSwipeable(element, direction, closeCallback, baseTransform = '') {
+    // Touch gesture physics (Restored and fixed)
+    function makeSwipeable(element, direction, closeCallback) {
       let startX = 0, startY = 0;
-      let isDragging = false, isScrolling = false, isDetermining = false;
-      let scrollTarget = null;
-      let ticking = false; // Added for Frame Syncing
+      let isDragging = false, isScrolling = false, isDetermining = false, ticking = false;
+      let baseTransform = '';
 
-      element.addEventListener('touchstart', e => {
-        if (e.touches.length > 1) return;
+      element.addEventListener('touchstart', (e) => {
         startX = e.touches[0].screenX;
         startY = e.touches[0].screenY;
-        isDragging = true;
-        isScrolling = false;
-        isDetermining = true;
-        
-        // Check if the user is touching a scrollable element
-        scrollTarget = e.target.closest('.overflow-y-auto');
-        
-        // Remove CSS transition so it tracks the finger instantly
-        element.style.transition = 'none'; 
+        isDragging = true; isScrolling = false; isDetermining = true;
+        baseTransform = window.getComputedStyle(element).transform;
+        if (baseTransform === 'none') baseTransform = '';
+        element.style.transition = 'none'; // Disable transition for instant finger tracking
       }, {passive: true});
-      
-      element.addEventListener('touchmove', e => {
+
+      element.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
-        let currentX = e.touches[0].screenX;
-        let currentY = e.touches[0].screenY;
-        let diffX = currentX - startX;
-        let diffY = currentY - startY; 
-        
-        // Wait until we have a clear direction (intent threshold) before moving the panel
+        let diffX = e.touches[0].screenX - startX;
+        let diffY = e.touches[0].screenY - startY;
+
+        // Intent threshold
         if (isDetermining) {
-          if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
-            isDetermining = false;
-            // If swiping mostly vertically inside a scrollable area, it's a scroll
-            if (scrollTarget && Math.abs(diffY) > Math.abs(diffX)) {
-              isScrolling = true;
-            }
-          } else {
-            return; // Wait for more movement to determine intent
+          if (Math.abs(diffY) > 5 && Math.abs(diffY) > Math.abs(diffX)) {
+             isScrolling = true; isDetermining = false; isDragging = false;
+             element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
+             return;
+          }
+          if (Math.abs(diffX) > 5) {
+             isDetermining = false;
+             if (e.cancelable) e.preventDefault();
           }
         }
 
-        if (isScrolling) {
-          return; // Let native list scroll happen, don't move the panel at all
-        }
+        if (isScrolling || isDetermining) return;
+        if (e.cancelable) e.preventDefault();
 
-        // Frame Syncing (requestAnimationFrame) & GPU Boost (translate3d)
         if (!ticking) {
           requestAnimationFrame(() => {
-            // Apply "Rubber-band" physics for X axis if pulling in the wrong direction
             let physX = diffX;
+            // Rubber-band for pulling wrong direction
             if (direction === 'left' && physX > 0) physX = physX * 0.25;
             if (direction === 'right' && physX < 0) physX = physX * 0.25;
             
-            // Apply "Rubber-band" physics for Y axis (360 degree drag)
+            // 360 degree drag (Y-axis)
             let rubberY = diffY * 0.25;
             
-            // Physically move the menu 360 degrees using 3D acceleration
+            // GPU acceleration
             element.style.transform = `translate3d(${physX}px, ${rubberY}px, 0) ${baseTransform}`;
             ticking = false;
           });
           ticking = true;
         }
-      }, {passive: true});
-      
+      }, {passive: false}); // Required false to allow preventDefault
+
       element.addEventListener('touchend', e => {
         if (!isDragging) return;
         isDragging = false;
         
-        // If they were just scrolling (or barely tapped), gracefully reset any weird states
         if (isScrolling || isDetermining) {
            element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
-           element.style.transform = baseTransform ? baseTransform.trim() : '';
+           element.style.transform = '';
            return;
         }
 
@@ -1052,13 +1099,10 @@
         let diffY = e.changedTouches[0].screenY - startY;
         let rubberY = diffY * 0.25;
         
-        // Restore custom spring transition for the snap back or completion
         element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
         
-        // If swiped far enough on the X axis, trigger the close!
         if ((direction === 'left' && diffX < -60) || (direction === 'right' && diffX > 60)) {
            if (direction === 'right') {
-               // Slide right-menu out visually (maintaining Y pull) before triggering callback
                element.style.transform = `translate3d(120%, ${rubberY}px, 0) ${baseTransform}`;
                element.style.opacity = '0';
                setTimeout(() => {
@@ -1067,7 +1111,6 @@
                    closeCallback();
                }, 300);
            } else {
-               // Slide left drawer out visually (maintaining Y pull)
                element.style.transform = `translate3d(-120%, ${rubberY}px, 0) ${baseTransform}`;
                setTimeout(() => {
                    element.style.transform = '';
@@ -1075,16 +1118,15 @@
                }, 300);
            }
         } else {
-           // Didn't swipe far enough, snap back to origin point in 360 space
-           element.style.transform = baseTransform ? baseTransform.trim() : '';
+           element.style.transform = '';
         }
       }, {passive: true});
     }
 
-    // Attach true physics swipe-to-close on both menus
     makeSwipeable(stationDrawer, 'left', closeDrawer);
     makeSwipeable(filterMenuPanel, 'right', closeFilterMenu);
 
+    // Hide stations/lines when zooming out far to keep the map fast
     map.on('zoomend', function() {
       const currentZoom = map.getZoom();
       if (currentZoom < 12) {
