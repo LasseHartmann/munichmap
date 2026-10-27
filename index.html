@@ -194,10 +194,10 @@
   </div>
 
   <!-- Map Controls & Filter Menu (Right Side) -->
-  <aside class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-[1000] pointer-events-none flex items-center justify-end">
+  <aside class="absolute right-3 sm:right-4 bottom-8 sm:bottom-12 z-[1000] pointer-events-none flex items-end justify-end">
     
     <!-- Filter Panel Slideout (Hidden behind the Pill naturally via z-index and translation) -->
-    <div id="filterMenuPanel" class="aicher-slide absolute right-full mr-4 top-1/2 -translate-y-1/2 w-[280px] sm:w-[320px] neo-panel p-4 z-[-1] opacity-0 pointer-events-none translate-x-[120%]">
+    <div id="filterMenuPanel" class="aicher-slide absolute right-full mr-4 bottom-0 w-[280px] sm:w-[320px] neo-panel p-4 z-[-1] opacity-0 pointer-events-none translate-x-[120%]">
       <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--neo-shadow-light)]/20">
         <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
         <button id="closeFilterMenuBtn" class="w-7 h-7 neo-btn pointer-events-auto"><i class="fa-solid fa-xmark text-xs"></i></button>
@@ -1083,7 +1083,7 @@
 
     // Attach true physics swipe-to-close on both menus
     makeSwipeable(stationDrawer, 'left', closeDrawer);
-    makeSwipeable(filterMenuPanel, 'right', closeFilterMenu, 'translateY(-50%)');
+    makeSwipeable(filterMenuPanel, 'right', closeFilterMenu);
 
     map.on('zoomend', function() {
       const currentZoom = map.getZoom();
