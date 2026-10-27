@@ -193,6 +193,25 @@
     <div id="searchDropdown" class="hidden neo-panel flex flex-col w-[calc(100vw-24px)] sm:w-80 max-h-[40vh] overflow-y-auto divide-y divide-[var(--neo-shadow-light)]/20 shadow-2xl"></div>
   </div>
 
+  <!-- Station Details Drawer (Left Side) -->
+  <div id="stationDrawer" class="aicher-slide absolute left-0 top-0 bottom-0 w-[85vw] sm:w-[360px] bg-[var(--neo-base)] border-r border-[var(--neo-border)] shadow-[var(--neo-outset)] z-[900] flex flex-col -translate-x-[120%] safe-top safe-bottom pointer-events-auto">
+    <div class="p-4 sm:p-5 flex flex-col gap-4 border-b border-[var(--neo-shadow-light)]/20">
+      <div class="flex justify-between items-center">
+        <h2 id="nearestStationName" class="text-[20px] font-black tracking-tight text-[var(--aicher-text-title)] truncate pr-2">Station</h2>
+        <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <div id="nearestStationLines" class="flex flex-wrap gap-1.5 min-h-[22px]"></div>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto p-2 sm:p-3 overscroll-contain">
+      <div class="flex items-center justify-between px-2 mb-2 mt-1">
+        <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)] opacity-80">Live Abfahrten</span>
+        <button id="refreshDepBtn" class="w-6 h-6 neo-btn"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
+      </div>
+      <div id="departuresList" class="flex flex-col gap-1"></div>
+    </div>
+  </div>
+
   <!-- Map Controls & Filter Menu (Right Side) -->
   <aside class="absolute right-3 sm:right-4 bottom-8 sm:bottom-12 z-[1000] pointer-events-none flex items-end justify-end">
     
@@ -236,7 +255,10 @@
 
     <!-- Right Controls Pill -->
     <div class="neo-pill p-1.5 flex flex-col gap-2.5 items-center relative z-10 pointer-events-auto">
-      <button id="gpsBtn" title="Standort" class="w-9 h-9 neo-btn"><i class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i></button>
+      <button id="gpsBtn" title="Standort" class="w-9 h-9 neo-btn relative">
+        <i class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i>
+        <span id="gpsStatusDot" class="hidden absolute top-0 right-0 w-[9px] h-[9px] rounded-full border-[1.5px] border-[var(--neo-base)]"></span>
+      </button>
       <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
       
       <div class="relative flex justify-center">
@@ -247,53 +269,24 @@
       </div>
 
       <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
-      <button id="centerMapBtn" title="Gesamtes Netz" class="w-9 h-9 neo-btn"><i class="fa-solid fa-expand text-[12px] text-[var(--aicher-text-title)]"></i></button>
-      <button id="layerCycleBtn" title="Kartenstil" class="w-9 h-9 neo-btn"><i id="layerIcon" class="fa-solid fa-moon text-[12px] text-[var(--aicher-yellow)]"></i></button>
+      
+      <button id="layerCycleBtn" title="Kartenstil" class="w-9 h-9 neo-btn">
+        <i id="layerIcon" class="fa-solid fa-moon text-[12px]"></i>
+      </button>
+      
+      <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
+      
+      <button id="centerMapBtn" title="Zentrieren" class="w-9 h-9 neo-btn">
+        <i class="fa-solid fa-crosshairs text-[12px] text-[var(--aicher-text-title)]"></i>
+      </button>
     </div>
   </aside>
 
-  <!-- Station Drawer (Left Side) -->
-  <div id="stationDrawer" class="aicher-slide absolute left-3 sm:left-4 top-[72px] bottom-4 sm:bottom-6 w-[calc(100vw-6rem)] sm:w-80 neo-panel z-[900] flex flex-col p-4 sm:p-5 -translate-x-[120%] pointer-events-auto">
-    <div class="flex items-center justify-between gap-3 mb-4">
-      <div class="flex items-center min-w-0">
-        <span id="nearestStationName" class="text-[18px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
-      </div>
-      <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-[11px]"></i></button>
-    </div>
-
-    <!-- Departure Filters (Line Badges) -->
-    <div id="nearestStationLines" class="flex flex-wrap items-center gap-1.5 mb-5 pb-5 border-b border-[var(--neo-shadow-light)]/20"></div>
-
-    <div class="flex items-center justify-between px-1 mb-3">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse"></span>
-        <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)]">Live Abfahrten</span>
-      </div>
-      <button id="refreshDepBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></button>
-    </div>
-
-    <!-- Neomorphic Sunken List -->
-    <div class="flex-1 neo-input-track p-1.5 overflow-hidden flex flex-col">
-      <div class="grid grid-cols-[44px_1fr_60px] items-center px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70">
-        <span>Linie</span>
-        <span class="pl-1">Richtung</span>
-        <span class="text-right">Min</span>
-      </div>
-      <div id="departuresList" class="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-1"></div>
-    </div>
-  </div>
-
-  <!-- Toast Notification (Top Right) -->
-  <div id="trackStatusToast" class="hidden absolute top-4 right-3 sm:right-4 safe-top z-[1050] pointer-events-none flex justify-end items-center h-8">
-    <div id="toastPill" class="neo-pill flex items-center h-full opacity-0 scale-50 transition-all duration-400 ease-[var(--spring-bouncy)] origin-right">
-      <!-- Text Container (Hidden initially, expands left) -->
-      <div id="toastTextWrap" class="overflow-hidden max-w-0 opacity-0 transition-all duration-500 ease-[var(--spring-bouncy)] flex items-center justify-end">
-        <span id="trackStatusMsg" class="whitespace-nowrap pl-4 pr-3 text-[11px] font-black tracking-tight text-[var(--aicher-text-title)]">Status</span>
-      </div>
-      <!-- Dot Container (Appears first, stays on right) -->
-      <div class="w-8 h-8 shrink-0 flex items-center justify-center rounded-full bg-[var(--neo-base)] shadow-[var(--neo-inset-sm)]">
-        <span class="w-2.5 h-2.5 rounded-full bg-[var(--aicher-green)] shadow-[0_0_5px_rgba(56,161,105,0.6)] animate-pulse"></span>
-      </div>
+  <!-- Solid Slide-In Error Toast (Top Right) -->
+  <div class="absolute top-4 right-0 safe-top z-[1050] pointer-events-none flex justify-end overflow-hidden w-full h-12">
+    <div id="toastPill" class="flex items-center h-full px-4 mr-3 sm:mr-4 bg-[var(--neo-base)] border border-[var(--neo-border)] rounded-full shadow-[var(--neo-outset)] transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[150%]">
+      <span class="w-2.5 h-2.5 rounded-full bg-[#C31B2C] shadow-[0_0_5px_rgba(195,27,44,0.6)] animate-pulse shrink-0 mr-3"></span>
+      <span id="trackStatusMsg" class="whitespace-nowrap text-[14px] font-black tracking-tight text-[var(--aicher-text-title)]">Fehler</span>
     </div>
   </div>
 
@@ -344,6 +337,11 @@
       const theme = TILE_THEMES[index];
       activeTileLayer = L.tileLayer(theme.url, { tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20 }).addTo(map);
       
+      let errorShown = false;
+      activeTileLayer.on('tileerror', () => {
+        if (!errorShown) { showToast('Kartenkacheln konnten nicht geladen werden'); errorShown = true; }
+      });
+
       const isDark = (theme.id === 'dark' || theme.id === 'satellite');
       document.body.classList.toggle('theme-dark', isDark);
       document.getElementById('themeColorMeta').setAttribute('content', isDark ? '#2C2F36' : '#E0E5EC');
@@ -512,7 +510,6 @@
     }
 
     async function loadNetworkTracks() {
-      showToast("Lade Netzwerkdaten...");
       try {
         const cb = new Date().getTime(); 
         const [tracksRes, stationsRes] = await Promise.all([fetch(`tracks.geojson?v=${cb}`).catch(()=>null), fetch(`stations.geojson?v=${cb}`).catch(()=>null)]);
@@ -520,13 +517,19 @@
         if (tracksRes && tracksRes.ok) {
            const trackData = await tracksRes.json();
            processAndApplyTracks(trackData);
+        } else {
+           showToast('Fehler beim Laden der Strecken');
         }
         if (stationsRes && stationsRes.ok) {
            const stData = await stationsRes.json();
            processStations(stData);
+        } else {
+           showToast('Fehler beim Laden der Stationen');
         }
-        showToast("Netzwerk geladen");
-      } catch (err) { console.log(err); }
+      } catch (err) { 
+        console.log(err); 
+        showToast('Kritischer Netzwerkfehler');
+      }
     }
 
     function renderStationMarkers() {
@@ -783,6 +786,7 @@
         renderDeparturesList();
       } catch (err) {
         listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[#C31B2C] font-bold">Fehler beim Verbinden mit MVG</div>`;
+        showToast('MVG Live-Daten nicht erreichbar');
       }
     }
 
@@ -913,26 +917,41 @@
     let userLocationMarker = null;
     let currentUserLocation = null;
 
+    function updateGpsDot(status) {
+      const dot = document.getElementById('gpsStatusDot');
+      dot.classList.remove('hidden', 'bg-[var(--aicher-green)]', 'bg-[var(--aicher-yellow)]', 'bg-[#C31B2C]', 'animate-pulse');
+      
+      if (status === 'searching') {
+        dot.classList.add('bg-[var(--aicher-yellow)]', 'animate-pulse');
+      } else if (status === 'connected') {
+        dot.classList.add('bg-[var(--aicher-green)]');
+      } else if (status === 'error') {
+        dot.classList.add('bg-[#C31B2C]');
+      } else {
+        dot.classList.add('hidden');
+      }
+    }
+
     function startGpsTracking(auto = false) {
       if (!navigator.geolocation) {
-        if (!auto) showToast('GPS wird nicht unterstützt');
+        updateGpsDot('error');
         return;
       }
 
       if (isTrackingGps && currentUserLocation) {
         map.setView(currentUserLocation, 16, { animate: true });
-        if (!auto) showToast('Karte zentriert');
         return;
       }
 
-      if (!auto) showToast('Suche Standort...');
       isTrackingGps = true;
+      updateGpsDot('searching');
 
       gpsWatchId = navigator.geolocation.watchPosition(
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           currentUserLocation = [lat, lng];
+          updateGpsDot('connected');
 
           if (!userLocationMarker) {
             const customGpsIcon = L.divIcon({
@@ -947,18 +966,14 @@
             }).addTo(map);
             
             map.setView(currentUserLocation, 16, { animate: true });
-            if (!auto) showToast('Standort gefunden');
+            showToast('Standort gefunden');
           } else {
             userLocationMarker.setLatLng(currentUserLocation);
           }
         },
         (error) => {
           console.warn('GPS Fehler:', error);
-          if (error.code === error.PERMISSION_DENIED) {
-             if (!auto) showToast('GPS Berechtigung verweigert');
-          } else {
-             if (!auto) showToast('GPS Signal schwach/deaktiviert');
-          }
+          updateGpsDot('error');
           isTrackingGps = false;
           if (gpsWatchId) {
             navigator.geolocation.clearWatch(gpsWatchId);
@@ -979,56 +994,18 @@
       toastAnimTimeouts.forEach(clearTimeout);
       toastAnimTimeouts = [];
 
-      const tContainer = document.getElementById('trackStatusToast');
       const tPill = document.getElementById('toastPill');
-      const tText = document.getElementById('toastTextWrap');
-      
       document.getElementById('trackStatusMsg').innerText = msg;
       
-      // Reset state instantly before animating
-      tPill.classList.remove('opacity-100', 'scale-100', 'opacity-0', 'scale-50', 'duration-400', 'duration-200');
-      tText.classList.remove('max-w-[200px]', 'opacity-100', 'max-w-0', 'opacity-0', 'duration-500', 'duration-300');
-      
-      tPill.classList.add('opacity-0', 'scale-50', 'duration-400');
-      tText.classList.add('max-w-0', 'opacity-0', 'duration-500');
-      tContainer.classList.remove('hidden');
+      // Slide in from right
+      tPill.classList.remove('translate-x-[150%]');
+      tPill.classList.add('translate-x-0');
 
-      // Double requestAnimationFrame ensures the browser applies the reset classes before animating
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // 1. Pop the dot in
-          tPill.classList.remove('opacity-0', 'scale-50');
-          tPill.classList.add('opacity-100', 'scale-100');
-          
-          // 2. Extend the text to the left
-          toastAnimTimeouts.push(setTimeout(() => {
-            tText.classList.remove('max-w-0', 'opacity-0');
-            tText.classList.add('max-w-[200px]', 'opacity-100');
-          }, 350));
-        });
-      });
-
-      // Exit animation sequence (reverses the process)
+      // Slide out sequence after 3.5 seconds
       toastAnimTimeouts.push(setTimeout(() => {
-        // 3. Retract text slightly faster than it opened
-        tText.classList.remove('duration-500');
-        tText.classList.add('duration-300'); 
-        tText.classList.remove('max-w-[200px]', 'opacity-100');
-        tText.classList.add('max-w-0', 'opacity-0');
-        
-        // 4. Shrink dot and hide container
-        toastAnimTimeouts.push(setTimeout(() => {
-          tPill.classList.remove('duration-400');
-          tPill.classList.add('duration-200');
-          tPill.classList.remove('opacity-100', 'scale-100');
-          tPill.classList.add('opacity-0', 'scale-50');
-          
-          // Wait for scale down to finish before applying hidden
-          toastAnimTimeouts.push(setTimeout(() => {
-            tContainer.classList.add('hidden');
-          }, 200));
-        }, 300)); // wait for text to finish retracting
-      }, 3500)); // Keep on screen for 3.5 seconds
+        tPill.classList.remove('translate-x-0');
+        tPill.classList.add('translate-x-[150%]');
+      }, 3500)); 
     }
 
     // Touch gesture physics (Restored and fixed)
