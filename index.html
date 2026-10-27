@@ -209,12 +209,24 @@
       </div>
     </div>
     
-    <div class="flex-1 overflow-y-auto p-2 sm:p-3 overscroll-contain">
-      <div class="flex items-center justify-between px-2 mb-2 mt-1 shrink-0">
-        <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)] opacity-80">Live Abfahrten</span>
-        <button id="refreshDepBtn" class="w-6 h-6 neo-btn"><i class="fa-solid fa-rotate-right text-[10px]"></i></button>
+    <div class="flex-1 flex flex-col min-h-0 p-3 sm:p-4 pb-4">
+      <div class="flex items-center justify-between px-1 mb-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] shadow-sm animate-pulse"></span>
+          <span class="text-[10px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)]">Live Abfahrten</span>
+        </div>
+        <button id="refreshDepBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></button>
       </div>
-      <div id="departuresList" class="flex flex-col gap-1 pb-4"></div>
+
+      <!-- Departures List -->
+      <div class="flex-1 neo-input-track p-1.5 overflow-hidden flex flex-col">
+        <div class="grid grid-cols-[44px_1fr_60px] items-center px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70 shrink-0">
+          <span>Linie</span>
+          <span class="pl-1">Richtung</span>
+          <span class="text-right">Min</span>
+        </div>
+        <div id="departuresList" class="flex-1 overflow-y-auto pr-1 space-y-1 pb-2" style="scrollbar-width: none; -ms-overflow-style: none;"></div>
+      </div>
     </div>
   </div>
 
@@ -753,7 +765,7 @@
       const listEl = document.getElementById('departuresList');
 
       if (!currentDeparturesData || currentDeparturesData.length === 0) {
-        listEl.innerHTML = `<div class="py-6 text-center text-[12px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten.</div>`;
+        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Aktuell keine Abfahrten gefunden.</div>`;
         return;
       }
 
@@ -762,34 +774,29 @@
         : currentDeparturesData;
 
       if (filteredData.length === 0) {
-        listEl.innerHTML = `<div class="py-6 text-center text-[12px] text-[var(--aicher-text-muted)] font-bold">Keine Abfahrten für gewählte Filter.</div>`;
+        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[var(--aicher-text-muted)] font-bold">Keine Abfahrten für gewählte Filter.</div>`;
         return;
       }
 
-      // Rigid CSS Grid to guarantee pixel-perfect alignment and prevent squishing
       listEl.innerHTML = filteredData.map(d => {
         const lineStr = String(d.line);
         const textColor = lineStr === 'S8' ? 'text-black' : 'text-white';
         const bgColor = LINE_COLORS[lineStr] || '#333333';
         
         const delayIndicator = d.delay > 0 
-          ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1.5">+${d.delay}</span>` 
+          ? `<span class="text-[#C31B2C] text-[10px] font-black ml-1">+${d.delay}</span>` 
           : '';
 
         return `
-          <div class="grid grid-cols-[auto_1fr_auto] gap-3 items-center p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors border-b border-[var(--neo-shadow-light)]/5 last:border-0">
-            <!-- Line Badge -->
-            <span class="aicher-badge ${textColor} !h-[20px] !min-w-[32px] px-1 text-[10px]" style="background-color: ${bgColor};">${lineStr}</span>
-            
-            <!-- Destination (Truncates perfectly without breaking grid) -->
-            <span class="text-[13px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
-            
-            <!-- Time Display -->
-            <div class="flex items-baseline justify-end gap-0.5 min-w-[45px] text-right">
-              <span class="text-[14px] font-black text-[var(--aicher-text-title)]">${d.minsUntil}</span>
-              <span class="text-[9px] text-[var(--aicher-text-muted)] font-bold">min</span>
-              ${delayIndicator}
+          <div class="flex items-center justify-between p-2 hover:bg-[var(--neo-shadow-light)]/10 rounded-lg transition-colors">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+               <span class="aicher-badge ${textColor} !h-[20px] !min-w-[32px] px-1.5 text-[10px] shrink-0" style="background-color: ${bgColor};">${lineStr}</span>
+               <span class="text-[12px] font-bold truncate text-[var(--aicher-text-title)]">${d.direction}</span>
             </div>
+            <span class="text-[12px] font-black text-[var(--aicher-text-title)] shrink-0 flex items-center">
+              ${d.minsUntil} <span class="text-[9px] text-[var(--aicher-text-muted)] font-normal ml-0.5">min</span>
+              ${delayIndicator}
+            </span>
           </div>
         `;
       }).join('');
