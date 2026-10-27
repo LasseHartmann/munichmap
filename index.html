@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Munich Zone M Transit GPS Map</title>
-  <meta name="theme-color" content="#2C2F36" id="themeColorMeta" />
+  <meta name="theme-color" content="#292D34" id="themeColorMeta" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
@@ -21,11 +21,14 @@
     }
 
     :root {
-      /* Neomorphism Light Theme */
+      /* Neomorphism Light Theme - Refined */
       --neo-base: #E0E5EC;
       --neo-shadow-light: #ffffff;
       --neo-shadow-dark: #a3b1c6;
-      --neo-border: rgba(255, 255, 255, 0.4);
+      
+      /* Micro-borders for tactile crispness */
+      --neo-border-light: rgba(255, 255, 255, 0.7);
+      --neo-border-dark: rgba(163, 177, 198, 0.3);
       
       --neo-outset: 8px 8px 16px var(--neo-shadow-dark), -8px -8px 16px var(--neo-shadow-light);
       --neo-inset: inset 6px 6px 12px var(--neo-shadow-dark), inset -6px -6px 12px var(--neo-shadow-light);
@@ -43,16 +46,22 @@
     }
 
     body.theme-dark {
-      /* Neomorphism Dark Theme - Dark Grey */
-      --neo-base: #2C2F36; 
-      --neo-shadow-dark: rgba(0, 0, 0, 0.75);
-      --neo-border: rgba(255, 255, 255, 0.04);
+      /* Neomorphism Dark Theme - Tactile Plan Implemented */
+      --neo-base: #292D34; 
+      --neo-shadow-dark: rgba(0, 0, 0, 0.65);
+      --neo-shadow-light: rgba(255, 255, 255, 0.045);
       
-      /* Redefining shadows: only black outer shadows, thin inner white rim */
-      --neo-outset: 8px 8px 16px var(--neo-shadow-dark), inset 1px 1px 1.5px rgba(255, 255, 255, 0.04);
-      --neo-inset: inset 6px 6px 12px var(--neo-shadow-dark), inset -1px -1px 2px rgba(255, 255, 255, 0.02);
-      --neo-outset-sm: 4px 4px 8px var(--neo-shadow-dark), inset 1px 1px 1.5px rgba(255, 255, 255, 0.04);
-      --neo-inset-sm: inset 3px 3px 6px var(--neo-shadow-dark), inset -1px -1px 2px rgba(255, 255, 255, 0.02);
+      /* Micro-borders for dark mode glass/metal feel */
+      --neo-border-light: rgba(255, 255, 255, 0.04);
+      --neo-border-dark: rgba(0, 0, 0, 0.3);
+      
+      /* Restoring the tactile dual-shadow */
+      --neo-outset: 8px 8px 16px var(--neo-shadow-dark), -6px -6px 16px var(--neo-shadow-light);
+      --neo-inset: inset 6px 6px 12px var(--neo-shadow-dark), inset -4px -4px 10px var(--neo-shadow-light);
+      
+      /* Smaller variants for the round buttons */
+      --neo-outset-sm: 4px 4px 8px var(--neo-shadow-dark), -3px -3px 8px var(--neo-shadow-light);
+      --neo-inset-sm: inset 3px 3px 6px var(--neo-shadow-dark), inset -2px -2px 5px var(--neo-shadow-light);
 
       --aicher-blue: #63b3ed;
       --aicher-yellow: #ecc94b;
@@ -75,9 +84,13 @@
       background: var(--neo-base); z-index: 1; touch-action: manipulation;
     }
 
+    /* Core Neomorphic Shapes */
     .neo-panel {
       background: var(--neo-base);
-      border: 1px solid var(--neo-border);
+      border-top: 1px solid var(--neo-border-light);
+      border-left: 1px solid var(--neo-border-light);
+      border-bottom: 1px solid var(--neo-border-dark);
+      border-right: 1px solid var(--neo-border-dark);
       box-shadow: var(--neo-outset);
       border-radius: 28px;
     }
@@ -86,7 +99,10 @@
       position: relative;
       display: inline-flex; align-items: center; justify-content: center;
       background: var(--neo-base);
-      border: 1px solid var(--neo-border);
+      border-top: 1px solid var(--neo-border-light);
+      border-left: 1px solid var(--neo-border-light);
+      border-bottom: 1px solid var(--neo-border-dark);
+      border-right: 1px solid var(--neo-border-dark);
       color: var(--aicher-text-title);
       box-shadow: var(--neo-outset-sm);
       border-radius: 50%;
@@ -97,20 +113,42 @@
     .neo-btn:hover { transform: translateY(-1px); }
     .neo-btn:active, .neo-btn.is-active {
       box-shadow: var(--neo-inset-sm) !important;
+      border-top: 1px solid var(--neo-border-dark);
+      border-left: 1px solid var(--neo-border-dark);
+      border-bottom: 1px solid var(--neo-border-light);
+      border-right: 1px solid var(--neo-border-light);
       transform: translateY(1px) scale(0.95);
       color: var(--aicher-blue);
+    }
+    
+    /* Neon glow effect for active icons */
+    .neo-btn:active i, .neo-btn.is-active i {
+      text-shadow: 0 0 10px currentColor;
     }
 
     .neo-input-track {
       background: var(--neo-base);
       box-shadow: var(--neo-inset);
+      border-top: 1px solid var(--neo-border-dark);
+      border-left: 1px solid var(--neo-border-dark);
+      border-bottom: 1px solid var(--neo-border-light);
+      border-right: 1px solid var(--neo-border-light);
       border-radius: 16px;
     }
 
     .neo-pill {
       background: var(--neo-base);
+      border-top: 1px solid var(--neo-border-light);
+      border-left: 1px solid var(--neo-border-light);
+      border-bottom: 1px solid var(--neo-border-dark);
+      border-right: 1px solid var(--neo-border-dark);
       box-shadow: var(--neo-outset-sm);
       border-radius: 9999px;
+    }
+
+    /* Active Tab neon glow */
+    .active-tab {
+      text-shadow: 0 0 8px currentColor;
     }
 
     .aicher-badge {
@@ -144,13 +182,17 @@
     .station-hub-svg circle.hub-outer { fill: #E0E5EC; stroke: #2d3748; stroke-width: 2.4px; }
     .station-hub-svg circle.hub-inner { fill: #2d3748; }
 
-    body.theme-dark .station-node-svg circle.node-outer { fill: #2C2F36; stroke: #f7fafc; stroke-width: 2.2px; }
-    body.theme-dark .station-hub-svg circle.hub-outer { fill: #2C2F36; stroke: #f7fafc; stroke-width: 2.4px; }
+    /* Updated to match the new dark mode base color */
+    body.theme-dark .station-node-svg circle.node-outer { fill: #292D34; stroke: #f7fafc; stroke-width: 2.2px; }
+    body.theme-dark .station-hub-svg circle.hub-outer { fill: #292D34; stroke: #f7fafc; stroke-width: 2.4px; }
     body.theme-dark .station-hub-svg circle.hub-inner { fill: #f7fafc; }
 
     .leaflet-popup-content-wrapper {
       background: var(--neo-base) !important;
-      border: 1px solid var(--neo-border) !important;
+      border-top: 1px solid var(--neo-border-light) !important;
+      border-left: 1px solid var(--neo-border-light) !important;
+      border-bottom: 1px solid var(--neo-border-dark) !important;
+      border-right: 1px solid var(--neo-border-dark) !important;
       border-radius: 20px !important;
       box-shadow: var(--neo-outset) !important;
       color: var(--aicher-text-title) !important;
@@ -188,7 +230,7 @@
 
   <!-- Search Bar -->
   <div class="absolute left-3 sm:left-4 top-0 z-[1000] safe-top pointer-events-auto flex flex-col gap-2">
-    <div id="searchContainer" class="neo-panel !rounded-full flex items-center transition-all duration-300 w-12 h-12 overflow-hidden bg-[var(--neo-base)]">
+    <div id="searchContainer" class="neo-panel !rounded-full flex items-center transition-all duration-300 w-12 h-12 overflow-hidden bg-[var(--neo-base)] border-none">
       <button id="searchIconBtn" class="w-12 h-12 shrink-0 flex items-center justify-center text-[var(--aicher-text-title)] opacity-80 hover:opacity-100 transition-opacity">
         <i class="fa-solid fa-magnifying-glass text-[15px]"></i>
       </button>
@@ -263,7 +305,7 @@
     </div>
   </aside>
 
-  <!-- Station Information Drawer (Original format perfectly preserved!) -->
+  <!-- Station Information Drawer -->
   <div id="stationDrawer" class="aicher-slide absolute left-3 sm:left-4 top-[72px] bottom-4 sm:bottom-6 w-[calc(100vw-6rem)] sm:w-80 neo-panel z-[900] flex flex-col p-4 sm:p-5 -translate-x-[120%] pointer-events-auto">
     <div class="flex items-start justify-between gap-3 mb-4">
       <div class="flex flex-col min-w-0">
@@ -297,7 +339,7 @@
 
   <!-- Animated Two-Step Notification Pill (Top Right) -->
   <div id="toastContainer" class="absolute top-4 right-3 sm:right-4 safe-top z-[1050] pointer-events-none transition-transform duration-500 ease-[var(--spring-bouncy)] translate-x-[150%]">
-    <div id="toastPill" class="flex items-center justify-end h-12 bg-[var(--neo-base)] border border-[var(--neo-border)] rounded-full shadow-[var(--neo-outset)] transition-all duration-500 ease-[var(--spring-bouncy)] max-w-[48px] overflow-hidden">
+    <div id="toastPill" class="flex items-center justify-end h-12 bg-[var(--neo-base)] border-top border-left border-[var(--neo-border-light)] border-bottom border-right border-[var(--neo-border-dark)] rounded-full shadow-[var(--neo-outset)] transition-all duration-500 ease-[var(--spring-bouncy)] max-w-[48px] overflow-hidden">
       <!-- Expanding Text Section -->
       <div class="flex-1 overflow-hidden flex justify-start">
         <span id="trackStatusMsg" class="whitespace-nowrap text-[15px] font-black tracking-tight text-[var(--aicher-text-title)] pl-5 pr-2 opacity-0 transition-opacity duration-300">Status</span>
@@ -367,11 +409,12 @@
 
       const isDark = (theme.id === 'dark' || theme.id === 'satellite');
       document.body.classList.toggle('theme-dark', isDark);
-      document.getElementById('themeColorMeta').setAttribute('content', isDark ? '#2C2F36' : '#E0E5EC');
+      // Synchronize the Meta Theme color with the new refined base colors
+      document.getElementById('themeColorMeta').setAttribute('content', isDark ? '#292D34' : '#E0E5EC');
       document.getElementById('layerIcon').className = `fa-solid ${theme.icon} text-[12px] ${theme.color}`;
       
       linePolylineElements.forEach(item => {
-        if (item.casing) item.casing.setStyle({ color: isDark ? '#2C2F36' : '#E0E5EC', opacity: 1.0 });
+        if (item.casing) item.casing.setStyle({ color: isDark ? '#292D34' : '#E0E5EC', opacity: 1.0 });
       });
     }
 
@@ -392,7 +435,7 @@
       if (!coords || coords.length < 2) return;
       const isS = lineCode.startsWith('S');
       const isDark = document.body.classList.contains('theme-dark');
-      const casing = L.polyline(coords, { color: isDark ? '#2C2F36' : '#E0E5EC', weight: (isS ? 6.5 : 5.5) + 2, opacity: 1.0, interactive: false });
+      const casing = L.polyline(coords, { color: isDark ? '#292D34' : '#E0E5EC', weight: (isS ? 6.5 : 5.5) + 2, opacity: 1.0, interactive: false });
       const core = L.polyline(coords, { color: LINE_COLORS[lineCode] || '#0066CC', weight: isS ? 4.2 : 3.6, interactive: false });
       lineLayerGroup.addLayer(casing); lineLayerGroup.addLayer(core);
       linePolylineElements.push({ lineCode, casing, core });
@@ -586,7 +629,11 @@
       if (isSearchExpanded) {
         searchContainer.classList.remove('w-12');
         searchContainer.classList.add('w-[calc(100vw-24px)]', 'sm:w-80', 'neo-inset');
+        
+        // Remove standard borders when expanded to rely purely on inset shadow
+        searchContainer.classList.remove('border-top', 'border-left', 'border-bottom', 'border-right', 'border-[var(--neo-border-light)]', 'border-[var(--neo-border-dark)]');
         searchContainer.classList.remove('bg-[var(--neo-base)]');
+        
         searchInput.classList.remove('opacity-0', 'pointer-events-none');
         searchInput.focus();
       } else {
@@ -908,14 +955,14 @@
       
       // Sync Top Category Buttons (All / U / S)
       document.querySelectorAll('.filter-opt-btn').forEach(btn => {
-         btn.classList.remove('neo-inset-sm', 'text-[var(--aicher-blue)]');
+         btn.classList.remove('neo-inset-sm', 'text-[var(--aicher-blue)]', 'active-tab');
       });
       if (activeMapLines.size === ALL_LINES.length) {
-         document.querySelector('.filter-opt-btn[data-filter="all"]').classList.add('neo-inset-sm', 'text-[var(--aicher-blue)]');
+         document.querySelector('.filter-opt-btn[data-filter="all"]').classList.add('neo-inset-sm', 'text-[var(--aicher-blue)]', 'active-tab');
       } else if (activeMapLines.size === ALL_U_LINES.length && ALL_U_LINES.every(l => activeMapLines.has(l))) {
-         document.querySelector('.filter-opt-btn[data-filter="U"]').classList.add('neo-inset-sm');
+         document.querySelector('.filter-opt-btn[data-filter="U"]').classList.add('neo-inset-sm', 'active-tab');
       } else if (activeMapLines.size === ALL_S_LINES.length && ALL_S_LINES.every(l => activeMapLines.has(l))) {
-         document.querySelector('.filter-opt-btn[data-filter="S"]').classList.add('neo-inset-sm');
+         document.querySelector('.filter-opt-btn[data-filter="S"]').classList.add('neo-inset-sm', 'active-tab');
       }
     }
 
