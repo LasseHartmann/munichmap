@@ -973,8 +973,8 @@
 
     // Touch Swipe Gestures for physics-based menu closing
     function makeSwipeable(element, direction, closeCallback, baseTransform = '') {
-      let startX = 0, startY = 0, currentX = 0, currentY = 0;
-      let isDragging = false, isScrolling = false;
+      let startX = 0, startY = 0;
+      let isDragging = false, isScrolling = false, isDetermining = false;
       let scrollTarget = null;
 
       element.addEventListener('touchstart', e => {
@@ -983,6 +983,7 @@
         startY = e.touches[0].screenY;
         isDragging = true;
         isScrolling = false;
+        isDetermining = true;
         
         // Check if the user is touching a scrollable element
         scrollTarget = e.target.closest('.overflow-y-auto');
@@ -993,20 +994,26 @@
       
       element.addEventListener('touchmove', e => {
         if (!isDragging) return;
-        currentX = e.touches[0].screenX;
-        currentY = e.touches[0].screenY;
-        
+        let currentX = e.touches[0].screenX;
+        let currentY = e.touches[0].screenY;
         let diffX = currentX - startX;
-        let diffY = currentY - startY; // Keep real direction for 360 movement
+        let diffY = currentY - startY; 
         
-        // If swiping mostly vertically inside a scrollable area, let native scroll take over
-        if (scrollTarget && !isScrolling && Math.abs(diffY) > 15 && Math.abs(diffY) > Math.abs(diffX)) {
-          isScrolling = true;
+        // Wait until we have a clear direction (intent threshold) before moving the panel
+        if (isDetermining) {
+          if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
+            isDetermining = false;
+            // If swiping mostly vertically inside a scrollable area, it's a scroll
+            if (scrollTarget && Math.abs(diffY) > Math.abs(diffX)) {
+              isScrolling = true;
+            }
+          } else {
+            return; // Wait for more movement to determine intent
+          }
         }
 
         if (isScrolling) {
-          element.style.transform = baseTransform ? baseTransform.trim() : '';
-          return;
+          return; // Let native list scroll happen, don't move the panel at all
         }
 
         // Apply "Rubber-band" physics for X axis if pulling in the wrong direction
@@ -1024,13 +1031,15 @@
         if (!isDragging) return;
         isDragging = false;
         
-        if (isScrolling) {
-           element.style.transition = '';
+        // If they were just scrolling (or barely tapped), gracefully reset any weird states
+        if (isScrolling || isDetermining) {
+           element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
+           element.style.transform = baseTransform ? baseTransform.trim() : '';
            return;
         }
 
-        let diffX = currentX - startX;
-        let diffY = currentY - startY;
+        let diffX = e.changedTouches[0].screenX - startX;
+        let diffY = e.changedTouches[0].screenY - startY;
         let rubberY = diffY * 0.25;
         
         // Restore custom spring transition for the snap back or completion
@@ -1057,11 +1066,7 @@
            }
         } else {
            // Didn't swipe far enough, snap back to origin point in 360 space
-           element.style.transform = baseTransform ? baseTransform.trim() : 'translate(0px, 0px)';
-           setTimeout(() => {
-             element.style.transform = '';
-             element.style.transition = '';
-           }, 400);
+           element.style.transform = baseTransform ? baseTransform.trim() : '';
         }
       }, {passive: true});
     }
