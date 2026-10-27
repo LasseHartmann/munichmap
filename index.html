@@ -331,7 +331,9 @@
         <span class="pl-1">Richtung</span>
         <span class="text-right">Min</span>
       </div>
-      <comment-tag id="1"><div id="departuresList" class="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-1" style="scrollbar-width: none; -ms-overflow-style: none;"></div></comment-tag id="1" text="<div id=&quot;departuresList&quot; class=&quot;flex-1 overflow-y-auto pr-1 pt-2 pb-2 no-scrollbar space-y-1&quot; style=&quot;scrollbar-width: none; -ms-overflow-style: none; -webkit-mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent); mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent);&quot;></div>" type="suggestion">
+      <div class="flex-1 relative overflow-hidden" style="-webkit-mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent); mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent);">
+        <div id="departuresList" class="absolute inset-0 overflow-y-auto pr-1 py-1 no-scrollbar space-y-1" style="scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior: contain; touch-action: pan-y;"></div>
+      </div>
     </div>
   </div>
 
