@@ -43,12 +43,11 @@
     }
 
     body.theme-dark {
-      /* Neomorphism Dark Theme - Dark Grey */
+      /* Neomorphism Dark Theme */
       --neo-base: #2C2F36; 
       --neo-shadow-dark: rgba(0, 0, 0, 0.75);
       --neo-border: rgba(255, 255, 255, 0.04);
       
-      /* Redefining shadows: only black outer shadows, thin inner white rim */
       --neo-outset: 8px 8px 16px var(--neo-shadow-dark), inset 1px 1px 1.5px rgba(255, 255, 255, 0.04);
       --neo-inset: inset 6px 6px 12px var(--neo-shadow-dark), inset -1px -1px 2px rgba(255, 255, 255, 0.02);
       --neo-outset-sm: 4px 4px 8px var(--neo-shadow-dark), inset 1px 1px 1.5px rgba(255, 255, 255, 0.04);
@@ -121,7 +120,12 @@
     }
     .aicher-badge:hover { transform: scale(1.08) translateY(-1px); }
 
-    /* Departure filter line badges animation */
+    .aicher-slide {
+      transition-property: transform, opacity;
+      transition-duration: 0.5s;
+      transition-timing-function: var(--spring-bouncy);
+    }
+
     .dep-filter-btn { transition: all 0.3s var(--spring-bouncy); outline: none; }
 
     .station-node-wrap.leaflet-div-icon, .station-node-wrap {
@@ -156,18 +160,14 @@
     .aicher-gps-dot {
       width: 16px; height: 16px; background: var(--aicher-blue); border: 3px solid var(--neo-base);
       border-radius: 50%; position: absolute; top: 8px; left: 8px; box-shadow: var(--neo-outset-sm);
-      animation: jellyPulse 3s infinite var(--spring-bouncy); transition: background-color 0.5s ease;
+      animation: jellyPulse 3s infinite ease-in-out;
     }
     .aicher-gps-ring {
       position: absolute; inset: 0px; border: 2px solid var(--aicher-blue); border-radius: 50%;
-      opacity: 0.85; animation: aicherPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite; transition: border-color 0.5s ease;
+      opacity: 0.85; animation: aicherPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
-
-    .gps-stale .aicher-gps-dot { background: var(--aicher-text-muted); border-color: var(--neo-base); animation: none; }
-    .gps-stale .aicher-gps-ring { border-color: var(--aicher-text-muted); animation: none; opacity: 0.3; }
-
     @keyframes aicherPing { 75%, 100% { transform: scale(2.8); opacity: 0; } }
-    @keyframes jellyPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    @keyframes jellyPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
     .safe-top { padding-top: max(16px, env(safe-area-inset-top, 16px)); }
     .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); }
@@ -178,7 +178,7 @@
 
   <div id="map"></div>
 
-  <!-- Search Bar -->
+  <!-- Search UI (Top Left) -->
   <div class="absolute left-3 sm:left-4 top-0 z-[1000] safe-top pointer-events-auto flex flex-col gap-2">
     <div id="searchContainer" class="neo-panel !rounded-full flex items-center transition-all duration-300 w-12 h-12 overflow-hidden bg-[var(--neo-base)]">
       <button id="searchIconBtn" class="w-12 h-12 shrink-0 flex items-center justify-center text-[var(--aicher-text-title)] opacity-80 hover:opacity-100 transition-opacity">
@@ -192,9 +192,49 @@
     <div id="searchDropdown" class="hidden neo-panel flex flex-col w-[calc(100vw-24px)] sm:w-80 max-h-[40vh] overflow-y-auto divide-y divide-[var(--neo-shadow-light)]/20 shadow-2xl"></div>
   </div>
 
-  <!-- Map Controls (GPS, Filters, View) -->
-  <aside class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-[1000] pointer-events-auto">
-    <div class="neo-pill p-1.5 flex flex-col gap-2.5 items-center relative">
+  <!-- Map Controls & Filter Menu (Right Side) -->
+  <aside class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-[1000] pointer-events-none flex items-center justify-end">
+    
+    <!-- Filter Panel Slideout (Hidden behind the Pill naturally via z-index and translation) -->
+    <div id="filterMenuPanel" class="aicher-slide absolute right-full mr-4 top-1/2 -translate-y-1/2 w-[280px] sm:w-[320px] neo-panel p-4 z-[-1] opacity-0 pointer-events-none translate-x-[120%]">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--neo-shadow-light)]/20">
+        <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
+        <button id="closeFilterMenuBtn" class="w-7 h-7 neo-btn pointer-events-auto"><i class="fa-solid fa-xmark text-xs"></i></button>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mb-4 pointer-events-auto">
+        <button data-filter="all" class="filter-opt-btn neo-pill px-3 py-2 text-xs font-bold text-[var(--aicher-text-main)] active-tab neo-inset-sm text-[var(--aicher-blue)]">Alle</button>
+        <button data-filter="U" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center">U</span></button>
+        <button data-filter="S" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-full bg-[#008B4E] text-white text-xs font-black flex items-center justify-center">S</span></button>
+      </div>
+      <div class="mb-3 pointer-events-auto">
+        <div class="flex flex-wrap gap-2">
+          <button data-line="U1" class="filter-line-btn aicher-badge text-white bg-[#438238]">U1</button>
+          <button data-line="U2" class="filter-line-btn aicher-badge text-white bg-[#C31B2C]">U2</button>
+          <button data-line="U3" class="filter-line-btn aicher-badge text-white bg-[#EB7926]">U3</button>
+          <button data-line="U4" class="filter-line-btn aicher-badge text-white bg-[#00A896]">U4</button>
+          <button data-line="U5" class="filter-line-btn aicher-badge text-white bg-[#BE7E22]">U5</button>
+          <button data-line="U6" class="filter-line-btn aicher-badge text-white bg-[#0073B9]">U6</button>
+          <button data-line="U7" class="filter-line-btn aicher-badge text-white bg-[#A32938]">U7</button>
+          <button data-line="U8" class="filter-line-btn aicher-badge text-white bg-[#B84514]">U8</button>
+        </div>
+      </div>
+      <div class="pointer-events-auto">
+        <div class="flex flex-wrap gap-2">
+          <button data-line="S1" class="filter-line-btn aicher-badge text-white bg-[#1BB0E8]">S1</button>
+          <button data-line="S2" class="filter-line-btn aicher-badge text-white bg-[#74BF43]">S2</button>
+          <button data-line="S3" class="filter-line-btn aicher-badge text-white bg-[#92278F]">S3</button>
+          <button data-line="S4" class="filter-line-btn aicher-badge text-white bg-[#E2007A]">S4</button>
+          <button data-line="S5" class="filter-line-btn aicher-badge text-white bg-[#00517F]">S5</button>
+          <button data-line="S6" class="filter-line-btn aicher-badge text-white bg-[#008B4E]">S6</button>
+          <button data-line="S7" class="filter-line-btn aicher-badge text-white bg-[#941B33]">S7</button>
+          <button data-line="S8" class="filter-line-btn aicher-badge text-black bg-[#FFCC00]">S8</button>
+          <button data-line="S20" class="filter-line-btn aicher-badge text-white bg-[#EA516D]">S20</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Controls Pill -->
+    <div class="neo-pill p-1.5 flex flex-col gap-2.5 items-center relative z-10 pointer-events-auto">
       <button id="gpsBtn" title="Standort" class="w-9 h-9 neo-btn"><i class="fa-solid fa-location-crosshairs text-[13px] text-[var(--aicher-blue)]"></i></button>
       <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
       
@@ -203,44 +243,6 @@
           <i class="fa-solid fa-filter text-[12px] text-[var(--aicher-text-title)]"></i>
           <span id="filterActiveBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--aicher-blue)] text-[8.5px] font-black text-white flex items-center justify-center shadow-md">0</span>
         </button>
-
-        <!-- Filter Panel Slideout -->
-        <div id="filterMenuPanel" class="hidden absolute right-[130%] top-1/2 -translate-y-1/2 w-[280px] sm:w-[320px] neo-panel p-4 z-50">
-          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[var(--neo-shadow-light)]/20">
-            <span class="text-[11px] font-black uppercase tracking-wider text-[var(--aicher-text-title)]">Linienfilter</span>
-            <button id="closeFilterMenuBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-xmark text-xs"></i></button>
-          </div>
-          <div class="grid grid-cols-3 gap-2 mb-4">
-            <button data-filter="all" class="filter-opt-btn neo-pill px-3 py-2 text-xs font-bold text-[var(--aicher-text-main)] active-tab neo-inset-sm">Alle</button>
-            <button data-filter="U" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-[6px] bg-[#0073B9] text-white text-xs font-black flex items-center justify-center">U</span></button>
-            <button data-filter="S" class="filter-opt-btn neo-pill px-3 py-2 flex justify-center"><span class="w-5 h-5 rounded-full bg-[#008B4E] text-white text-xs font-black flex items-center justify-center">S</span></button>
-          </div>
-          <div class="mb-3">
-            <div class="flex flex-wrap gap-2">
-              <button data-line="U1" class="filter-line-btn aicher-badge text-white bg-[#438238]">U1</button>
-              <button data-line="U2" class="filter-line-btn aicher-badge text-white bg-[#C31B2C]">U2</button>
-              <button data-line="U3" class="filter-line-btn aicher-badge text-white bg-[#EB7926]">U3</button>
-              <button data-line="U4" class="filter-line-btn aicher-badge text-white bg-[#00A896]">U4</button>
-              <button data-line="U5" class="filter-line-btn aicher-badge text-white bg-[#BE7E22]">U5</button>
-              <button data-line="U6" class="filter-line-btn aicher-badge text-white bg-[#0073B9]">U6</button>
-              <button data-line="U7" class="filter-line-btn aicher-badge text-white bg-[#A32938]">U7</button>
-              <button data-line="U8" class="filter-line-btn aicher-badge text-white bg-[#B84514]">U8</button>
-            </div>
-          </div>
-          <div>
-            <div class="flex flex-wrap gap-2">
-              <button data-line="S1" class="filter-line-btn aicher-badge text-white bg-[#1BB0E8]">S1</button>
-              <button data-line="S2" class="filter-line-btn aicher-badge text-white bg-[#74BF43]">S2</button>
-              <button data-line="S3" class="filter-line-btn aicher-badge text-white bg-[#92278F]">S3</button>
-              <button data-line="S4" class="filter-line-btn aicher-badge text-white bg-[#E2007A]">S4</button>
-              <button data-line="S5" class="filter-line-btn aicher-badge text-white bg-[#00517F]">S5</button>
-              <button data-line="S6" class="filter-line-btn aicher-badge text-white bg-[#008B4E]">S6</button>
-              <button data-line="S7" class="filter-line-btn aicher-badge text-white bg-[#941B33]">S7</button>
-              <button data-line="S8" class="filter-line-btn aicher-badge text-black bg-[#FFCC00]">S8</button>
-              <button data-line="S20" class="filter-line-btn aicher-badge text-white bg-[#EA516D]">S20</button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="w-6 h-[2px] bg-[var(--neo-shadow-dark)] opacity-20 rounded-full"></div>
@@ -249,12 +251,11 @@
     </div>
   </aside>
 
-  <!-- Station Information Drawer -->
-  <div id="stationDrawer" class="absolute left-3 sm:left-4 top-[72px] bottom-4 sm:bottom-6 w-[calc(100vw-6rem)] sm:w-80 neo-panel z-[900] flex flex-col p-4 sm:p-5 transition-transform duration-400 ease-out -translate-x-[120%] pointer-events-auto">
-    <div class="flex items-start justify-between gap-3 mb-4">
-      <div class="flex flex-col min-w-0">
+  <!-- Station Drawer (Left Side) -->
+  <div id="stationDrawer" class="aicher-slide absolute left-3 sm:left-4 top-[72px] bottom-4 sm:bottom-6 w-[calc(100vw-6rem)] sm:w-80 neo-panel z-[900] flex flex-col p-4 sm:p-5 -translate-x-[120%] pointer-events-auto">
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="flex items-center min-w-0">
         <span id="nearestStationName" class="text-[18px] leading-tight font-black truncate text-[var(--aicher-text-title)]">Hauptbahnhof</span>
-        <span id="nearestStationMeta" class="text-[11px] leading-tight text-[var(--aicher-text-muted)] font-semibold mt-0.5">MVV</span>
       </div>
       <button id="closeStationDrawerBtn" class="w-8 h-8 neo-btn shrink-0"><i class="fa-solid fa-xmark text-[11px]"></i></button>
     </div>
@@ -270,7 +271,7 @@
       <button id="refreshDepBtn" class="w-7 h-7 neo-btn"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></button>
     </div>
 
-    <!-- Departures List -->
+    <!-- Neomorphic Sunken List -->
     <div class="flex-1 neo-input-track p-1.5 overflow-hidden flex flex-col">
       <div class="grid grid-cols-[44px_1fr_60px] items-center px-2 py-1.5 text-[9px] font-black uppercase tracking-wider text-[var(--aicher-text-muted)] opacity-70">
         <span>Linie</span>
@@ -281,14 +282,14 @@
     </div>
   </div>
 
-  <!-- Notifications Toast -->
+  <!-- Toast -->
   <div id="trackStatusToast" class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto neo-pill px-4 py-2 flex items-center gap-2 text-[11px] font-black tracking-tight text-[var(--aicher-text-title)] z-[1000]">
     <span class="w-2 h-2 rounded-full bg-[var(--aicher-green)] animate-ping"></span>
     <span id="trackStatusMsg">Status</span>
   </div>
 
   <script>
-    // Haptic feedback helper for mobile interaction
+    // Haptic feedback helper
     function haptic(pattern = 15) {
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         try { navigator.vibrate(pattern); } catch(e){}
@@ -307,12 +308,9 @@
     const ALL_LINES = [...ALL_U_LINES, ...ALL_S_LINES];
     let activeMapLines = new Set(ALL_LINES);
 
-    let STATIONS = []; 
-    let STATION_MAP = {};
-    const extractedByLine = {}; 
-    ALL_LINES.forEach(l => { extractedByLine[l] = []; });
+    let STATIONS = []; let STATION_MAP = {};
+    const extractedByLine = {}; ALL_LINES.forEach(l => { extractedByLine[l] = []; });
 
-    // Hardware-accelerated canvas for mapping performance
     const map = L.map('map', { 
       center: [48.140, 11.575], zoom: 13, minZoom: 9, maxZoom: 18, 
       zoomControl: false, tap: false, preferCanvas: true 
@@ -320,8 +318,7 @@
     
     const lineLayerGroup = L.layerGroup().addTo(map);
     const stationLayerGroup = L.layerGroup().addTo(map);
-    let linePolylineElements = []; 
-    const stationMarkers = [];
+    let linePolylineElements = []; const stationMarkers = [];
 
     const MAPTILER_KEY = 'BnpNaJSc3Lm93aTkILvr';
     const TILE_THEMES = [
@@ -330,8 +327,7 @@
       { id: 'satellite', url: `https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, icon: 'fa-satellite', color: 'text-blue-400' }
     ];
 
-    let currentTileIndex = 0; 
-    let activeTileLayer = null;
+    let currentTileIndex = 0; let activeTileLayer = null;
 
     function applyTileLayer(index) {
       if (!TILE_THEMES.length) return;
@@ -349,7 +345,6 @@
       });
     }
 
-    // Cached departure list to allow local filtering without recalling the API
     let currentDeparturesData = [];
     let activeDepartureFilters = new Set();
 
@@ -471,12 +466,12 @@
 
         let name = feat.properties.name.replace(/ \(.*\)/g, '').trim();
         
-        // Normalize names to automatically merge duplicate nodes into one visual station
+        // Auto-merge distinct Hbf and Ost nodes
         if (name.includes('Hauptbahnhof') || name.includes('München Hbf')) name = 'Hauptbahnhof';
         if (name.includes('Ostbahnhof')) name = 'Ostbahnhof';
 
         if (!tempStations.has(name)) {
-          tempStations.set(name, { id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat, lng, lines: new Set(), isHub: false, zone: 'MVV' });
+          tempStations.set(name, { id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'), name, lat, lng, lines: new Set(), isHub: false });
         }
       });
 
@@ -545,7 +540,7 @@
     let isSearchExpanded = false;
     let currentSearchMatches = [];
     let searchSelectedIndex = -1;
-    
+
     const searchContainer = document.getElementById('searchContainer');
     const searchIconBtn = document.getElementById('searchIconBtn');
     const searchInput = document.getElementById('stationSearchInput');
@@ -577,7 +572,6 @@
         searchDropdown.innerHTML = `<div class="px-4 py-3 text-[13px] font-semibold text-[var(--aicher-text-muted)]">Keine Stationen gefunden</div>`;
       } else {
         searchDropdown.innerHTML = currentSearchMatches.map((s, index) => {
-          // Dynamic styling for active keyboard selection vs regular hover
           const highlightClass = index === searchSelectedIndex 
             ? 'bg-[var(--neo-shadow-light)]/40' 
             : 'hover:bg-[var(--neo-shadow-light)]/20';
@@ -624,8 +618,7 @@
       if (e.key === 'Escape') {
         if (isSearchExpanded) toggleSearch();
         closeDrawer();
-        filterMenuPanel.classList.add('hidden');
-        filterMenuBtn.classList.remove('neo-inset-sm');
+        closeFilterMenu();
       }
     });
 
@@ -641,7 +634,6 @@
     let selectedStation = null;
     const stationDrawer = document.getElementById('stationDrawer');
 
-    // Synchronizes the visual state of the departure filter badges
     function updateDepFiltersUI() {
       const btns = document.querySelectorAll('.dep-filter-btn');
       btns.forEach(btn => {
@@ -662,7 +654,6 @@
       if (clearBtn) {
         if (activeDepartureFilters.size > 0) {
           clearBtn.classList.remove('hidden');
-          // Brief delay to allow CSS animations to trigger
           requestAnimationFrame(() => {
             clearBtn.classList.remove('scale-0');
             clearBtn.classList.add('scale-100');
@@ -679,21 +670,17 @@
 
     function setStationDisplay(st) {
       selectedStation = st;
-      
-      // Reset filter data when swapping to a new station
       activeDepartureFilters.clear();
       currentDeparturesData = [];
 
       document.getElementById('nearestStationName').innerText = st.name;
       
-      // Render badges alongside the animated 'Clear Filter' button
       const badgesHtml = getLineBadgesHTML(st.lines);
       const clearBtnHtml = `<button id="clearDepFiltersBtn" class="hidden neo-btn w-7 h-7 ml-auto shrink-0 transition-all duration-300 transform scale-0" title="Filter zurücksetzen"><i class="fa-solid fa-filter-circle-xmark text-[11px] text-[#C31B2C]"></i></button>`;
       
       const linesContainer = document.getElementById('nearestStationLines');
       linesContainer.innerHTML = badgesHtml + clearBtnHtml;
 
-      // Event Listeners for departure filters
       linesContainer.querySelectorAll('.dep-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           haptic(15);
@@ -733,7 +720,6 @@
       }
     });
 
-    // Renders the departure list using cached data so filtering is instant
     function renderDeparturesList() {
       const listEl = document.getElementById('departuresList');
 
@@ -775,25 +761,18 @@
       }).join('');
     }
 
-    // ==========================================
-    // REAL LIVE DEPARTURES API CONNECTION
-    // ==========================================
     async function fetchLiveDepartures(station) {
       const listEl = document.getElementById('departuresList');
       listEl.innerHTML = `<div class="py-4 text-center text-xs text-[var(--aicher-text-muted)] font-bold">Lade Live-Abfahrten...</div>`;
       
       try {
         const apiUrl = `/api/departures?query=${encodeURIComponent(station.name)}&lat=${station.lat}&lng=${station.lng}`;
-        
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error('API-Fehler');
         
-        // Save to current state & render
         currentDeparturesData = await response.json();
         renderDeparturesList();
-
       } catch (err) {
-        console.error("Failed to load departures:", err);
         listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-[#C31B2C] font-bold">Fehler beim Verbinden mit MVG</div>`;
       }
     }
@@ -802,25 +781,36 @@
     const filterMenuBtn = document.getElementById('filterMenuBtn');
     const filterMenuPanel = document.getElementById('filterMenuPanel');
     
+    function openFilterMenu() {
+        filterMenuPanel.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-[120%]');
+        filterMenuPanel.classList.add('translate-x-0', 'pointer-events-auto');
+        filterMenuBtn.classList.add('neo-inset-sm');
+    }
+
+    function closeFilterMenu() {
+        filterMenuPanel.classList.add('opacity-0', 'pointer-events-none', 'translate-x-[120%]');
+        filterMenuPanel.classList.remove('translate-x-0', 'pointer-events-auto');
+        filterMenuBtn.classList.remove('neo-inset-sm');
+    }
+
     filterMenuBtn.addEventListener('click', (e) => { 
       e.stopPropagation(); haptic(15); 
-      filterMenuPanel.classList.toggle('hidden'); 
-      filterMenuBtn.classList.toggle('neo-inset-sm'); 
+      if (filterMenuPanel.classList.contains('translate-x-[120%]')) {
+          openFilterMenu();
+      } else {
+          closeFilterMenu();
+      }
     });
     
-    document.getElementById('closeFilterMenuBtn').addEventListener('click', () => { 
-      haptic(15); filterMenuPanel.classList.add('hidden'); 
-      filterMenuBtn.classList.remove('neo-inset-sm'); 
-    });
+    document.getElementById('closeFilterMenuBtn').addEventListener('click', () => { haptic(15); closeFilterMenu(); });
     
     map.on('click', () => { 
-      filterMenuPanel.classList.add('hidden'); 
-      filterMenuBtn.classList.remove('neo-inset-sm'); 
-      if(isSearchExpanded) toggleSearch(); closeDrawer(); 
+      closeFilterMenu();
+      if(isSearchExpanded) toggleSearch(); 
+      closeDrawer(); 
     });
 
     function applyMapFilters() {
-      // Update map paths
       linePolylineElements.forEach(item => {
         if (activeMapLines.has(item.lineCode)) {
           if (!lineLayerGroup.hasLayer(item.casing)) lineLayerGroup.addLayer(item.casing);
@@ -831,7 +821,6 @@
         }
       });
 
-      // Update stations on map
       stationMarkers.forEach(item => {
         const isVisible = item.data.lines.some(l => activeMapLines.has(l));
         if (isVisible) {
@@ -841,7 +830,6 @@
         }
       });
 
-      // Update Filter Active Badge
       const badge = document.getElementById('filterActiveBadge');
       if (activeMapLines.size === ALL_LINES.length) {
         badge.classList.add('hidden');
@@ -850,7 +838,6 @@
         badge.innerText = activeMapLines.size;
       }
 
-      // Sync Line Buttons Visually
       document.querySelectorAll('.filter-line-btn').forEach(btn => {
         btn.style.transition = 'all 0.3s var(--spring-bouncy)';
         const line = btn.getAttribute('data-line');
@@ -866,7 +853,6 @@
         }
       });
       
-      // Sync Top Category Buttons (All / U / S)
       document.querySelectorAll('.filter-opt-btn').forEach(btn => {
          btn.classList.remove('neo-inset-sm', 'text-[var(--aicher-blue)]');
       });
@@ -884,14 +870,11 @@
         haptic(15);
         const line = btn.getAttribute('data-line');
         if (activeMapLines.size === ALL_LINES.length) {
-          // Isolate clicked line if everything was showing
           activeMapLines.clear();
           activeMapLines.add(line);
         } else {
-          // Toggle clicked line
           if (activeMapLines.has(line)) {
             activeMapLines.delete(line);
-            // Reset to show everything if user unselects the last remaining line
             if (activeMapLines.size === 0) ALL_LINES.forEach(l => activeMapLines.add(l));
           } else {
             activeMapLines.add(line);
@@ -920,7 +903,6 @@
     let gpsWatchId = null;
     let userLocationMarker = null;
     let currentUserLocation = null;
-    let gpsStaleTimeout = null;
 
     function startGpsTracking(auto = false) {
       if (!navigator.geolocation) {
@@ -943,8 +925,6 @@
           const lng = position.coords.longitude;
           currentUserLocation = [lat, lng];
 
-          if (gpsStaleTimeout) clearTimeout(gpsStaleTimeout);
-
           if (!userLocationMarker) {
             const customGpsIcon = L.divIcon({
               className: 'aicher-gps-marker-wrap',
@@ -961,16 +941,7 @@
             if (!auto) showToast('Standort gefunden');
           } else {
             userLocationMarker.setLatLng(currentUserLocation);
-            const iconWrap = document.querySelector('.aicher-gps-marker-wrap');
-            if (iconWrap) iconWrap.classList.remove('gps-stale');
           }
-
-          gpsStaleTimeout = setTimeout(() => {
-            const iconWrap = document.querySelector('.aicher-gps-marker-wrap');
-            if (iconWrap) {
-                iconWrap.classList.add('gps-stale');
-            }
-          }, 10000); 
         },
         (error) => {
           console.warn('GPS Fehler:', error);
@@ -991,7 +962,6 @@
 
     document.getElementById('gpsBtn').addEventListener('click', () => { haptic(20); startGpsTracking(false); });
 
-    // Toast Notification logic
     let toastTimeout;
     function showToast(msg) {
       const t = document.getElementById('trackStatusToast');
@@ -1001,16 +971,112 @@
       toastTimeout = setTimeout(() => t.classList.add('hidden'), 3000);
     }
 
-    // Hide stations/lines when zooming out far to keep the map fast
+    // Touch Swipe Gestures for physics-based menu closing
+    function makeSwipeable(element, direction, closeCallback, baseTransform = '') {
+      let startX = 0, startY = 0, currentX = 0, currentY = 0;
+      let isDragging = false, isScrolling = false;
+      let scrollTarget = null;
+
+      element.addEventListener('touchstart', e => {
+        if (e.touches.length > 1) return;
+        startX = e.touches[0].screenX;
+        startY = e.touches[0].screenY;
+        isDragging = true;
+        isScrolling = false;
+        
+        // Check if the user is touching a scrollable element
+        scrollTarget = e.target.closest('.overflow-y-auto');
+        
+        // Remove CSS transition so it tracks the finger instantly
+        element.style.transition = 'none'; 
+      }, {passive: true});
+      
+      element.addEventListener('touchmove', e => {
+        if (!isDragging) return;
+        currentX = e.touches[0].screenX;
+        currentY = e.touches[0].screenY;
+        
+        let diffX = currentX - startX;
+        let diffY = currentY - startY; // Keep real direction for 360 movement
+        
+        // If swiping mostly vertically inside a scrollable area, let native scroll take over
+        if (scrollTarget && !isScrolling && Math.abs(diffY) > 15 && Math.abs(diffY) > Math.abs(diffX)) {
+          isScrolling = true;
+        }
+
+        if (isScrolling) {
+          element.style.transform = baseTransform ? baseTransform.trim() : '';
+          return;
+        }
+
+        // Apply "Rubber-band" physics for X axis if pulling in the wrong direction
+        if (direction === 'left' && diffX > 0) diffX = diffX * 0.25;
+        if (direction === 'right' && diffX < 0) diffX = diffX * 0.25;
+        
+        // Apply "Rubber-band" physics for Y axis (360 degree drag)
+        let rubberY = diffY * 0.25;
+        
+        // Physically move the menu 360 degrees with the finger
+        element.style.transform = `translate(${diffX}px, ${rubberY}px) ${baseTransform}`;
+      }, {passive: true});
+      
+      element.addEventListener('touchend', e => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        if (isScrolling) {
+           element.style.transition = '';
+           return;
+        }
+
+        let diffX = currentX - startX;
+        let diffY = currentY - startY;
+        let rubberY = diffY * 0.25;
+        
+        // Restore custom spring transition for the snap back or completion
+        element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
+        
+        // If swiped far enough on the X axis, trigger the close!
+        if ((direction === 'left' && diffX < -60) || (direction === 'right' && diffX > 60)) {
+           if (direction === 'right') {
+               // Slide right-menu out visually (maintaining Y pull) before triggering callback
+               element.style.transform = `translate(120%, ${rubberY}px) ${baseTransform}`;
+               element.style.opacity = '0';
+               setTimeout(() => {
+                   element.style.transform = '';
+                   element.style.opacity = '';
+                   closeCallback();
+               }, 300);
+           } else {
+               // Slide left drawer out visually (maintaining Y pull)
+               element.style.transform = `translate(-120%, ${rubberY}px) ${baseTransform}`;
+               setTimeout(() => {
+                   element.style.transform = '';
+                   closeCallback();
+               }, 300);
+           }
+        } else {
+           // Didn't swipe far enough, snap back to origin point in 360 space
+           element.style.transform = baseTransform ? baseTransform.trim() : 'translate(0px, 0px)';
+           setTimeout(() => {
+             element.style.transform = '';
+             element.style.transition = '';
+           }, 400);
+        }
+      }, {passive: true});
+    }
+
+    // Attach true physics swipe-to-close on both menus
+    makeSwipeable(stationDrawer, 'left', closeDrawer);
+    makeSwipeable(filterMenuPanel, 'right', closeFilterMenu, 'translateY(-50%)');
+
     map.on('zoomend', function() {
       const currentZoom = map.getZoom();
-      
       if (currentZoom < 12) {
         if (map.hasLayer(stationLayerGroup)) map.removeLayer(stationLayerGroup);
       } else {
         if (!map.hasLayer(stationLayerGroup)) map.addLayer(stationLayerGroup);
       }
-
       if (currentZoom < 10) {
         if (map.hasLayer(lineLayerGroup)) map.removeLayer(lineLayerGroup);
       } else {
