@@ -1070,23 +1070,17 @@
       }, 3500)); 
     }
 
-    // New 2D Spring Physics Engine
+    // Modern Intent-based 2D Spring Physics Engine
     function makeSwipeable(element, direction, closeCallback) {
       let startX = 0, startY = 0;
-      let isDragging = false, isScrolling = false, isDetermining = false, ticking = false;
+      let isDragging = false, intent = 'unknown'; // 'unknown', 'scroll', 'drag'
+      let ticking = false;
 
       element.addEventListener('touchstart', (e) => {
-        // Fix Jitter: If touching the actual scrollable list, let the browser scroll natively.
-        if (e.target.closest('.overflow-y-auto')) {
-            isScrolling = true;
-        } else {
-            isScrolling = false;
-        }
-        
         startX = e.touches[0].screenX;
         startY = e.touches[0].screenY;
         isDragging = true; 
-        isDetermining = !isScrolling;
+        intent = 'unknown';
         element.style.transition = 'none'; 
       }, {passive: true});
 
@@ -1095,32 +1089,52 @@
         let diffX = e.touches[0].screenX - startX;
         let diffY = e.touches[0].screenY - startY;
 
-        if (isDetermining) {
-          if (Math.abs(diffY) > 5 && Math.abs(diffY) > Math.abs(diffX)) {
-             isScrolling = true; isDetermining = false;
-             element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
-             return;
-          }
-          if (Math.abs(diffX) > 5) {
-             isDetermining = false;
-             if (e.cancelable) e.preventDefault();
-          }
+        // Detect user intent (Native Scrolling vs Free 2D Dragging)
+        if (intent === 'unknown') {
+            if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
+                // Find if touch started on an element that can actually scroll
+                const scrollContainer = e.target.closest('.overflow-y-auto');
+                const canScroll = scrollContainer && (scrollContainer.scrollHeight > scrollContainer.clientHeight);
+                
+                // If they are pulling primarily vertically on a scrollable container, let them scroll
+                if (Math.abs(diffY) > Math.abs(diffX) && canScroll) {
+                    intent = 'scroll';
+                } else {
+                    intent = 'drag';
+                }
+            } else {
+                return; // Wait for more movement to determine intent
+            }
         }
 
-        if (isScrolling) return; // Browser takes over
-        if (e.cancelable && !isDetermining) e.preventDefault();
+        // Release control to browser if user is scrolling the list natively
+        if (intent === 'scroll') return; 
+
+        // Confirmed panel drag intent - disable native scrolling & pull-to-refresh
+        if (e.cancelable) e.preventDefault();
 
         if (!ticking) {
           requestAnimationFrame(() => {
-            // Apply 1:1 pull curve that softens gracefully to avoid jumpiness
+            // FIX: Prevent race condition where animation frame fires after touchend
+            if (!isDragging) { ticking = false; return; }
+
             let physX = diffX;
-            if (direction === 'left' && physX > 0) physX = Math.pow(physX, 0.85);
-            if (direction === 'right' && physX < 0) physX = -Math.pow(Math.abs(physX), 0.85);
+            let physY = diffY;
             
-            let rubberY = Math.sign(diffY) * Math.pow(Math.abs(diffY), 0.85);
+            // Soft rubber banding depending on drawer attachment
+            if (direction === 'left') {
+                if (physX > 0) physX = Math.pow(physX, 0.85); // Resist pulling further into screen
+                else physX = -Math.pow(Math.abs(physX), 0.96); // Soften the pull closing
+            } else if (direction === 'right') {
+                if (physX < 0) physX = -Math.pow(Math.abs(physX), 0.85);
+                else physX = Math.pow(physX, 0.96);
+            }
+            
+            // Always rubber-band Y axis for free-floating physical feel
+            physY = Math.sign(diffY) * Math.pow(Math.abs(diffY), 0.85);
             
             element.style.willChange = 'transform';
-            element.style.transform = `translate3d(${physX}px, ${rubberY}px, 0)`;
+            element.style.transform = `translate3d(${physX}px, ${physY}px, 0)`;
             ticking = false;
           });
           ticking = true;
@@ -1130,20 +1144,26 @@
       const handleEnd = (e) => {
         if (!isDragging) return;
         isDragging = false;
-        element.style.willChange = 'auto'; // release GPU layer memory
+        element.style.willChange = 'auto'; // Release GPU layer
         
-        if (isScrolling || isDetermining) {
+        if (intent === 'scroll' || intent === 'unknown') {
            element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
            element.style.transform = '';
            return;
         }
 
         let diffX = e.changedTouches ? e.changedTouches[0].screenX - startX : 0;
+        let diffY = e.changedTouches ? e.changedTouches[0].screenY - startY : 0;
+        
         element.style.transition = 'transform 0.55s var(--spring-bouncy), opacity 0.5s ease';
         
+        // Evaluate closing threshold on X
         if ((direction === 'left' && diffX < -60) || (direction === 'right' && diffX > 60)) {
+           // Throw out of bounds while maintaining Y momentum for fluid exit
+           let throwY = Math.sign(diffY) * Math.pow(Math.abs(diffY), 0.85);
+           
            if (direction === 'right') {
-               element.style.transform = `translate3d(120%, 0, 0)`;
+               element.style.transform = `translate3d(120%, ${throwY}px, 0)`;
                element.style.opacity = '0';
                setTimeout(() => {
                    element.style.transform = '';
@@ -1151,20 +1171,19 @@
                    closeCallback();
                }, 300);
            } else {
-               element.style.transform = `translate3d(-120%, 0, 0)`;
+               element.style.transform = `translate3d(-120%, ${throwY}px, 0)`;
                setTimeout(() => {
                    element.style.transform = '';
                    closeCallback();
                }, 300);
            }
         } else {
+           // Snap perfectly back to origin in both X and Y
            element.style.transform = '';
         }
       };
 
       element.addEventListener('touchend', handleEnd, {passive: true});
-      
-      // Fix Stuck Panel: Listen for system interruption events
       element.addEventListener('touchcancel', handleEnd, {passive: true}); 
     }
 
